@@ -9,6 +9,8 @@ template <typename T>
 class MinHeap
 {
 private:
+    std::vector<T> items;
+
     int left_child(int parent)
     {
         return (parent * 2) + 1;
@@ -112,8 +114,6 @@ private:
     }
 
 public:
-    std::vector<T> items;
-
     MinHeap(){};
 
     MinHeap(int num, ...)

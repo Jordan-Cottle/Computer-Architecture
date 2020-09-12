@@ -1,10 +1,9 @@
 .PHONY: .cpp .python .clean
 
-HEADER_DIR:= ./headers
 SOURCE_DIR:= ./cpp_source
 PYTHON_DIR:= ./python_solution
 
-GCC:= g++ -iquote ${HEADER_DIR}
+GCC:= g++
 
 # The default goal is to create the event_queue executable (and clean up afterwards), but not run it
 all: event_queue clean
@@ -19,7 +18,7 @@ python: ${PYTHON_DIR}/event_queue.py
 
 clean :
 	rm *.o
-	rm ${HEADER_DIR}/*.gch
+	rm ${SOURCE_DIR}/*.gch
 
 event_queue: main.o event_queue.o event.o
 	${GCC} -o event_queue main.o event_queue.o event.o
@@ -33,5 +32,5 @@ event_queue.o : ${SOURCE_DIR}/event_queue.cpp event.o heap.h.gch
 event.o : ${SOURCE_DIR}/event.cpp
 	${GCC} -c ${SOURCE_DIR}/event.cpp
 
-heap.h.gch : ${HEADER_DIR}/heap.h
-	${GCC} -c ${HEADER_DIR}/heap.h
+heap.h.gch : ${SOURCE_DIR}/heap.h
+	${GCC} -c ${SOURCE_DIR}/heap.h
