@@ -12,9 +12,10 @@ class Event:
         self.id = Event.count + 1
 
         Event.count += 1
+        print(f"{self} created")
 
     def __repr__(self):
-        return f"Event(id={self.id}, time={self.time}, value={self.value})"
+        return f"Event {self.id} (T:{self.time} V:{self.value})"
 
     def __lt__(self, value):
         return self.time < value.time
@@ -22,9 +23,9 @@ class Event:
     def process(self):
         """ Assignment 1, process a single event. """
 
-        print(f"Event {self.id}: value = {self.value}")
+        print(f"Processing {self}")
 
-        return Event(self.time + random() * self.value, self.value)
+        return Event(self.time + randint(1, self.value), self.value)
 
 
 class EventQueue:
@@ -60,9 +61,9 @@ def generate_event_queue():
 
     queue = EventQueue()
 
-    for _ in range(20):
+    for i in range(20):
         value = randint(1, 10)
-        event = Event(time.time() + random() * 10, value)
+        event = Event(randint(0, i), value)
         print(f"Adding {event}")
         queue.push(event)
 
