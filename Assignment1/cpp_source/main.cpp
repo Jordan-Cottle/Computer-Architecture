@@ -15,6 +15,8 @@ int main()
         masterEventQueue.push(event);
     }
 
+    std::cout << "Starting simulation...\n";
+
     for (int i = 0; i < 100; i++)
     {
         Event *event = masterEventQueue.pop();
