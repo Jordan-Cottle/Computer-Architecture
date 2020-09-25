@@ -24,4 +24,6 @@ int main()
 
         masterEventQueue.push(new_event);
     }
+
+    return 0;
 }
