@@ -1,4 +1,4 @@
-.PHONY: .cpp .python .clean
+.PHONY: .cpp .python .clean .test_python
 
 SOURCE_DIR:= ./cpp_source
 PYTHON_DIR:= ./python_solution
@@ -15,8 +15,8 @@ cpp: ${TARGET} clean
 	./${TARGET}
 
 # Call "make python" to execute the python solution
-python: ${PYTHON_DIR}/event_queue.py
-	python3 ${PYTHON_DIR}/event_queue.py
+python:
+	python3 ${PYTHON_DIR}/main.py
 
 test_python:
 	./run_python_tests.sh

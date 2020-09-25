@@ -19,9 +19,9 @@ class EventQueue:
         #   ...
         # }
 
-    def events(self, device):
+    def queued_for(self, device):
         """ Get events scheduled for a device. """
-        return [time[device] for time in self.events.values()]
+        return [time[device] for time in self.events.values() if device in time]
 
     def schedule(self, event):
         """ Push an event into the queue. """
@@ -40,7 +40,7 @@ class EventQueue:
 
         return self.events.pop(time, {}).values()
 
-    def read(self, time):
+    def peek(self, time):
         """ Get events in queue at a time without removing them. """
 
         return self.events[time]

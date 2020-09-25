@@ -15,6 +15,6 @@ class IntEvent(Event):
     def process(self):
         """ Assignment 1, process a single event. """
 
-        print(f"Processing {self}")
+        print(f"Processing {repr(self)}")
 
         return IntEvent(self.time + self.value, self.device, self.value)

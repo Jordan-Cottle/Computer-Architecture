@@ -1,0 +1,15 @@
+[run]
+    source = ../../python_solution
+    omit = */.venv/*
+
+    command_line = -m unittest discover
+
+[report]
+    exclude_lines = 
+        pass
+        def __repr__
+        if __name__ == "__main__"
+
+    show_missing = true
+    skip_empty = true
+    sort = Cover
