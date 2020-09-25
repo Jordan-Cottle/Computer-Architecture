@@ -1,11 +1,6 @@
 from unittest import TestCase
 
-from utils import type_of
 from utils import EnumeratedObject
-
-
-def foo():
-    pass
 
 
 class A(EnumeratedObject):
@@ -20,14 +15,7 @@ class C(B):
     pass
 
 
-class TestUtils(TestCase):
-    """ Test class for utils """
-
-    def test_type_of(self):
-        self.assertEqual(type_of(foo), "function")
-        self.assertEqual(type_of(EnumeratedObject()), "EnumeratedObject")
-        self.assertEqual(type_of(EnumeratedObject), "type")
-
+class TestEnumerateObject(TestCase):
     def test_enumerated_object_ids(self):
 
         last_id = 0
@@ -47,15 +35,18 @@ class TestUtils(TestCase):
     def test_enumerated_object_hashable(self):
         """ Verify that multiple types can be stored into the same dictionary. """
 
-        dic = {}
-
         a = A()
         b = B()
         c = C()
 
-        dic[a] = 1
-        dic[b] = 2
-        dic[c] = 3
+        dic = {
+            a: 1,
+            b: 2,
+            c: 3,
+            A(): 4,
+            B(): 5,
+            C(): 6,
+        }
 
         self.assertIn(a, dic)
         self.assertIn(b, dic)
@@ -65,10 +56,4 @@ class TestUtils(TestCase):
         self.assertEqual(dic[b], 2)
         self.assertEqual(dic[c], 3)
 
-        self.assertEqual(len(dic), 3)
-
-
-if __name__ == "__main__":
-    from unittest.main import main
-
-    main()
+        self.assertEqual(len(dic), 6)
