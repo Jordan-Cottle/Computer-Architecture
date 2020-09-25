@@ -1,0 +1,7 @@
+[run]
+
+source =$(pwd)/python_solution
+
+omit = */.venv/*
+
+command_line = -m unittest discover

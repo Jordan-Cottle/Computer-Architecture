@@ -18,6 +18,9 @@ cpp: ${TARGET} clean
 python: ${PYTHON_DIR}/event_queue.py
 	python3 ${PYTHON_DIR}/event_queue.py
 
+test_python:
+	./run_python_tests.sh
+
 clean :
 	rm *.o
 
