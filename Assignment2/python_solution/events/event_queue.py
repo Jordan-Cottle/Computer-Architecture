@@ -1,10 +1,11 @@
 from random import randint
 from collections import defaultdict
+from abc import ABC, abstractmethod
 
 from utils import EnumeratedObject
 
 
-class Event(EnumeratedObject):
+class Event(EnumeratedObject, ABC):
     """ Base class for tracking events associated with devices. """
 
     def __init__(self, trigger_time, device):
@@ -13,20 +14,15 @@ class Event(EnumeratedObject):
         self.time = trigger_time
         self.device = device
 
-        print(f"{self} created")
-
     def __repr__(self):
         return f"{self.device} Event {self.id} T:{self.time}"
 
     def __lt__(self, value):
         return self.time < value.time
 
-    def process(self):
-        """ Assignment 1, process a single event. """
-
-        print(f"Processing {self}")
-
-        return Event(self.time + randint(1, 10), self.device)
+    @abstractmethod
+    def process(self, *args, **kwargs):
+        pass
 
 
 class EventQueue:
