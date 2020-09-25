@@ -3,14 +3,16 @@
 SOURCE_DIR:= ./cpp_source
 PYTHON_DIR:= ./python_solution
 
+OBJECTS := event.o event_queue.o
+TARGET := main
 GCC:= g++
 
 # The default goal is to create the event_queue executable (and clean up afterwards), but not run it
-all: event_queue clean
+all: ${TARGET} clean
 
 # Call "make cpp" To compile and execute the c++ solution
-cpp: event_queue clean
-	./event_queue
+cpp: ${TARGET} clean
+	./${TARGET}
 
 # Call "make python" to execute the python solution
 python: ${PYTHON_DIR}/event_queue.py
@@ -18,19 +20,10 @@ python: ${PYTHON_DIR}/event_queue.py
 
 clean :
 	rm *.o
-	rm ${SOURCE_DIR}/*.gch
 
-event_queue: main.o event_queue.o event.o
-	${GCC} -o event_queue main.o event_queue.o event.o
+%.o : ${SOURCE_DIR}/%.cpp
+	${GCC} -c -o $@ $<
 
-main.o : ${SOURCE_DIR}/main.cpp event_queue.o event.o
-	${GCC} -c ${SOURCE_DIR}/main.cpp
-
-event_queue.o : ${SOURCE_DIR}/event_queue.cpp event.o heap.h.gch
-	${GCC} -c ${SOURCE_DIR}/event_queue.cpp
-
-event.o : ${SOURCE_DIR}/event.cpp
-	${GCC} -c ${SOURCE_DIR}/event.cpp
-
-heap.h.gch : ${SOURCE_DIR}/heap.h
-	${GCC} -c ${SOURCE_DIR}/heap.h
+${TARGET}: ${OBJECTS}
+	${GCC} -c -o $@.o ${SOURCE_DIR}/$@.cpp
+	${GCC} -o $@ $^ $@.o
