@@ -1,6 +1,6 @@
 from random import choice, randint
 
-from events import EventQueue, Event
+from events import EventQueue, IntEvent
 from devices import Device
 
 DEVICES = [Device("CPU"), Device("Memory")]
@@ -13,9 +13,7 @@ def generate_event_queue():
 
     for i in range(20):
         device = choice(DEVICES)
-        event = Event(randint(0, i), device)
-        print(f"Adding {event}")
-        queue.schedule(event)
+        event = IntEvent(randint(0, i), device, randint(1, 10))
 
     return queue
 

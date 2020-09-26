@@ -1,28 +1,11 @@
-from random import randint
-from collections import defaultdict
+"""
+    Module for base Event and the EventQueue definitions
+"""
+
 from abc import ABC, abstractmethod
+from collections import defaultdict
 
-from utils import EnumeratedObject
-
-
-class Event(EnumeratedObject, ABC):
-    """ Base class for tracking events associated with devices. """
-
-    def __init__(self, trigger_time, device):
-        super().__init__()
-
-        self.time = trigger_time
-        self.device = device
-
-    def __repr__(self):
-        return f"{self.device} Event {self.id} T:{self.time}"
-
-    def __lt__(self, value):
-        return self.time < value.time
-
-    @abstractmethod
-    def process(self, *args, **kwargs):
-        pass
+from events import Event
 
 
 class EventQueue:
@@ -46,7 +29,8 @@ class EventQueue:
 
         if event.device in time:
             raise ValueError(
-                f"{event} cannot be scheduled at {event.time} due to {event.device} already being busy during that time."
+                f"{event} cannot be scheduled at {event.time} due to "
+                f"{event.device} already being busy during that time."
             )
 
         time[event.device] = event
