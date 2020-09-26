@@ -38,3 +38,4 @@
 
 *.pyc
 .coverage
+*.installed  # Custom flags for installed modules via make

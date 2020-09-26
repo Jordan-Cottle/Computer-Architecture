@@ -18,6 +18,15 @@ cpp: ${TARGET} clean
 python:
 	python3 ${PYTHON_DIR}/main.py
 
+%.installed:
+	python3 -m pip install $* && touch $@
+
+coverage: coverage.installed
+	./generate_coverage.sh
+
+pylint: pylint.installed
+	pylint python_solution
+
 test_python:
 	./run_python_tests.sh
 
