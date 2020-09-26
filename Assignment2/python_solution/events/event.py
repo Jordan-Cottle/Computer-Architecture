@@ -1,3 +1,6 @@
+"""
+Module for base Event class
+"""
 from abc import ABC, abstractmethod
 
 from utils import EnumeratedObject

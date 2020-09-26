@@ -1,9 +1,17 @@
+""" Base class definition for objects that should have enumerated instances. """
+
 from collections import defaultdict
 
 from utils import type_of
 
 
 class EnumeratedObject:
+    """
+    Base class that will enumerate all instances of a sub-class.
+
+    Each unique sub-class gets a unique enumeration.
+    """
+
     counts = defaultdict(int)
 
     def __init__(self):
@@ -12,7 +20,7 @@ class EnumeratedObject:
         EnumeratedObject.counts[cls] += 1
 
     def __str__(self):
-        return f"{type(self).__qualname__} ID: {self.id}"
+        return f"{type_of(self)} ID: {self.id}"
 
     def __hash__(self):
         return self.id

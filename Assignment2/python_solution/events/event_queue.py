@@ -2,10 +2,7 @@
     Module for base Event and the EventQueue definitions
 """
 
-from abc import ABC, abstractmethod
 from collections import defaultdict
-
-from events import Event
 
 
 class EventQueue:

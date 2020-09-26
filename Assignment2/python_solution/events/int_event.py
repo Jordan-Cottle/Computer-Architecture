@@ -1,3 +1,8 @@
+""" Module for Integer events
+
+These events are used for the Assignment 1 project.
+"""
+
 from events import Event
 
 

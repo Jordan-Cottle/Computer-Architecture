@@ -1,5 +1,5 @@
-def type_of(obj):
-    return obj.__class__.__qualname__
+""" Provide a simplified interface to import any utility from. """
 
+from .misc import type_of
 
-from .enumeratedObject import EnumeratedObject
+from .enumerated_object import EnumeratedObject
