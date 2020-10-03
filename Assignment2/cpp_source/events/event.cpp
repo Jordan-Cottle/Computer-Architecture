@@ -7,7 +7,7 @@ Event ::Event(int time, int value) : EnumeratedObject("Event")
     this->time = time;
     this->value = value;
 
-    std::cout << str(this) << " created\n";
+    std::cout << this << " created\n";
 };
 
 std::string Event::__str__()
@@ -22,7 +22,7 @@ bool Event ::operator<(const Event &other)
 
 Event *Event::process()
 {
-    std::cout << "Processing " << str(this) << "\n";
+    std::cout << "Processing " << this << "\n";
 
     Event *new_event = new Event(this->time + this->value, this->value);
     delete this;

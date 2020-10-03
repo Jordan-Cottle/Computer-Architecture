@@ -1,14 +1,17 @@
+#include <iostream>
+#include <stdlib.h>
+
 #include "event_queue.h"
 #include "event.h"
 
 #include "instruction.h"
 #include "instruction_queue.h"
 
-#include <iostream>
-#include <stdlib.h>
+#include "device.h"
 
-void assignment_1()
+void event_processing_test()
 {
+    SimulationDevice device = SimulationDevice("TestDevice");
     EventQueue masterEventQueue;
 
     for (int i = 1; i <= 20; i++)
@@ -23,15 +26,17 @@ void assignment_1()
     for (int i = 0; i < 100; i++)
     {
         Event *event = masterEventQueue.pop();
-        Event *new_event = event->process();
+        Event *new_event = device.process(event);
 
         masterEventQueue.push(new_event);
     }
 
-    std::cout << "Master Event Queue: " << str(masterEventQueue);
+    std::cout << "Master Event Queue: " << masterEventQueue << "\n";
+
+    std::cout << device << " processed " << device.processed_count << " events\n";
 }
 
-int main()
+void instructionQueueTest()
 {
     std::vector<Instruction> instructions = std::vector<Instruction>();
     for (int i = 0; i < 10; i++)
@@ -51,5 +56,10 @@ int main()
     }
 
     std::cout << instructionQueue << "\n";
+}
+
+int main()
+{
+    event_processing_test();
     return 0;
 }
