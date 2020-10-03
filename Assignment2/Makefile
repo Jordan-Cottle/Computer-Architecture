@@ -8,3 +8,4 @@ build: cpp_source  # cpp_source directory needs to exist
 
 clean:
 	rm -rf obj
+	rm ${EXE}
