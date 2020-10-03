@@ -41,15 +41,15 @@ int main()
 
     InstructionQueue instructionQueue = InstructionQueue(instructions);
 
-    std::cout << str(instructionQueue) << "\n";
+    std::cout << instructionQueue << "\n";
 
     for (int i = 0; i < 3; i++)
     {
         Instruction next = instructionQueue.next();
 
-        std::cout << "Processing: " << str(next) << "\n";
+        std::cout << "Processing: " << next << "\n";
     }
 
-    std::cout << str(instructionQueue) << "\n";
+    std::cout << instructionQueue << "\n";
     return 0;
 }

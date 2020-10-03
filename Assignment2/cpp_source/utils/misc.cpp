@@ -10,12 +10,7 @@ std::string str(printable &obj)
     return obj.__str__();
 }
 
-std::string str(Printable *obj)
+std::ostream &operator<<(std::ostream &output, printable &p)
 {
-    return obj->__str__();
-}
-
-std::string str(Printable &obj)
-{
-    return obj.__str__();
+    return output << str(p);
 }

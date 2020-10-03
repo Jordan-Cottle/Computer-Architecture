@@ -18,16 +18,6 @@ struct printable
 
 std::string str(printable *obj);
 std::string str(printable &obj);
-
-class Printable
-{
-public:
-    virtual std::string __str__() = 0;
-
-    virtual ~Printable(){};
-};
-
-std::string str(Printable *obj);
-std::string str(Printable &obj);
+std::ostream &operator<<(std::ostream &output, printable &p);
 
 #endif
