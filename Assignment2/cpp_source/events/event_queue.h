@@ -1,10 +1,11 @@
 #include "event.h"
 #include "heap.h"
+#include "misc.h"
 
 #ifndef EVENT_QUEUE_H
 #define EVENT_QUEUE_H
 
-struct EventQueue
+struct EventQueue : printable
 {
     MinHeap<Event *> events;
 
@@ -16,7 +17,7 @@ struct EventQueue
 
     bool empty();
 
-    void display();
+    std::string __str__();
 };
 
 #endif

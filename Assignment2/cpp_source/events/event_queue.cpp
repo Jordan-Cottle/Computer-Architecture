@@ -21,7 +21,7 @@ bool EventQueue::empty()
     return this->events.empty();
 }
 
-void EventQueue::display()
+std::string EventQueue::__str__()
 {
-    return this->events.display();
+    return str(this->events);
 }

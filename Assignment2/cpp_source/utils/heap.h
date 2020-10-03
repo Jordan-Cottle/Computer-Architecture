@@ -1,12 +1,13 @@
 #include <iostream>
 #include <cstdarg>
 #include <vector>
+#include "misc.h"
 
 #ifndef __HEAP__
 #define __HEAP__
 
 template <typename T>
-class MinHeap
+class MinHeap : public printable
 {
 private:
     std::vector<T> items;
@@ -150,14 +151,18 @@ public:
         return this->items[0];
     };
 
-    void display()
+    std::string __str__()
     {
-        std::cout << "{";
+        std::string s = "{\n";
         for (auto item : this->items)
         {
-            std::cout << item << ", ";
+            s = s + "\t";
+            s = s + str(item);
+            s = s + ",\n";
         }
-        std::cout << "}\n";
+        s = s + "}\n";
+
+        return s;
     }
 
     bool empty()

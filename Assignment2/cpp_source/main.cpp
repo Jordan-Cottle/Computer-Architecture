@@ -25,5 +25,7 @@ int main()
         masterEventQueue.push(new_event);
     }
 
+    std::cout << "Master Event Queue: " << str(masterEventQueue);
+
     return 0;
 }

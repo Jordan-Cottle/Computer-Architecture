@@ -2,21 +2,18 @@
 
 #include "event.h"
 
-int event_count = 0;
-
-std::ostream &operator<<(std::ostream &os, Event *event)
-{
-    return os << "Event " << event->id << " (T:" << event->time << " V:" << event->value << ")";
-}
-
-Event ::Event(int time, int value)
+Event ::Event(int time, int value) : EnumeratedObject("Event")
 {
     this->time = time;
     this->value = value;
-    this->id = ++event_count;
 
-    std::cout << this << " created\n";
+    std::cout << str(this) << " created\n";
 };
+
+std::string Event::__str__()
+{
+    return "Event " + std::to_string(this->id) + " (T:" + std::to_string(this->time) + " V:" + std::to_string(this->value) + ")";
+}
 
 bool Event ::operator<(const Event &other)
 {
@@ -25,7 +22,7 @@ bool Event ::operator<(const Event &other)
 
 Event *Event::process()
 {
-    std::cout << "Processing " << this << "\n";
+    std::cout << "Processing " << str(this) << "\n";
 
     Event *new_event = new Event(this->time + this->value, this->value);
     delete this;

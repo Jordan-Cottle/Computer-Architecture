@@ -25,42 +25,13 @@ struct EnumeratedObject : printable
     int id;
     std::string type;
 
-    EnumeratedObject(std::string type)
-    {
-        this->type = type;
+    EnumeratedObject(std::string type);
 
-        this->id = EnumeratedObject::counts[type] + 1;
+    bool operator==(const EnumeratedObject &other);
 
-        EnumeratedObject::counts[type] = this->id;
-    }
-
-    bool operator==(const EnumeratedObject &other) const
-    {
-        return this->id == other.id;
-    }
-
-    std::string __str__()
-    {
-        return this->type + " object " + std::to_string(this->id);
-    }
+    virtual std::string __str__();
 
 private:
     static std::unordered_map<std::string, int> counts;
 };
-
-std::unordered_map<std::string, int> EnumeratedObject::counts = std::unordered_map<std::string, int>();
-
-namespace std
-{
-    template <>
-    struct hash<EnumeratedObject>
-    {
-        std::size_t operator()(const EnumeratedObject &object) const
-        {
-            return (std::size_t)object.id;
-        }
-    };
-
-} // namespace std
-
 #endif

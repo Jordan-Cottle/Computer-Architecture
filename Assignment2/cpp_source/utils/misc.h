@@ -12,16 +12,22 @@
 struct printable
 {
     virtual std::string __str__() = 0;
+
+    virtual ~printable(){};
 };
 
-std::string str(printable *obj)
-{
-    return obj->__str__();
-}
+std::string str(printable *obj);
+std::string str(printable &obj);
 
-std::string str(printable &obj)
+class Printable
 {
-    return obj.__str__();
-}
+public:
+    virtual std::string __str__() = 0;
+
+    virtual ~Printable(){};
+};
+
+std::string str(Printable *obj);
+std::string str(Printable &obj);
 
 #endif
