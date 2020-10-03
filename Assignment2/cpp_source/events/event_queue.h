@@ -4,9 +4,8 @@
 #ifndef EVENT_QUEUE_H
 #define EVENT_QUEUE_H
 
-class EventQueue
+struct EventQueue
 {
-public:
     MinHeap<Event *> events;
 
     void push(Event *event);

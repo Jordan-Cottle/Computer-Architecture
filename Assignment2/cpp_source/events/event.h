@@ -1,9 +1,8 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-class Event
+struct Event
 {
-public:
     int time;
     int value;
     int id;

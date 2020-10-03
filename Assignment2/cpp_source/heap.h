@@ -2,8 +2,8 @@
 #include <cstdarg>
 #include <vector>
 
-#ifndef HEAP_H
-#define HEAP_H
+#ifndef __HEAP__
+#define __HEAP__
 
 template <typename T>
 class MinHeap
@@ -28,12 +28,12 @@ private:
 
     bool has_left_child(int parent)
     {
-        return this->left_child(parent) < this->items.size();
+        return this->left_child(parent) < (int)this->items.size();
     };
 
     bool has_right_child(int parent)
     {
-        return this->right_child(parent) < this->items.size();
+        return this->right_child(parent) < (int)this->items.size();
     };
 
     void swap(int a, int b)
@@ -153,9 +153,9 @@ public:
     void display()
     {
         std::cout << "{";
-        for (int i = 0; i < this->items.size(); i++)
+        for (auto item : this->items)
         {
-            std::cout << this->items[i] << ", ";
+            std::cout << item << ", ";
         }
         std::cout << "}\n";
     }
