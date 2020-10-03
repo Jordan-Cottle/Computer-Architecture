@@ -1,10 +1,13 @@
 #include "event_queue.h"
 #include "event.h"
 
+#include "instruction.h"
+#include "instruction_queue.h"
+
 #include <iostream>
 #include <stdlib.h>
 
-int main()
+void assignment_1()
 {
     EventQueue masterEventQueue;
 
@@ -26,6 +29,27 @@ int main()
     }
 
     std::cout << "Master Event Queue: " << str(masterEventQueue);
+}
 
+int main()
+{
+    std::vector<Instruction> instructions = std::vector<Instruction>();
+    for (int i = 0; i < 10; i++)
+    {
+        instructions.push_back(Instruction("ADD", {"R" + std::to_string(i), "R" + std::to_string(i), "R" + std::to_string(i + 1)}));
+    }
+
+    InstructionQueue instructionQueue = InstructionQueue(instructions);
+
+    std::cout << str(instructionQueue) << "\n";
+
+    for (int i = 0; i < 3; i++)
+    {
+        Instruction next = instructionQueue.next();
+
+        std::cout << "Processing: " << str(next) << "\n";
+    }
+
+    std::cout << str(instructionQueue) << "\n";
     return 0;
 }
