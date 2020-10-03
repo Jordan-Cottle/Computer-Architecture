@@ -1,0 +1,44 @@
+#! /usr/bin/env python
+
+""" Utility for adding new files to a c++ project. """
+
+import sys
+import os
+from datetime import datetime
+
+
+def include_guards(file_name):
+    file_name = file_name.upper()
+    return f"""
+#ifndef __{file_name}__
+#define __{file_name}__
+
+#endif
+"""
+
+
+header_template = f"""
+/*
+    Author: Jordan Cottle
+    Created: {datetime.now().strftime("%m/%d/%Y")}
+*/
+"""
+
+new_files = sys.argv[1:]
+
+
+for file in new_files:
+    *directory, name = file.split("/")
+
+    directory = os.path.join(*directory)
+    directory = os.path.abspath(directory)
+
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+    with open(f"{file}.h", "w") as header_file:
+        print(header_template, file=header_file)
+        print(include_guards(name), file=header_file)
+
+    with open(f"{file}.cpp", "w") as cpp_file:
+        print(header_template, file=cpp_file)
