@@ -79,12 +79,6 @@ def main():
 
     build(output_name, find_files(f"{OBJ_DIR}", ".o"))
 
-    # execute("./main")
-
 
 if __name__ == "__main__":
-    # Set c include path
-    os.environ[
-        "CPLUS_INCLUDE_PATH"
-    ] = "/home/jdcottle/Computer-Architecture/Assignment2/cpp_source/events"
     main()
