@@ -42,4 +42,4 @@
 # Custom flags for installed modules via make
 *.installed
 
-main  # Don't track the executable file generated from source
+*.exe  # Don't track executable files generated

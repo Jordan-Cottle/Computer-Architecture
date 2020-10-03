@@ -1,4 +1,4 @@
-EXE := main
+EXE := main.exe
 
 run: build
 	./${EXE}
