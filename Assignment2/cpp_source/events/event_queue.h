@@ -1,9 +1,10 @@
-#include "event.h"
-#include "heap.h"
-#include "misc.h"
 
 #ifndef EVENT_QUEUE_H
 #define EVENT_QUEUE_H
+
+#include "event.h"
+#include "heap.h"
+#include "misc.h"
 
 struct EventQueue : printable
 {

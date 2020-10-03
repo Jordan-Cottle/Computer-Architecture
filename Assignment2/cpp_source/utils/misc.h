@@ -4,10 +4,10 @@
     Created: 10/02/2020
 */
 
-#include <string>
-
 #ifndef __MISC__
 #define __MISC__
+
+#include <string>
 
 struct printable
 {

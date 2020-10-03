@@ -1,10 +1,12 @@
-#include <iostream>
-#include <cstdarg>
-#include <vector>
-#include "misc.h"
 
 #ifndef __HEAP__
 #define __HEAP__
+
+#include <iostream>
+#include <cstdarg>
+#include <vector>
+
+#include "misc.h"
 
 template <typename T>
 class MinHeap : public printable
