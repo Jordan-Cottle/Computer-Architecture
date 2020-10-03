@@ -6,23 +6,65 @@ import sys
 import os
 from datetime import datetime
 
+GUARD_DIRECTIVES = ["#ifndef", "#define"]
+
 
 def include_guards(file_name):
-    file_name = file_name.upper()
-    return f"""
-#ifndef __{file_name}__
-#define __{file_name}__
-
-#endif
-"""
+    file_name = file_name.split(".")[0].upper()
+    return "\n".join([f"{directive} __{file_name}__" for directive in GUARD_DIRECTIVES])
 
 
-header_template = f"""
-/*
+class IncludeGuard:
+    def __init__(self, file):
+        self.fp = file
+        _, self.name = os.path.split(file.name)
+
+    def __enter__(self):
+        print(
+            include_guards(self.name),
+            file=self.fp,
+        )
+        return self
+
+    def __exit__(self, *args):
+        print(
+            "#endif",
+            file=self.fp,
+        )
+
+
+header_template = f"""/*
     Author: Jordan Cottle
     Created: {datetime.now().strftime("%m/%d/%Y")}
 */
 """
+
+
+def header_core(struct_name):
+    return f"""
+#include "misc.h"
+
+struct {struct_name} : printable{{
+
+    {struct_name}();
+
+    std::string __str__();
+}};
+"""
+
+
+def cpp_core(header_tag, struct_name):
+    return f"""
+#include "{header_tag}"
+
+{struct_name}::{struct_name}(){{
+
+}}
+
+std::string {struct_name}::__str__(){{
+
+}}"""
+
 
 new_files = sys.argv[1:]
 
@@ -36,9 +78,17 @@ for file in new_files:
     if directory:
         os.makedirs(directory, exist_ok=True)
 
-    with open(f"{file}.h", "w") as header_file:
+    header_name = f"{file}.h"
+    _, header_tag = os.path.split(header_name)
+    struct_name = "".join(
+        word.capitalize() for word in header_tag.split(".")[0].split("_")
+    )
+    with open(header_name, "w") as header_file:
         print(header_template, file=header_file)
-        print(include_guards(name), file=header_file)
+        with IncludeGuard(header_file):
+            print(header_core(struct_name), file=header_file)
 
     with open(f"{file}.cpp", "w") as cpp_file:
         print(header_template, file=cpp_file)
+
+        print(cpp_core(header_tag, struct_name), file=cpp_file)
