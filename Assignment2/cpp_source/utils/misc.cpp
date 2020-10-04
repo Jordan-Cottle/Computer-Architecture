@@ -33,3 +33,14 @@ std::string findAndReplaceAll(std::string data, std::string toSearch, std::strin
 
     return data;
 }
+
+std::string addIndent(std::string string, int level)
+{
+    std::string replace = "\n";
+    for (int i = 0; i < level; i++)
+    {
+        replace += "\t";
+    }
+
+    return findAndReplaceAll(string, "\n", replace);
+}
