@@ -2,16 +2,17 @@
 #define EVENT_H
 
 #include "enumerated_object.h"
+#include "device.h"
 
 struct Event : EnumeratedObject
 {
     int time;
-    int value;
-    Event(int time, int value);
+    SimulationDevice *device;
+
+    Event(int, SimulationDevice *);
+    Event(std::string, int, SimulationDevice *);
 
     bool operator<(const Event &);
-
-    Event *process();
 
     virtual std::string __str__();
 };

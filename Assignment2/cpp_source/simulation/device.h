@@ -7,16 +7,25 @@
 #define __SIMULATION_OBJECT__
 
 #include "enumerated_object.h"
-#include "event.h"
+
+struct Event;
+struct EventQueue;
 
 struct SimulationDevice : EnumeratedObject
 {
-    int processed_count;
+
+    int eventsProcessed;
 
     SimulationDevice(std::string);
 
-    virtual Event *process(Event *);
+    virtual void process(Event *, EventQueue *) = 0;
+
     std::string __str__();
+};
+
+struct UnrecognizedEvent : std::runtime_error
+{
+    UnrecognizedEvent(std::string);
 };
 
 #endif

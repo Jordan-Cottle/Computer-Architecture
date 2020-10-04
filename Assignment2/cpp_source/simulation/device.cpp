@@ -7,17 +7,14 @@
 
 SimulationDevice::SimulationDevice(std::string name) : EnumeratedObject(name)
 {
-    this->processed_count = 0;
+    this->eventsProcessed = 0;
 }
 
 std::string SimulationDevice::__str__()
 {
-    return "SimDevice: " + this->type + "(" + std::to_string(this->processed_count) + ")";
+    return this->type + "(" + str(this->eventsProcessed) + ")";
 }
 
-Event *SimulationDevice::process(Event *event)
+UnrecognizedEvent::UnrecognizedEvent(std::string message) : std::runtime_error(message)
 {
-    Event *newEvent = event->process();
-    this->processed_count++;
-    return newEvent;
 }

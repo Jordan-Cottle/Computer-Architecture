@@ -2,29 +2,26 @@
 
 #include "event.h"
 
-Event ::Event(int time, int value) : EnumeratedObject("Event")
+Event ::Event(int time, SimulationDevice *device) : EnumeratedObject("Event"), device(device)
 {
     this->time = time;
-    this->value = value;
+
+    std::cout << this << " created\n";
+};
+
+Event ::Event(std::string type, int time, SimulationDevice *device) : EnumeratedObject(type), device(device)
+{
+    this->time = time;
 
     std::cout << this << " created\n";
 };
 
 std::string Event::__str__()
 {
-    return this->device->type + " Event " + str(this->id) + " T:" + str(this->time);
+    return this->device->type + " " + this->type + " " + str(this->id) + " T:" + str(this->time);
 }
 
 bool Event ::operator<(const Event &other)
 {
     return this->time < other.time;
-}
-
-Event *Event::process()
-{
-    std::cout << "Processing " << this << "\n";
-
-    Event *new_event = new Event(this->time + this->value, this->value);
-    delete this;
-    return new_event;
 }
