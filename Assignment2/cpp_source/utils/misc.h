@@ -21,4 +21,6 @@ std::string str(printable &obj);
 std::ostream &operator<<(std::ostream &output, printable &p);
 std::ostream &operator<<(std::ostream &output, printable *p);
 
+std::string findAndReplaceAll(std::string, std::string, std::string);
+
 #endif
