@@ -17,5 +17,5 @@ int Clock::tick()
 
 std::string Clock::__str__()
 {
-    return "Clock: " + std::to_string(this->cycle);
+    return "Clock: " + str(this->cycle);
 }

@@ -60,7 +60,7 @@ struct Register : EnumeratedObject
         int mem_address = 0;
         for (auto item : this->addresses)
         {
-            s += "\n\t" + std::to_string(mem_address++) + ": ";
+            s += "\n\t" + str(mem_address++) + ": ";
 
             if (item == NULL)
             {

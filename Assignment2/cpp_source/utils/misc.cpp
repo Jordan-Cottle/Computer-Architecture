@@ -11,6 +11,11 @@ std::string str(printable &obj)
     return obj.__str__();
 }
 
+std::string str(int num)
+{
+    return std::to_string(num);
+}
+
 std::ostream &operator<<(std::ostream &output, printable &p)
 {
     return output << str(p);

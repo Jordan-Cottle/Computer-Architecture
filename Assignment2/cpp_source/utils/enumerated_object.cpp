@@ -29,7 +29,7 @@ bool EnumeratedObject::operator==(const EnumeratedObject &other)
 
 std::string EnumeratedObject::__str__()
 {
-    return this->type + " object " + std::to_string(this->id);
+    return this->type + " object " + str(this->id);
 }
 
 std::unordered_map<std::string, int> EnumeratedObject::counts = std::unordered_map<std::string, int>();

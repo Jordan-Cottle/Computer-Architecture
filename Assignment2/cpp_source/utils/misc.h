@@ -18,6 +18,8 @@ struct printable
 
 std::string str(printable *obj);
 std::string str(printable &obj);
+std::string str(int num);
+
 std::ostream &operator<<(std::ostream &output, printable &p);
 std::ostream &operator<<(std::ostream &output, printable *p);
 

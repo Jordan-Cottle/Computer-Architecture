@@ -12,7 +12,7 @@ Event ::Event(int time, int value) : EnumeratedObject("Event")
 
 std::string Event::__str__()
 {
-    return "Event " + std::to_string(this->id) + " (T:" + std::to_string(this->time) + " V:" + std::to_string(this->value) + ")";
+    return this->device->type + " Event " + str(this->id) + " T:" + str(this->time);
 }
 
 bool Event ::operator<(const Event &other)
