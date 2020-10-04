@@ -1,0 +1,108 @@
+#! /usr/bin/env python
+
+import re
+import sys
+import os
+
+STRUCT_START = re.compile(r"struct ([^ *]+)")
+CLASS_START = re.compile(r"class ([^ *]+)")
+
+CLASS_PATTERS = (STRUCT_START, CLASS_START)
+
+
+def class_name(line):
+    for pattern in CLASS_PATTERS:
+        match = re.match(pattern, line)
+        if match:
+            return match.group(1)
+
+    return None
+
+
+class FunctionHeader:
+    def __init__(self, modifiers, return_type, name, signature):
+        self.class_ = None
+        self.modifiers = modifiers.strip()
+        self.return_type = return_type
+        self.name = name
+        self.signature = signature
+
+    @property
+    def empty_implementation(self):
+        return f"{repr(self)}\n{{\n    \n}}"
+
+    def __repr__(self):
+        name = self.name
+        if self.class_:
+            name = f"{self.class_}::{name}"
+
+        string = f"{name}({self.signature})"
+
+        if self.return_type:
+            string = " ".join((self.return_type, string))
+
+        if self.modifiers:
+            string = " ".join((self.modifiers, string))
+
+        return string
+
+
+FUNCTION_HEADER_PATTERN = re.compile(r"(.*) ([\w:]*) ([^ ]+)\((.*)\);")
+
+
+def function_header(line):
+    match = re.search(FUNCTION_HEADER_PATTERN, line)
+
+    if match:
+        return FunctionHeader(*match.groups())
+
+    return None
+
+
+def find_functions(data):
+    class_in_scope = None
+
+    functions = []
+    for line in data:
+        if line.startswith("};"):
+            class_in_scope = None
+            continue
+
+        class_found = class_name(line)
+        if class_found:
+            class_in_scope = class_found
+
+        header = function_header(line)
+
+        if not header:
+            continue
+
+        if class_in_scope:
+            header.class_ = class_in_scope
+
+        functions.append(header)
+
+    return functions
+
+
+def main(target):
+
+    with open(target, "r") as header_file:
+        data = header_file.readlines()
+
+    functions = find_functions(data)
+
+    cpp_target = target.replace(".h", ".cpp")
+
+    with open(cpp_target, "a") as cpp_file:
+        for function in functions:
+            print(function.empty_implementation, file=cpp_file, end="\n\n")
+
+
+if __name__ == "__main__":
+    targets = sys.argv[1:]
+    for path in targets:
+        if ".h" not in path:
+            path += ".h"
+
+        main(path)

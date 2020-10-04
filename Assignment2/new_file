@@ -53,21 +53,7 @@ struct {struct_name} : printable{{
 """
 
 
-def cpp_core(header_tag, struct_name):
-    return f"""
-#include "{header_tag}"
-
-{struct_name}::{struct_name}(){{
-
-}}
-
-std::string {struct_name}::__str__(){{
-
-}}"""
-
-
 new_files = sys.argv[1:]
-
 
 for file in new_files:
     *directory, name = file.split("/")
@@ -91,4 +77,4 @@ for file in new_files:
     with open(f"{file}.cpp", "w") as cpp_file:
         print(header_template, file=cpp_file)
 
-        print(cpp_core(header_tag, struct_name), file=cpp_file)
+        print(f'#include "{header_tag}"', file=cpp_file)
