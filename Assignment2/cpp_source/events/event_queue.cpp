@@ -3,6 +3,11 @@
 
 void EventQueue::push(Event *event)
 {
+    if (event == NULL)
+    {
+        return;
+    }
+
     this->events.push(event);
 }
 
