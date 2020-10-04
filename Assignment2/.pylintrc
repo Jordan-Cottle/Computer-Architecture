@@ -1,9 +1,0 @@
-[MASTER]
-    ignore=.venv
-
-    good-names =
-        id,
-        i,
-        j,
-        k,
-        n,
