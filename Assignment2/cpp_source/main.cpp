@@ -10,6 +10,8 @@
 #include "device.h"
 #include "clock.h"
 
+#include "sim_register.h"
+
 void event_processing_test()
 {
     SimulationDevice device = SimulationDevice("TestDevice");
@@ -65,8 +67,27 @@ void instructionQueueTest()
     std::cout << instructionQueue << "\n";
 }
 
+void memory_test()
+{
+    Register<Event *> memory = Register<Event *>(2, "EventStorage");
+
+    Event *e = new Event(1, 2);
+    Event *f = new Event(0, 3);
+
+    memory.write(0, e);
+    memory.write(1, f);
+
+    std::cout << memory << "\n\n";
+    memory.clear(1);
+    std::cout << memory << "\n\n";
+    memory.clear();
+    std::cout << memory << "\n\n";
+
+    delete e;
+    delete f;
+}
 int main()
 {
-    event_processing_test();
+    memory_test();
     return 0;
 }
