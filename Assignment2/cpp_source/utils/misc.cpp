@@ -14,3 +14,8 @@ std::ostream &operator<<(std::ostream &output, printable &p)
 {
     return output << str(p);
 }
+
+std::ostream &operator<<(std::ostream &output, printable *p)
+{
+    return output << str(p);
+}
