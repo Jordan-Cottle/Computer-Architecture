@@ -139,6 +139,11 @@ public:
 
     T pop()
     {
+        if (this->empty())
+        {
+            throw "Can't pop from an empty heap!";
+        }
+
         T top = this->top();
 
         this->swap(0, this->items.size() - 1);
@@ -150,6 +155,10 @@ public:
 
     T top()
     {
+        if (this->items.empty())
+        {
+            return NULL;
+        }
         return this->items[0];
     };
 
