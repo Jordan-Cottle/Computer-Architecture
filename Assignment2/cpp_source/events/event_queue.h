@@ -18,6 +18,8 @@ struct EventQueue : printable
 
     bool empty();
 
+    int nextTime();
+
     std::string __str__();
 };
 

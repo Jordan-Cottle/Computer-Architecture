@@ -8,11 +8,13 @@
 #include "instruction_queue.h"
 
 #include "device.h"
+#include "clock.h"
 
 void event_processing_test()
 {
     SimulationDevice device = SimulationDevice("TestDevice");
     EventQueue masterEventQueue;
+    Clock clock;
 
     for (int i = 1; i <= 20; i++)
     {
@@ -23,12 +25,17 @@ void event_processing_test()
 
     std::cout << "Starting simulation...\n";
 
-    for (int i = 0; i < 100; i++)
+    while (clock.cycle < 100) // Run for 100 cycles
     {
-        Event *event = masterEventQueue.pop();
-        Event *new_event = device.process(event);
+        while (masterEventQueue.nextTime() == clock.cycle)
+        {
+            Event *event = masterEventQueue.pop();
+            Event *new_event = device.process(event);
 
-        masterEventQueue.push(new_event);
+            masterEventQueue.push(new_event);
+        }
+
+        clock.tick();
     }
 
     std::cout << "Master Event Queue: " << masterEventQueue << "\n";

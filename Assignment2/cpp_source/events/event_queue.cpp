@@ -21,6 +21,11 @@ bool EventQueue::empty()
     return this->events.empty();
 }
 
+int EventQueue::nextTime()
+{
+    return this->top()->time;
+}
+
 std::string EventQueue::__str__()
 {
     return str(this->events);
