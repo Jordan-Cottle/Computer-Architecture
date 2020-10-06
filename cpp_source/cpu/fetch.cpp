@@ -22,7 +22,17 @@ Fetch::Fetch(Pipeline *next, Register<Instruction *> *instructionMemory) : Pipel
 
 void Fetch::tick(ulong time, EventQueue *eventQueue)
 {
-    // TODO: Set stage event for next pipeline
+    if (this->staged() != NULL)
+    {
+        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->staged(), this->next);
+
+        eventQueue->push(event);
+    }
+    else
+    {
+        std::cout << "No instructions fetched\n";
+    }
+
     Pipeline::tick(time, eventQueue);
 }
 

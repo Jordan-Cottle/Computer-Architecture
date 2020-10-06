@@ -13,6 +13,7 @@
 #include "sim_register.h"
 #include "pipeline.h"
 #include "fetch.h"
+#include "decode.h"
 
 EventQueue meq;
 
@@ -99,7 +100,8 @@ void fetchTest()
 {
     Register<Instruction *> instructionMemory = Register<Instruction *>(5);
 
-    Fetch fetchUnit = Fetch(NULL, &instructionMemory);
+    Decode decodeUnit = Decode(NULL);
+    Fetch fetchUnit = Fetch(&decodeUnit, &instructionMemory);
 
     instructionMemory.write(0, new Instruction("ADD", {"#0", "1", "2"}));
     instructionMemory.write(1, new Instruction("SUB", {"#1", "2", "1"}));
@@ -111,7 +113,7 @@ void fetchTest()
 
     for (int i = 0; i < instructionMemory.size; i++)
     {
-        FetchEvent *event = new FetchEvent(-1, &fetchUnit, i);
+        FetchEvent *event = new FetchEvent(i, &fetchUnit, i);
         std::cout << event << "\n";
 
         meq.push(event);
@@ -121,18 +123,28 @@ void fetchTest()
 
     Clock clock;
 
-    while (!meq.empty())
+    while (clock.cycle < 10)
     {
         std::cout << clock << "\n";
-        clock.tick();
+        while (!meq.empty() && meq.nextTime() == clock.cycle)
+        {
+            Event *event = meq.pop();
+            SimulationDevice *device = event->device;
 
-        Event *event = meq.pop();
+            std::cout << "Processing " << event << "\n";
+            device->process(event, &meq);
+            std::cout << device << "\n";
+        }
 
-        std::cout << "Fetch unit processing " << event << "\n";
-        fetchUnit.process(event, &meq);
-        std::cout << fetchUnit << "\n";
+        std::cout << "Ticking devices:\n";
 
         fetchUnit.tick(clock.cycle, &meq);
+        decodeUnit.tick(clock.cycle, &meq);
+
+        std::cout << fetchUnit << "\n";
+        std::cout << decodeUnit << "\n";
+
+        clock.tick();
     }
 }
 int main()
