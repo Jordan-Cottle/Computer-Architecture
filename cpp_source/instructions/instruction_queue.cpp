@@ -33,10 +33,10 @@ Instruction *InstructionQueue::next()
 void InstructionQueue::fetch(int n)
 {
     // TODO: Fetch new instructions from somewhere
-    this->instructions.push(new Instruction("FADD", {"F1", "F2", "F3"}));
-    this->instructions.push(new Instruction("FSUB", {"F2", "F3", "F4"}));
-    this->instructions.push(new Instruction("FMUL", {"F3", "F4", "F5"}));
-    this->instructions.push(new Instruction("FDIV", {"F4", "F5", "F6"}));
+    this->instructions.push(new Instruction("FADD", {1, 2, 3}));
+    this->instructions.push(new Instruction("FSUB", {2, 3, 4}));
+    this->instructions.push(new Instruction("FMUL", {3, 4, 5}));
+    this->instructions.push(new Instruction("FDIV", {4, 5, 6}));
 }
 
 std::string InstructionQueue::__str__()

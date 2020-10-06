@@ -14,9 +14,11 @@
 struct Instruction : printable
 {
     std::string operation;
-    std::vector<std::string> arguments;
 
-    Instruction(std::string, std::vector<std::string>);
+    // Arguments can be register/memory indexes or immediate values
+    std::vector<int> arguments;
+
+    Instruction(std::string, std::vector<int>);
 
     std::string __str__();
 };

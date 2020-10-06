@@ -6,7 +6,7 @@
 
 #include "instruction.h"
 
-Instruction::Instruction(std::string operation, std::vector<std::string> arguments)
+Instruction::Instruction(std::string operation, std::vector<int> arguments)
 {
     this->operation = operation;
     this->arguments = arguments;
@@ -18,7 +18,7 @@ std::string Instruction::__str__()
 
     for (auto arg : this->arguments)
     {
-        s += " " + arg;
+        s += " " + str(arg);
     }
 
     return s;
