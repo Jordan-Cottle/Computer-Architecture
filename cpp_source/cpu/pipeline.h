@@ -17,27 +17,21 @@ struct PipelineInsertEvent : Event
 {
     Instruction *instruction;
 
-    PipelineInsertEvent(int, Instruction *, Pipeline *);
-};
-
-struct PipelineCompleteEvent : Event
-{
-    PipelineCompleteEvent(int, Pipeline *);
+    PipelineInsertEvent(ulong time, Instruction *instruction, Pipeline *device);
 };
 
 struct PipelineFlushEvent : Event
 {
-    PipelineFlushEvent(int, Pipeline *);
+    PipelineFlushEvent(ulong time, Pipeline *device);
 };
 
 struct Pipeline : SimulationDevice
 {
     Register<Instruction *> memory;
     Pipeline *next;
-    int processingTime;
 
-    Pipeline(std::string);
-    Pipeline(std::string, Pipeline *next);
+    Pipeline(std::string type);
+    Pipeline(std::string type, Pipeline *next);
 
     bool free();
 
@@ -45,9 +39,9 @@ struct Pipeline : SimulationDevice
     void flush();
 
     Instruction *staged();
-    void tick();
 
-    void process(Event *, EventQueue *);
+    void tick(ulong time, EventQueue *eventQueue);
+    void process(Event *event, EventQueue *eventQueue);
 
     std::string __str__();
 };

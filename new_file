@@ -40,11 +40,16 @@ header_template = f"""/*
 """
 
 
-def header_core(struct_name):
-    return f"""
-#include "misc.h"
+def header_core(struct_name, base):
+    if base == "printable"
+        header = "misc.h"
+    else:
+        header = base.lower() + ".h"
 
-struct {struct_name} : printable{{
+    return f"""
+#include "{header}"
+
+struct {struct_name} : {base}{{
 
     {struct_name}();
 
@@ -53,7 +58,12 @@ struct {struct_name} : printable{{
 """
 
 
-new_files = sys.argv[1:]
+new_file = sys.argv[1]
+
+try:
+    base = sys.argv[2]
+except IndexError:
+    base = "printable"
 
 for file in new_files:
     *directory, name = file.split("/")

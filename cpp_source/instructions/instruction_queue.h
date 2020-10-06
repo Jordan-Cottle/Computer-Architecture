@@ -14,12 +14,12 @@
 
 struct InstructionQueue : printable
 {
-    std::queue<Instruction> instructions;
+    std::queue<Instruction *> instructions;
 
     InstructionQueue();
-    InstructionQueue(std::vector<Instruction>);
+    InstructionQueue(std::vector<Instruction *>);
 
-    Instruction next();
+    Instruction *next();
 
     void fetch(int);
 
