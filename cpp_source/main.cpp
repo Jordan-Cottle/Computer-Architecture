@@ -132,7 +132,7 @@ void fetchTest()
         fetchUnit.process(event, &meq);
         std::cout << fetchUnit << "\n";
 
-        fetchUnit.tick();
+        fetchUnit.tick(&meq);
     }
 }
 int main()

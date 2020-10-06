@@ -20,26 +20,24 @@ Fetch::Fetch(Pipeline *next, Register<Instruction *> *instructionMemory) : Pipel
     this->source = instructionMemory;
 }
 
-void Fetch::tick()
+void Fetch::tick(EventQueue *eventQueue)
 {
-    this->flush();
+    // TODO: Set stage event for next pipeline
+    Pipeline::tick(eventQueue);
 }
 
 void Fetch::process(Event *event, EventQueue *eventQueue)
 {
     if (event->type == "FetchEvent")
     {
+        event->handled = true;
         FetchEvent *fetchEvent = dynamic_cast<FetchEvent *>(event);
         this->stage(this->source->read(fetchEvent->address));
-
-        // TODO: Set stage event for next pipeline
     }
     else if (event->type == "PipelineInsertEvent")
     {
         throw UnrecognizedEvent("Fetch units do not accept generic PipelineInsertEvents");
     }
-    else
-    {
-        Pipeline::process(event, eventQueue);
-    }
+
+    Pipeline::process(event, eventQueue);
 }

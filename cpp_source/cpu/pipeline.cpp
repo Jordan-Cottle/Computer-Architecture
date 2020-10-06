@@ -53,6 +53,12 @@ Instruction *Pipeline::staged()
     return this->memory.read(0);
 }
 
+void Pipeline::tick(EventQueue *eventQueue)
+{
+    this->flush();
+    SimulationDevice::tick(eventQueue);
+}
+
 void Pipeline::process(Event *event, EventQueue *eventQueue)
 {
     this->eventsProcessed += 1;
@@ -60,6 +66,7 @@ void Pipeline::process(Event *event, EventQueue *eventQueue)
     std::cout << this->type << " processing " << event->type << "\n";
     if (event->type == "PipelineInsertEvent")
     {
+        event->handled = true;
         PipelineInsertEvent *insert = dynamic_cast<PipelineInsertEvent *>(event);
         Instruction *instruction = insert->instruction;
 
@@ -67,14 +74,15 @@ void Pipeline::process(Event *event, EventQueue *eventQueue)
     }
     else if (event->type == "PipelineFlushEvent")
     {
+        event->handled = true;
         this->flush();
     }
-    else
+    else if (!event->handled)
     {
-        // Don't delete event, handlers may need it
         throw UnrecognizedEvent(event->type);
     }
-    delete event;
+
+    SimulationDevice::process(event, eventQueue);
 }
 
 std::string Pipeline::__str__()

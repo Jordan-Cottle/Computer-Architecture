@@ -30,8 +30,8 @@ struct Pipeline : SimulationDevice
     Register<Instruction *> memory;
     Pipeline *next;
 
-    Pipeline(std::string);
-    Pipeline(std::string, Pipeline *next);
+    Pipeline(std::string type);
+    Pipeline(std::string type, Pipeline *next);
 
     bool free();
 
@@ -39,9 +39,9 @@ struct Pipeline : SimulationDevice
     void flush();
 
     Instruction *staged();
-    virtual void tick() = 0;
 
-    virtual void process(Event *event, EventQueue *eventQueue);
+    void tick(EventQueue *eventQueue);
+    void process(Event *event, EventQueue *eventQueue);
 
     std::string __str__();
 };

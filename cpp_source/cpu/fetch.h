@@ -26,7 +26,7 @@ struct Fetch : Pipeline
     Register<Instruction *> *source;
     Fetch(Pipeline *next, Register<Instruction *> *instructionMemory);
 
-    void tick();
+    void tick(EventQueue *eventQueue);
     void process(Event *event, EventQueue *eventQueue);
 };
 

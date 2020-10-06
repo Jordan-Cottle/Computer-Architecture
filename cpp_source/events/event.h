@@ -6,6 +6,7 @@
 
 struct Event : EnumeratedObject
 {
+    bool handled = false;
     int time;
     SimulationDevice *device;
 
