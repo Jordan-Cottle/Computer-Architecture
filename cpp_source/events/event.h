@@ -9,8 +9,8 @@ struct Event : EnumeratedObject
     int time;
     SimulationDevice *device;
 
-    Event(int, SimulationDevice *);
-    Event(std::string, int, SimulationDevice *);
+    Event(int time, SimulationDevice *device);
+    Event(std::string type, int time, SimulationDevice *device);
 
     bool operator<(const Event &);
 

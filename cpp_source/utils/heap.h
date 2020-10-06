@@ -141,7 +141,7 @@ public:
     {
         if (this->empty())
         {
-            throw "Can't pop from an empty heap!";
+            throw std::runtime_error("Can't pop from an empty heap!");
         }
 
         T top = this->top();
