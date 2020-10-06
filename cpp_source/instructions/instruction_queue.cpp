@@ -8,12 +8,12 @@
 
 InstructionQueue::InstructionQueue()
 {
-    this->instructions = std::queue<Instruction>();
+    this->instructions = std::queue<Instruction *>();
 }
 
-InstructionQueue::InstructionQueue(std::vector<Instruction> instructions)
+InstructionQueue::InstructionQueue(std::vector<Instruction *> instructions)
 {
-    this->instructions = std::queue<Instruction>();
+    this->instructions = std::queue<Instruction *>();
 
     for (auto instruction : instructions)
     {
@@ -21,9 +21,9 @@ InstructionQueue::InstructionQueue(std::vector<Instruction> instructions)
     }
 }
 
-Instruction InstructionQueue::next()
+Instruction *InstructionQueue::next()
 {
-    Instruction next = this->instructions.front();
+    Instruction *next = this->instructions.front();
 
     this->instructions.pop();
 
@@ -39,7 +39,7 @@ std::string InstructionQueue::__str__()
 {
     std::string s = "InstructionQueue: {";
 
-    std::queue<Instruction> copy = std::queue<Instruction>(this->instructions);
+    std::queue<Instruction *> copy = std::queue<Instruction *>(this->instructions);
 
     while (!copy.empty())
     {

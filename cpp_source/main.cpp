@@ -15,10 +15,10 @@
 
 void instructionQueueTest()
 {
-    std::vector<Instruction> instructions = std::vector<Instruction>();
+    std::vector<Instruction *> instructions = std::vector<Instruction *>();
     for (int i = 0; i < 10; i++)
     {
-        instructions.push_back(Instruction("ADD", {"R" + str(i), "R" + str(i), "R" + str(i + 1)}));
+        instructions.push_back(new Instruction("ADD", {"R" + str(i), "R" + str(i), "R" + str(i + 1)}));
     }
 
     InstructionQueue instructionQueue = InstructionQueue(instructions);
@@ -27,9 +27,10 @@ void instructionQueueTest()
 
     for (int i = 0; i < 3; i++)
     {
-        Instruction next = instructionQueue.next();
+        Instruction *next = instructionQueue.next();
 
         std::cout << "Processing: " << next << "\n";
+        delete next;
     }
 
     std::cout << instructionQueue << "\n";
@@ -92,6 +93,6 @@ void pipeline_test()
 }
 int main()
 {
-    pipeline_test();
+    instructionQueueTest();
     return 0;
 }
