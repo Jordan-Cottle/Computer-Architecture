@@ -11,10 +11,10 @@
 struct Clock : printable
 {
 
-    int cycle;
+    ulong cycle;
     Clock();
 
-    int tick();
+    ulong tick();
 
     std::string __str__();
 };

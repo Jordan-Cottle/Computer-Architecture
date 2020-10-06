@@ -12,7 +12,7 @@ SimulationDevice::SimulationDevice(std::string name) : EnumeratedObject(name)
     this->eventsProcessed = 0;
 }
 
-void SimulationDevice::tick(EventQueue *masterEventQueue)
+void SimulationDevice::tick(ulong time, EventQueue *masterEventQueue)
 {
     this->clocksProcessed += 1;
 }

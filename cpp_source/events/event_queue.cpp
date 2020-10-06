@@ -26,7 +26,7 @@ bool EventQueue::empty()
     return this->events.empty();
 }
 
-int EventQueue::nextTime()
+ulong EventQueue::nextTime()
 {
     return this->top()->time;
 }

@@ -18,7 +18,7 @@ struct EventQueue : printable
 
     bool empty();
 
-    int nextTime();
+    ulong nextTime();
 
     std::string __str__();
 };

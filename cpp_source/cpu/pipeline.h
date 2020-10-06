@@ -17,12 +17,12 @@ struct PipelineInsertEvent : Event
 {
     Instruction *instruction;
 
-    PipelineInsertEvent(int, Instruction *, Pipeline *);
+    PipelineInsertEvent(ulong time, Instruction *instruction, Pipeline *device);
 };
 
 struct PipelineFlushEvent : Event
 {
-    PipelineFlushEvent(int, Pipeline *);
+    PipelineFlushEvent(ulong time, Pipeline *device);
 };
 
 struct Pipeline : SimulationDevice
@@ -40,7 +40,7 @@ struct Pipeline : SimulationDevice
 
     Instruction *staged();
 
-    void tick(EventQueue *eventQueue);
+    void tick(ulong time, EventQueue *eventQueue);
     void process(Event *event, EventQueue *eventQueue);
 
     std::string __str__();

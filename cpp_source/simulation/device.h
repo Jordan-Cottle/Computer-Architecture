@@ -14,12 +14,12 @@ struct EventQueue;
 struct SimulationDevice : EnumeratedObject
 {
 
-    int clocksProcessed;
+    ulong clocksProcessed;
     int eventsProcessed;
 
     SimulationDevice(std::string);
 
-    virtual void tick(EventQueue *masterEventQueue);
+    virtual void tick(ulong time, EventQueue *masterEventQueue);
     virtual void process(Event *event, EventQueue *masterEventQueue);
 
     std::string __str__();

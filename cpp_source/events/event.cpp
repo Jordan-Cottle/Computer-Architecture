@@ -2,14 +2,14 @@
 
 #include "event.h"
 
-Event ::Event(int time, SimulationDevice *device) : EnumeratedObject("Event"), device(device)
+Event ::Event(ulong time, SimulationDevice *device) : EnumeratedObject("Event"), device(device)
 {
     this->time = time;
 
     std::cout << this << " created\n";
 };
 
-Event ::Event(std::string type, int time, SimulationDevice *device) : EnumeratedObject(type), device(device)
+Event ::Event(std::string type, ulong time, SimulationDevice *device) : EnumeratedObject(type), device(device)
 {
     this->time = time;
 

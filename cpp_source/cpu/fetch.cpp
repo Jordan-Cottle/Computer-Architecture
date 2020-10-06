@@ -5,7 +5,7 @@
 
 #include "fetch.h"
 
-FetchEvent::FetchEvent(int time, Fetch *device, int address) : Event("FetchEvent", time, device)
+FetchEvent::FetchEvent(ulong time, Fetch *device, int address) : Event("FetchEvent", time, device)
 {
     this->address = address;
 }
@@ -20,10 +20,10 @@ Fetch::Fetch(Pipeline *next, Register<Instruction *> *instructionMemory) : Pipel
     this->source = instructionMemory;
 }
 
-void Fetch::tick(EventQueue *eventQueue)
+void Fetch::tick(ulong time, EventQueue *eventQueue)
 {
     // TODO: Set stage event for next pipeline
-    Pipeline::tick(eventQueue);
+    Pipeline::tick(time, eventQueue);
 }
 
 void Fetch::process(Event *event, EventQueue *eventQueue)

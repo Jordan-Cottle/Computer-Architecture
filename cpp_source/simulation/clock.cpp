@@ -10,7 +10,7 @@ Clock::Clock()
     this->cycle = 0;
 }
 
-int Clock::tick()
+ulong Clock::tick()
 {
     return ++this->cycle;
 }

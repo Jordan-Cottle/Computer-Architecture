@@ -7,11 +7,11 @@
 
 #include "pipeline.h"
 
-PipelineInsertEvent::PipelineInsertEvent(int time, Instruction *instruction, Pipeline *pipeline) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
+PipelineInsertEvent::PipelineInsertEvent(ulong time, Instruction *instruction, Pipeline *pipeline) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
 {
 }
 
-PipelineFlushEvent::PipelineFlushEvent(int time, Pipeline *pipeline) : Event("PipelineFlushEvent", time, pipeline)
+PipelineFlushEvent::PipelineFlushEvent(ulong time, Pipeline *pipeline) : Event("PipelineFlushEvent", time, pipeline)
 {
 }
 
@@ -53,10 +53,10 @@ Instruction *Pipeline::staged()
     return this->memory.read(0);
 }
 
-void Pipeline::tick(EventQueue *eventQueue)
+void Pipeline::tick(ulong time, EventQueue *eventQueue)
 {
     this->flush();
-    SimulationDevice::tick(eventQueue);
+    SimulationDevice::tick(time, eventQueue);
 }
 
 void Pipeline::process(Event *event, EventQueue *eventQueue)

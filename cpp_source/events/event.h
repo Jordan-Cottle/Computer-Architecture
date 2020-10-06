@@ -7,11 +7,11 @@
 struct Event : EnumeratedObject
 {
     bool handled = false;
-    int time;
+    ulong time;
     SimulationDevice *device;
 
-    Event(int time, SimulationDevice *device);
-    Event(std::string type, int time, SimulationDevice *device);
+    Event(ulong time, SimulationDevice *device);
+    Event(std::string type, ulong time, SimulationDevice *device);
 
     bool operator<(const Event &);
 
