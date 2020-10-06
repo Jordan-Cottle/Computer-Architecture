@@ -11,7 +11,7 @@ CPP_DIR = "cpp_source"
 OBJ_DIR = "obj"
 
 
-@lru_cache
+@lru_cache(32)
 def requires(path):
     with open(path, "r") as source_file:
         data = source_file.readlines()
