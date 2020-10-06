@@ -20,11 +20,6 @@ struct PipelineInsertEvent : Event
     PipelineInsertEvent(int, Instruction *, Pipeline *);
 };
 
-struct PipelineCompleteEvent : Event
-{
-    PipelineCompleteEvent(int, Pipeline *);
-};
-
 struct PipelineFlushEvent : Event
 {
     PipelineFlushEvent(int, Pipeline *);
@@ -34,7 +29,6 @@ struct Pipeline : SimulationDevice
 {
     Register<Instruction *> memory;
     Pipeline *next;
-    int processingTime;
 
     Pipeline(std::string);
     Pipeline(std::string, Pipeline *next);
@@ -45,9 +39,9 @@ struct Pipeline : SimulationDevice
     void flush();
 
     Instruction *staged();
-    void tick();
+    virtual void tick() = 0;
 
-    void process(Event *, EventQueue *);
+    virtual void process(Event *event, EventQueue *eventQueue);
 
     std::string __str__();
 };
