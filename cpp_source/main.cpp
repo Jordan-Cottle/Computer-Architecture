@@ -15,6 +15,11 @@
 #include "fetch.h"
 #include "decode.h"
 
+#include "program.h"
+
+#include "memory_instruction.h"
+#include "arithmetic_instruction.h"
+
 EventQueue meq;
 
 void instructionQueueTest()
@@ -22,7 +27,7 @@ void instructionQueueTest()
     std::vector<Instruction *> instructions = std::vector<Instruction *>();
     for (int i = 0; i < 10; i++)
     {
-        instructions.push_back(new Instruction("ADD", {"R" + str(i), "R" + str(i), "R" + str(i + 1)}));
+        instructions.push_back(new Instruction("ADD", {i, i, i + 1}));
     }
 
     InstructionQueue instructionQueue = InstructionQueue(instructions);
@@ -60,42 +65,6 @@ void memory_test()
     delete f;
 }
 
-/*
-void pipeline_test()
-{
-    Clock clock;
-    std::vector<Pipeline *> pipelines = std::vector<Pipeline *>(2);
-
-    pipelines[1] = new Pipeline("SecondStage");
-    pipelines[0] = new Pipeline("FirstStage", pipelines[1]);
-
-    Instruction instruction = Instruction("ADD", {"0"});
-    EventQueue queue;
-    Event *event = new PipelineInsertEvent(0, &instruction, pipelines[0]);
-    queue.push(event);
-
-    while (clock.cycle < 6)
-    {
-        std::cout << clock << "\n";
-
-        while (queue.top() != NULL && queue.top()->time == clock.cycle)
-        {
-            event = queue.pop();
-            SimulationDevice *device = dynamic_cast<SimulationDevice *>(event->device);
-            device->process(event, &queue);
-        }
-
-        for (auto pipeline : pipelines)
-        {
-            pipeline->tick();
-            std::cout << pipeline << "\n";
-        }
-
-        clock.tick();
-    }
-}
-*/
-
 void fetchTest()
 {
     Register<Instruction *> instructionMemory = Register<Instruction *>(5);
@@ -103,11 +72,11 @@ void fetchTest()
     Decode decodeUnit = Decode(NULL);
     Fetch fetchUnit = Fetch(&decodeUnit, &instructionMemory);
 
-    instructionMemory.write(0, new Instruction("ADD", {"#0", "1", "2"}));
-    instructionMemory.write(1, new Instruction("SUB", {"#1", "2", "1"}));
-    instructionMemory.write(2, new Instruction("MULT", {"#2", "3", "3"}));
-    instructionMemory.write(3, new Instruction("DIV", {"#3", "6", "3"}));
-    instructionMemory.write(4, new Instruction("BRANCH", {"#4", "1"}));
+    instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
+    instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));
+    instructionMemory.write(2, new Instruction("MULT", {2, 3, 4}));
+    instructionMemory.write(3, new Instruction("DIV", {3, 6, 3}));
+    instructionMemory.write(4, new Instruction("BRANCH", {4, 1}));
 
     std::cout << "Instructions " << instructionMemory << "\n";
 
@@ -147,8 +116,73 @@ void fetchTest()
         clock.tick();
     }
 }
+
+void programTest()
+{
+    Program program = Program({new Instruction("fld", {0, 1}),
+                               new Instruction("addi", {1, 1, -8}),
+                               new Instruction("fadd.d", {4, 0, 2}),
+                               new Instruction("stall", {}),
+                               new Instruction("stall", {}),
+                               new Instruction("fsd", {4, 1}),
+                               new Branch("bne", {1, 2}, "Loop")},
+                              {{"Loop", 0}, {"Test", 5}});
+
+    std::cout << program << "\n\n";
+
+    for (auto label : {"Loop", "Test"})
+    {
+        int line = program.index(label);
+        std::cout << label << ": " << line << "\n";
+        std::cout << "Instruction at '" << label << "': " << program.line(line) << "\n";
+    }
+}
+
+void fpTest()
+{
+    Register<int> intRegister = Register<int>(1);
+
+    Register<double> fpRegister = Register<double>(2);
+    Register<double> fpMemory = Register<double>(2);
+
+    fpMemory.write(0, 3.141592654);   // Pi
+    fpRegister.write(1, 2.718281828); // E
+
+    intRegister.write(0, 0); // Read/write from fpMemory[0]
+
+    std::cout << "Load test\n";
+    std::cout << fpRegister << "\n";
+    Instruction *l = new Instruction("fld", {0, 0});
+    Load<double> load = Load<double>(l, &intRegister);
+
+    load.execute(&fpRegister, &fpMemory);
+    std::cout << fpRegister << "\n";
+
+    std::cout << "Add immediate test\n";
+    std::cout << intRegister << "\n";
+    Instruction *a = new Instruction("addi", {0, 0, 1});
+    Add<int> add = Add<int>(a, a->arguments[2]);
+    add.execute(&intRegister);
+    std::cout << intRegister << "\n";
+
+    std::cout << "Add test\n";
+    std::cout << fpRegister << "\n";
+    Instruction *fa = new Instruction("fadd.d", {1, 0, 1});
+    Add<double> fadd = Add<double>(fa);
+    fadd.execute(&fpRegister);
+    std::cout << fpRegister << "\n";
+
+    std::cout << "Store test\n";
+    std::cout << fpMemory << "\n";
+    Instruction *s = new Instruction("fsd", {1, 0});
+    Store<double> store = Store<double>(s, &intRegister);
+
+    store.execute(&fpRegister, &fpMemory);
+    std::cout << fpMemory << "\n";
+}
+
 int main()
 {
-    fetchTest();
+    fpTest();
     return 0;
 }

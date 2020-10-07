@@ -41,7 +41,7 @@ header_template = f"""/*
 
 
 def header_core(struct_name, base):
-    if base == "printable"
+    if base == "printable":
         header = "misc.h"
     else:
         header = base.lower() + ".h"
@@ -65,26 +65,23 @@ try:
 except IndexError:
     base = "printable"
 
-for file in new_files:
-    *directory, name = file.split("/")
+*directory, name = new_file.split("/")
 
-    directory = os.path.join(*directory)
-    directory = os.path.abspath(directory)
+directory = os.path.join(*directory)
+directory = os.path.abspath(directory)
 
-    if directory:
-        os.makedirs(directory, exist_ok=True)
+if directory:
+    os.makedirs(directory, exist_ok=True)
 
-    header_name = f"{file}.h"
-    _, header_tag = os.path.split(header_name)
-    struct_name = "".join(
-        word.capitalize() for word in header_tag.split(".")[0].split("_")
-    )
-    with open(header_name, "w") as header_file:
-        print(header_template, file=header_file)
-        with IncludeGuard(header_file):
-            print(header_core(struct_name), file=header_file)
+header_name = f"{new_file}.h"
+_, header_tag = os.path.split(header_name)
+struct_name = "".join(word.capitalize() for word in header_tag.split(".")[0].split("_"))
+with open(header_name, "w") as header_file:
+    print(header_template, file=header_file)
+    with IncludeGuard(header_file):
+        print(header_core(struct_name, base), file=header_file)
 
-    with open(f"{file}.cpp", "w") as cpp_file:
-        print(header_template, file=cpp_file)
+with open(f"{new_file}.cpp", "w") as cpp_file:
+    print(header_template, file=cpp_file)
 
-        print(f'#include "{header_tag}"', file=cpp_file)
+    print(f'#include "{header_tag}"', file=cpp_file)

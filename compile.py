@@ -5,7 +5,7 @@ import re
 import sys
 import time
 
-from cpp_util import (
+from file_utils import (
     CPP_DIR,
     HEADERS,
     OBJ_DIR,
