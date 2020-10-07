@@ -20,6 +20,8 @@ struct EventQueue : printable
 
     ulong nextTime();
 
+    void tick(ulong time);
+
     std::string __str__();
 };
 

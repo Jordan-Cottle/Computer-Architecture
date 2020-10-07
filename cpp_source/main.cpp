@@ -20,6 +20,31 @@
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
 
+// Echo any events/instructions for debugging partial pipelines
+struct TestPipeline : Pipeline
+{
+    TestPipeline() : Pipeline("TestPipeline")
+    {
+    }
+
+    void tick(ulong time, EventQueue *eventQueue)
+    {
+        Instruction *staged = this->staged();
+
+        std::cout << this->type << " T " << time << ": ";
+        if (staged == NULL)
+        {
+            std::cout << " no instruction\n";
+        }
+        else
+        {
+            std::cout << this->staged() << "\n";
+        }
+
+        Pipeline::tick(time, eventQueue);
+    }
+};
+
 EventQueue meq;
 
 void instructionQueueTest()
@@ -94,26 +119,18 @@ void fetchTest()
 
     Clock clock;
 
-    while (clock.cycle < 10)
+    while (!meq.empty())
     {
         std::cout << clock << "\n";
-        while (!meq.empty() && meq.nextTime() == clock.cycle)
-        {
-            Event *event = meq.pop();
-            SimulationDevice *device = event->device;
-
-            std::cout << "Processing " << event << "\n";
-            device->process(event, &meq);
-            std::cout << device << "\n";
-        }
+        meq.tick(clock.cycle);
 
         std::cout << "Ticking devices:\n";
 
         fetchUnit.tick(clock.cycle, &meq);
-        decodeUnit.tick(clock.cycle, &meq);
-
         std::cout << fetchUnit << "\n";
-        std::cout << decodeUnit << "\n";
+
+        testPipeline.tick(clock.cycle, &meq);
+        std::cout << testPipeline << "\n";
 
         clock.tick();
     }
