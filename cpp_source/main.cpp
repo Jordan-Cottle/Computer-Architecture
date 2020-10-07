@@ -18,6 +18,7 @@
 #include "program.h"
 
 #include "memory_instruction.h"
+#include "arithmetic_instruction.h"
 
 EventQueue meq;
 
@@ -137,12 +138,12 @@ void programTest()
     }
 }
 
-void fpMemoryTest()
+void fpTest()
 {
     Register<int> intRegister = Register<int>(1);
 
     Register<double> fpRegister = Register<double>(2);
-    Register<double> fpMemory = Register<double>(1);
+    Register<double> fpMemory = Register<double>(2);
 
     fpMemory.write(0, 3.141592654);   // Pi
     fpRegister.write(1, 2.718281828); // E
@@ -157,6 +158,20 @@ void fpMemoryTest()
     load.execute(&fpRegister, &fpMemory);
     std::cout << fpRegister << "\n";
 
+    std::cout << "Add immediate test\n";
+    std::cout << intRegister << "\n";
+    Instruction *a = new Instruction("addi", {0, 0, 1});
+    Add<int> add = Add<int>(a, a->arguments[2]);
+    add.execute(&intRegister);
+    std::cout << intRegister << "\n";
+
+    std::cout << "Add test\n";
+    std::cout << fpRegister << "\n";
+    Instruction *fa = new Instruction("fadd.d", {1, 0, 1});
+    Add<double> fadd = Add<double>(fa);
+    fadd.execute(&fpRegister);
+    std::cout << fpRegister << "\n";
+
     std::cout << "Store test\n";
     std::cout << fpMemory << "\n";
     Instruction *s = new Instruction("fsd", {1, 0});
@@ -168,6 +183,6 @@ void fpMemoryTest()
 
 int main()
 {
-    fpMemoryTest();
+    fpTest();
     return 0;
 }
