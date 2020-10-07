@@ -24,7 +24,7 @@ struct FetchEvent : Event
 struct Fetch : Pipeline
 {
     Register<Instruction *> *source;
-    Fetch(Pipeline *next, Register<Instruction *> *instructionMemory);
+    Fetch(Register<Instruction *> *instructionMemory);
 
     void tick(ulong time, EventQueue *eventQueue);
     void process(Event *event, EventQueue *eventQueue);

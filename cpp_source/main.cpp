@@ -69,8 +69,10 @@ void fetchTest()
 {
     Register<Instruction *> instructionMemory = Register<Instruction *>(5);
 
-    Decode decodeUnit = Decode(NULL);
-    Fetch fetchUnit = Fetch(&decodeUnit, &instructionMemory);
+    TestPipeline testPipeline;
+
+    Fetch fetchUnit = Fetch(&instructionMemory);
+    fetchUnit.next = &testPipeline;
 
     instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
     instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));

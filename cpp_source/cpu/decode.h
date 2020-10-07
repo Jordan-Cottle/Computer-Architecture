@@ -11,7 +11,7 @@
 struct Decode : Pipeline
 {
 
-    Decode(Pipeline *next);
+    Decode();
 
     void tick(ulong time, EventQueue *eventQueue);
 };

@@ -4,7 +4,7 @@
 */
 
 #include "decode.h"
-Decode::Decode(Pipeline *next) : Pipeline("Decode", next)
+Decode::Decode() : Pipeline("Decode")
 {
 }
 

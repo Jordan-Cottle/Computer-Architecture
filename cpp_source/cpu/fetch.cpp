@@ -15,7 +15,7 @@ std::string FetchEvent::__str__()
     return "FetchEvent " + str(this->id) + " IM(" + str(this->address) + ")";
 }
 
-Fetch::Fetch(Pipeline *next, Register<Instruction *> *instructionMemory) : Pipeline("Fetch", next)
+Fetch::Fetch(Register<Instruction *> *instructionMemory) : Pipeline("Fetch")
 {
     this->source = instructionMemory;
 }
