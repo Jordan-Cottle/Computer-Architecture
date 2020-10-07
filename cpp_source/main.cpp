@@ -17,6 +17,8 @@
 
 #include "program.h"
 
+#include "memory_instruction.h"
+
 EventQueue meq;
 
 void instructionQueueTest()
@@ -121,7 +123,7 @@ void programTest()
                                new Instruction("fadd.d", {4, 0, 2}),
                                new Instruction("stall", {}),
                                new Instruction("stall", {}),
-                               new Instruction("fsd", {4, 0, 1}),
+                               new Instruction("fsd", {4, 1}),
                                new Branch("bne", {1, 2}, "Loop")},
                               {{"Loop", 0}, {"Test", 5}});
 
@@ -135,8 +137,37 @@ void programTest()
     }
 }
 
+void fpMemoryTest()
+{
+    Register<int> intRegister = Register<int>(1);
+
+    Register<double> fpRegister = Register<double>(2);
+    Register<double> fpMemory = Register<double>(1);
+
+    fpMemory.write(0, 3.141592654);   // Pi
+    fpRegister.write(1, 2.718281828); // E
+
+    intRegister.write(0, 0); // Read/write from fpMemory[0]
+
+    std::cout << "Load test\n";
+    std::cout << fpRegister << "\n";
+    Instruction *l = new Instruction("fld", {0, 0});
+    Load<double> load = Load<double>(l, &intRegister);
+
+    load.execute(&fpRegister, &fpMemory);
+    std::cout << fpRegister << "\n";
+
+    std::cout << "Store test\n";
+    std::cout << fpMemory << "\n";
+    Instruction *s = new Instruction("fsd", {1, 0});
+    Store<double> store = Store<double>(s, &intRegister);
+
+    store.execute(&fpRegister, &fpMemory);
+    std::cout << fpMemory << "\n";
+}
+
 int main()
 {
-    programTest();
+    fpMemoryTest();
     return 0;
 }
