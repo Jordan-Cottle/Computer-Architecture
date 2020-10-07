@@ -14,7 +14,7 @@
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
-             floatRegister(Register<double>(REGISTER_COUNT)),
+             fpRegister(Register<double>(REGISTER_COUNT)),
              instructionMemory(Register<Instruction *>(INSTRUCTION_MEMORY_COUNT)),
              intMemory(Register<int>(MEMORY_COUNT)),
              fpMemory(Register<double>(MEMORY_COUNT))
@@ -50,7 +50,7 @@ std::string Cpu::__str__()
 
     s += "\tRegisters: {\n";
     s += "\t\tInteger" + addIndent(str(this->intRegister), 2) + "\n";
-    s += "\t\tFloat" + addIndent(str(this->floatRegister), 2) + "\n";
+    s += "\t\tFloat" + addIndent(str(this->fpRegister), 2) + "\n";
 
     s += "\t}\n\tMemory: {\n";
     s += "\t\tInteger " + addIndent(str(this->intMemory), 2) + "\n";

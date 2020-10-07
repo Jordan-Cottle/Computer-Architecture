@@ -8,7 +8,7 @@
 
 #include "pipeline.h"
 
-struct Cpu;
+#include "cpu.h"
 
 struct Decode : Pipeline
 {

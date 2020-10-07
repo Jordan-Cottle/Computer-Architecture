@@ -94,22 +94,22 @@ void memory_test()
 
 void fetchTest()
 {
-    Register<Instruction *> instructionMemory = Register<Instruction *>(5);
+    Cpu cpu;
 
     TestPipeline testPipeline;
 
-    Fetch fetchUnit = Fetch(&instructionMemory);
+    Fetch fetchUnit = Fetch(&cpu);
     fetchUnit.next = &testPipeline;
 
-    instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
-    instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));
-    instructionMemory.write(2, new Instruction("MULT", {2, 3, 4}));
-    instructionMemory.write(3, new Instruction("DIV", {3, 6, 3}));
-    instructionMemory.write(4, new Instruction("BRANCH", {4, 1}));
+    cpu.instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
+    cpu.instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));
+    cpu.instructionMemory.write(2, new Instruction("MULT", {2, 3, 4}));
+    cpu.instructionMemory.write(3, new Instruction("DIV", {3, 6, 3}));
+    cpu.instructionMemory.write(4, new Instruction("BRANCH", {4, 1}));
 
-    std::cout << "Instructions " << instructionMemory << "\n";
+    std::cout << "Instructions " << cpu.instructionMemory << "\n";
 
-    for (int i = 0; i < instructionMemory.size; i++)
+    for (int i = 0; i < cpu.instructionMemory.size; i++)
     {
         FetchEvent *event = new FetchEvent(i, &fetchUnit, i);
         std::cout << event << "\n";
@@ -161,58 +161,55 @@ void programTest()
 
 void fpTest()
 {
-    Register<int> intRegister = Register<int>(1);
+    Cpu cpu;
 
-    Register<double> fpRegister = Register<double>(2);
-    Register<double> fpMemory = Register<double>(2);
+    cpu.fpMemory.write(0, 3.141592654);   // Pi
+    cpu.fpRegister.write(1, 2.718281828); // E
 
-    fpMemory.write(0, 3.141592654);   // Pi
-    fpRegister.write(1, 2.718281828); // E
-
-    intRegister.write(0, 0); // Read/write from fpMemory[0]
+    cpu.intRegister.write(0, 0); // Read/write from fpMemory[0]
 
     std::cout << "Load test\n";
-    std::cout << fpRegister << "\n";
+    std::cout << cpu.fpRegister << "\n";
     Instruction *l = new Instruction("fld", {0, 0});
-    Load<double> load = Load<double>(l, &intRegister);
+    Load load = Load(l, &cpu.intRegister);
 
-    load.execute(&fpRegister, &fpMemory);
-    std::cout << fpRegister << "\n";
+    load.execute(&cpu);
+    std::cout << cpu.fpRegister << "\n";
 
     std::cout << "Add immediate test\n";
-    std::cout << intRegister << "\n";
+    std::cout << cpu.intRegister << "\n";
     Instruction *a = new Instruction("addi", {0, 0, 1});
-    Add<int> add = Add<int>(a, a->arguments[2]);
-    add.execute(&intRegister);
-    std::cout << intRegister << "\n";
+    Add add = Add(a, a->arguments[2]);
+    add.execute(&cpu);
+    std::cout << cpu.intRegister << "\n";
 
     std::cout << "Add test\n";
-    std::cout << fpRegister << "\n";
+    std::cout << cpu.fpRegister << "\n";
     Instruction *fa = new Instruction("fadd.d", {1, 0, 1});
-    Add<double> fadd = Add<double>(fa);
-    fadd.execute(&fpRegister);
-    std::cout << fpRegister << "\n";
+    Add fadd = Add(fa);
+    fadd.execute(&cpu);
+    std::cout << cpu.fpRegister << "\n";
 
     std::cout << "Store test\n";
-    std::cout << fpMemory << "\n";
+    std::cout << cpu.fpMemory << "\n";
     Instruction *s = new Instruction("fsd", {1, 0});
-    Store<double> store = Store<double>(s, &intRegister);
+    Store store = Store(s, &cpu.intRegister);
 
-    store.execute(&fpRegister, &fpMemory);
-    std::cout << fpMemory << "\n";
+    store.execute(&cpu);
+    std::cout << cpu.fpMemory << "\n";
 }
 
 void decodeTest()
 {
-    Cpu *cpu = new Cpu();
+    Cpu cpu = Cpu();
     Instruction *instruction = new Instruction("fsd", {0, 0});
 
-    Decode decode = Decode(cpu);
+    Decode decode = Decode(&cpu);
 
-    cpu->addPipeline(&decode);
-    cpu->addPipeline(new TestPipeline());
+    cpu.addPipeline(&decode);
+    cpu.addPipeline(new TestPipeline());
 
-    cpu->intRegister.write(0, 2);
+    cpu.intRegister.write(0, 2);
 
     Event *event = new PipelineInsertEvent(0, &decode, instruction);
 
@@ -223,7 +220,7 @@ void decodeTest()
     {
         std::cout << clock << "\n";
         meq.tick(clock.cycle);
-        cpu->tick(clock.cycle, &meq);
+        cpu.tick(clock.cycle, &meq);
         clock.tick();
     }
 }

@@ -12,6 +12,12 @@ Instruction::Instruction(std::string operation, std::vector<int> arguments)
     this->arguments = arguments;
 }
 
+Instruction::Instruction(Instruction *instruction)
+{
+    this->operation = instruction->operation;
+    this->arguments = instruction->arguments;
+}
+
 std::string Instruction::__str__()
 {
     std::string s = this->operation;
@@ -32,4 +38,9 @@ Branch::Branch(std::string operation, std::vector<int> arguments, std::string la
 std::string Branch::__str__()
 {
     return Instruction::__str__() + " " + this->label;
+}
+
+DecodedInstruction::DecodedInstruction(Instruction *instruction) : Instruction(instruction)
+{
+    this->isFp = instruction->operation[0] == 'f';
 }

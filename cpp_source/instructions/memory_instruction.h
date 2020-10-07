@@ -8,37 +8,46 @@
 
 #include "instruction.h"
 #include "sim_register.h"
+#include "cpu.h"
 
-template <typename T>
-struct MemoryInstruction : Instruction
+struct MemoryInstruction : DecodedInstruction
 {
 
     int registerIndex;
     int memoryLocation;
 
-    MemoryInstruction(Instruction *instruction, Register<int> *cpuRegister) : Instruction(instruction->operation, instruction->arguments)
+    MemoryInstruction(Instruction *instruction, Register<int> *cpuRegister) : DecodedInstruction(instruction)
     {
         this->registerIndex = arguments[0];
         this->memoryLocation = cpuRegister->read(arguments[1]);
     }
 
-    virtual void execute(Register<T> *cpuRegister, Register<T> *memory) = 0;
+    virtual void execute(Cpu *cpu) = 0;
 };
 
-template <typename T>
-struct Store : MemoryInstruction<T>
+struct Store : MemoryInstruction
 {
-    Store(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction<T>(instruction, cpuRegister)
+    Store(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction(instruction, cpuRegister)
     {
     }
 
     // Execute/Store
-    void execute(Register<T> *cpuRegister, Register<T> *memory)
+    void execute(Cpu *cpu)
     {
-        double data = cpuRegister->read(this->registerIndex);
+        if (this->isFp)
+        {
+            double data = cpu->fpRegister.read(this->registerIndex);
 
-        std::cout << "Storing: " << data << "\n";
-        memory->write(this->memoryLocation, data);
+            std::cout << "Storing: " << data << "\n";
+            cpu->fpMemory.write(this->memoryLocation, data);
+        }
+        else
+        {
+            int data = cpu->intRegister.read(this->registerIndex);
+
+            std::cout << "Storing: " << data << "\n";
+            cpu->intMemory.write(this->memoryLocation, data);
+        }
     }
 
     std::string __str__()
@@ -57,20 +66,30 @@ struct Store : MemoryInstruction<T>
     }
 };
 
-template <typename T>
-struct Load : MemoryInstruction<T>
+struct Load : MemoryInstruction
 {
-    Load(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction<T>(instruction, cpuRegister)
+    Load(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction(instruction, cpuRegister)
     {
     }
 
-    void execute(Register<T> *cpuRegister, Register<T> *memory)
+    void execute(Cpu *cpu)
     {
-        double data = memory->read(this->memoryLocation);
+        if (this->isFp)
+        {
+            double data = cpu->fpMemory.read(this->memoryLocation);
 
-        std::cout << "Loading: " << data << "\n";
+            std::cout << "Loading: " << data << "\n";
 
-        cpuRegister->write(this->registerIndex, data);
+            cpu->fpRegister.write(this->registerIndex, data);
+        }
+        else
+        {
+            int data = cpu->intMemory.read(this->memoryLocation);
+
+            std::cout << "Loading: " << data << "\n";
+
+            cpu->intRegister.write(this->registerIndex, data);
+        }
     }
 
     std::string __str__()

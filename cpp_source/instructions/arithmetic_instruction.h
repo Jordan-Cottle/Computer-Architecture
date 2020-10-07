@@ -8,17 +8,16 @@
 
 #include "instruction.h"
 
-template <typename T>
-struct ArithmeticInstruction : Instruction
+struct ArithmeticInstruction : DecodedInstruction
 {
     int destinationIndex;
 
     int leftIndex;
     int rightIndex;
     bool immediate;
-    T immediateValue;
+    int immediateValue;
 
-    ArithmeticInstruction(Instruction *instruction) : Instruction(instruction->operation, instruction->arguments)
+    ArithmeticInstruction(Instruction *instruction) : DecodedInstruction(instruction)
     {
         this->immediate = false;
 
@@ -27,7 +26,7 @@ struct ArithmeticInstruction : Instruction
         this->rightIndex = instruction->arguments[2];
     }
 
-    ArithmeticInstruction(Instruction *instruction, T immediateValue) : Instruction(instruction->operation, instruction->arguments)
+    ArithmeticInstruction(Instruction *instruction, int immediateValue) : DecodedInstruction(instruction)
     {
         this->immediate = true;
 
@@ -37,34 +36,36 @@ struct ArithmeticInstruction : Instruction
         this->immediateValue = immediateValue;
     }
 
-    virtual void execute(Register<T> *cpuRegister) = 0;
+    virtual void execute(Cpu *cpu) = 0;
 };
 
-template <typename T>
-struct Add : ArithmeticInstruction<T>
+struct Add : ArithmeticInstruction
 {
-    Add(Instruction *instruction) : ArithmeticInstruction<T>(instruction)
+    Add(Instruction *instruction) : ArithmeticInstruction(instruction)
     {
     }
-    Add(Instruction *instruction, T immediateValue) : ArithmeticInstruction<T>(instruction, immediateValue)
+    Add(Instruction *instruction, int immediateValue) : ArithmeticInstruction(instruction, immediateValue)
     {
     }
 
-    void execute(Register<T> *cpuRegister)
+    void execute(Cpu *cpu)
     {
-        T left = cpuRegister->read(this->leftIndex);
-
-        T right;
-        if (this->immediate)
+        if (this->isFp)
         {
-            right = this->immediateValue;
+            double left = cpu->fpRegister.read(this->leftIndex);
+
+            double right = cpu->fpRegister.read(this->rightIndex);
+
+            cpu->fpRegister.write(this->destinationIndex, right + left);
         }
         else
         {
-            right = cpuRegister->read(this->rightIndex);
-        }
+            int left = cpu->fpRegister.read(this->leftIndex);
 
-        cpuRegister->write(this->destinationIndex, right + left);
+            int right = this->immediate ? this->immediateValue : cpu->intRegister.read(this->rightIndex);
+
+            cpu->fpRegister.write(this->destinationIndex, right + left);
+        }
     }
 
     std::string __str__()
