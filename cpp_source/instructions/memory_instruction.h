@@ -8,104 +8,36 @@
 
 #include "instruction.h"
 #include "sim_register.h"
-#include "cpu.h"
 
+struct Cpu;
 struct MemoryInstruction : DecodedInstruction
 {
 
     int registerIndex;
     int memoryLocation;
 
-    MemoryInstruction(Instruction *instruction, Register<int> *cpuRegister) : DecodedInstruction(instruction)
-    {
-        this->registerIndex = arguments[0];
-        this->memoryLocation = cpuRegister->read(arguments[1]);
-    }
+    MemoryInstruction(Instruction *instruction, Register<int> *cpuRegister);
 
     virtual void execute(Cpu *cpu) = 0;
 };
 
 struct Store : MemoryInstruction
 {
-    Store(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction(instruction, cpuRegister)
-    {
-    }
+    Store(Instruction *instruction, Register<int> *cpuRegister);
 
     // Execute/Store
-    void execute(Cpu *cpu)
-    {
-        if (this->isFp)
-        {
-            double data = cpu->fpRegister.read(this->registerIndex);
+    void execute(Cpu *cpu);
 
-            std::cout << "Storing: " << data << "\n";
-            cpu->fpMemory.write(this->memoryLocation, data);
-        }
-        else
-        {
-            int data = cpu->intRegister.read(this->registerIndex);
-
-            std::cout << "Storing: " << data << "\n";
-            cpu->intMemory.write(this->memoryLocation, data);
-        }
-    }
-
-    std::string __str__()
-    {
-        std::string prefix;
-        if (this->operation[0] == 'f')
-        {
-            prefix = "F";
-        }
-        else
-        {
-            prefix = "R";
-        }
-
-        return prefix + "M" + str(this->memoryLocation) + " <- " + prefix + str(this->registerIndex);
-    }
+    std::string __str__();
 };
 
 struct Load : MemoryInstruction
 {
-    Load(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction(instruction, cpuRegister)
-    {
-    }
+    Load(Instruction *instruction, Register<int> *cpuRegister);
 
-    void execute(Cpu *cpu)
-    {
-        if (this->isFp)
-        {
-            double data = cpu->fpMemory.read(this->memoryLocation);
+    void execute(Cpu *cpu);
 
-            std::cout << "Loading: " << data << "\n";
-
-            cpu->fpRegister.write(this->registerIndex, data);
-        }
-        else
-        {
-            int data = cpu->intMemory.read(this->memoryLocation);
-
-            std::cout << "Loading: " << data << "\n";
-
-            cpu->intRegister.write(this->registerIndex, data);
-        }
-    }
-
-    std::string __str__()
-    {
-        std::string prefix;
-        if (this->operation[0] == 'f')
-        {
-            prefix = "F";
-        }
-        else
-        {
-            prefix = "R";
-        }
-
-        return prefix + str(this->registerIndex) + " <- " + prefix + "M" + str(this->memoryLocation);
-    }
+    std::string __str__();
 };
 
 #endif
