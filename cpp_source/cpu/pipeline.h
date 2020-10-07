@@ -17,7 +17,7 @@ struct PipelineInsertEvent : Event
 {
     Instruction *instruction;
 
-    PipelineInsertEvent(ulong time, Instruction *instruction, Pipeline *device);
+    PipelineInsertEvent(ulong time, Pipeline *device, Instruction *instruction);
 };
 
 struct PipelineFlushEvent : Event

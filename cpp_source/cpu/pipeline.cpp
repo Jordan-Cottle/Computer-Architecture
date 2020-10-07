@@ -7,7 +7,7 @@
 
 #include "pipeline.h"
 
-PipelineInsertEvent::PipelineInsertEvent(ulong time, Instruction *instruction, Pipeline *pipeline) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
+PipelineInsertEvent::PipelineInsertEvent(ulong time, Pipeline *pipeline, Instruction *instruction) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
 {
 }
 
