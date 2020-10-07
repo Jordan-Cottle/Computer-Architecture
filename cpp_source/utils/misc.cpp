@@ -16,6 +16,16 @@ std::string str(int num)
     return std::to_string(num);
 }
 
+std::string str(ulong num)
+{
+    return std::to_string(num);
+}
+
+std::string str(double num)
+{
+    return std::to_string(num);
+}
+
 std::ostream &operator<<(std::ostream &output, printable &p)
 {
     return output << str(p);
