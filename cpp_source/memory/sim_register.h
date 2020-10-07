@@ -62,9 +62,9 @@ struct Register : EnumeratedObject
         {
             s += "\n\t" + str(mem_address++) + ": ";
 
-            if (item == NULL)
+            if (item == 0)
             {
-                s += "None";
+                s += str(0);
             }
             else
             {
