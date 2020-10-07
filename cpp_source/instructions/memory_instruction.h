@@ -40,6 +40,21 @@ struct Store : MemoryInstruction<T>
         std::cout << "Storing: " << data << "\n";
         memory->write(this->memoryLocation, data);
     }
+
+    std::string __str__()
+    {
+        std::string prefix;
+        if (this->operation[0] == 'f')
+        {
+            prefix = "F";
+        }
+        else
+        {
+            prefix = "R";
+        }
+
+        return prefix + "M" + str(this->memoryLocation) + " <- " + prefix + str(this->registerIndex);
+    }
 };
 
 template <typename T>
@@ -56,6 +71,21 @@ struct Load : MemoryInstruction<T>
         std::cout << "Loading: " << data << "\n";
 
         cpuRegister->write(this->registerIndex, data);
+    }
+
+    std::string __str__()
+    {
+        std::string prefix;
+        if (this->operation[0] == 'f')
+        {
+            prefix = "F";
+        }
+        else
+        {
+            prefix = "R";
+        }
+
+        return prefix + str(this->registerIndex) + " <- " + prefix + "M" + str(this->memoryLocation);
     }
 };
 

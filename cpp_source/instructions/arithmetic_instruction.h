@@ -66,6 +66,31 @@ struct Add : ArithmeticInstruction<T>
 
         cpuRegister->write(this->destinationIndex, right + left);
     }
+
+    std::string __str__()
+    {
+        std::string prefix;
+        if (this->operation[0] == 'f')
+        {
+            prefix = "F";
+        }
+        else
+        {
+            prefix = "R";
+        }
+
+        std::string s = prefix + str(this->destinationIndex) + " <- " + prefix + str(this->leftIndex) + " + ";
+        if (this->immediate)
+        {
+            s += "#" + str(this->immediateValue);
+        }
+        else
+        {
+            s += prefix + str(this->rightIndex);
+        }
+
+        return s;
+    }
 };
 
 #endif
