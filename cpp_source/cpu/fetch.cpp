@@ -15,9 +15,9 @@ std::string FetchEvent::__str__()
     return "FetchEvent " + str(this->id) + " IM(" + str(this->address) + ")";
 }
 
-Fetch::Fetch(Register<Instruction *> *instructionMemory) : Pipeline("Fetch")
+Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 {
-    this->source = instructionMemory;
+    this->cpu = cpu;
 }
 
 void Fetch::tick(ulong time, EventQueue *eventQueue)
@@ -42,7 +42,7 @@ void Fetch::process(Event *event, EventQueue *eventQueue)
     {
         event->handled = true;
         FetchEvent *fetchEvent = dynamic_cast<FetchEvent *>(event);
-        this->stage(this->source->read(fetchEvent->address));
+        this->stage(this->cpu->instructionMemory.read(fetchEvent->address));
     }
     else if (event->type == "PipelineInsertEvent")
     {

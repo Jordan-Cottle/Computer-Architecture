@@ -5,7 +5,6 @@
 
 #include "decode.h"
 
-#include "cpu.h"
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
 
@@ -20,19 +19,19 @@ Instruction *Decode::decode(Instruction *instruction)
 
     if (op == "fsd")
     {
-        return new Store<double>(instruction, &cpu->intRegister);
+        return new Store(instruction, &cpu->intRegister);
     }
     else if (op == "fld")
     {
-        return new Load<double>(instruction, &cpu->intRegister);
+        return new Load(instruction, &cpu->intRegister);
     }
     else if (op == "fadd.d")
     {
-        return new Add<double>(instruction);
+        return new Add(instruction);
     }
     else if (op == "addi")
     {
-        return new Add<int>(instruction, instruction->arguments[2]);
+        return new Add(instruction, instruction->arguments[2]);
     }
 
     throw std::runtime_error("Unrecognized instruction " + str(instruction));

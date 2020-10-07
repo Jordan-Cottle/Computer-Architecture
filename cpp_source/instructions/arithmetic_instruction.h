@@ -8,89 +8,30 @@
 
 #include "instruction.h"
 
-template <typename T>
-struct ArithmeticInstruction : Instruction
+struct ArithmeticInstruction : DecodedInstruction
 {
     int destinationIndex;
 
     int leftIndex;
     int rightIndex;
     bool immediate;
-    T immediateValue;
+    int immediateValue;
 
-    ArithmeticInstruction(Instruction *instruction) : Instruction(instruction->operation, instruction->arguments)
-    {
-        this->immediate = false;
+    ArithmeticInstruction(Instruction *instruction);
 
-        this->destinationIndex = instruction->arguments[0];
-        this->leftIndex = instruction->arguments[1];
-        this->rightIndex = instruction->arguments[2];
-    }
+    ArithmeticInstruction(Instruction *instruction, int immediateValue);
 
-    ArithmeticInstruction(Instruction *instruction, T immediateValue) : Instruction(instruction->operation, instruction->arguments)
-    {
-        this->immediate = true;
-
-        this->destinationIndex = instruction->arguments[0];
-        this->leftIndex = instruction->arguments[1];
-
-        this->immediateValue = immediateValue;
-    }
-
-    virtual void execute(Register<T> *cpuRegister) = 0;
+    virtual void execute(Cpu *cpu) = 0;
 };
 
-template <typename T>
-struct Add : ArithmeticInstruction<T>
+struct Add : ArithmeticInstruction
 {
-    Add(Instruction *instruction) : ArithmeticInstruction<T>(instruction)
-    {
-    }
-    Add(Instruction *instruction, T immediateValue) : ArithmeticInstruction<T>(instruction, immediateValue)
-    {
-    }
+    Add(Instruction *instruction);
+    Add(Instruction *instruction, int immediateValue);
 
-    void execute(Register<T> *cpuRegister)
-    {
-        T left = cpuRegister->read(this->leftIndex);
+    void execute(Cpu *cpu);
 
-        T right;
-        if (this->immediate)
-        {
-            right = this->immediateValue;
-        }
-        else
-        {
-            right = cpuRegister->read(this->rightIndex);
-        }
-
-        cpuRegister->write(this->destinationIndex, right + left);
-    }
-
-    std::string __str__()
-    {
-        std::string prefix;
-        if (this->operation[0] == 'f')
-        {
-            prefix = "F";
-        }
-        else
-        {
-            prefix = "R";
-        }
-
-        std::string s = prefix + str(this->destinationIndex) + " <- " + prefix + str(this->leftIndex) + " + ";
-        if (this->immediate)
-        {
-            s += "#" + str(this->immediateValue);
-        }
-        else
-        {
-            s += prefix + str(this->rightIndex);
-        }
-
-        return s;
-    }
+    std::string __str__();
 };
 
 #endif

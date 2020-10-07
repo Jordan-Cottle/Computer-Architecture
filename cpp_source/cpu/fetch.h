@@ -6,10 +6,8 @@
 #ifndef __FETCH__
 #define __FETCH__
 
-#include "event.h"
 #include "pipeline.h"
-#include "instruction_queue.h"
-#include "sim_register.h"
+#include "cpu.h"
 
 struct Fetch;
 
@@ -23,8 +21,8 @@ struct FetchEvent : Event
 
 struct Fetch : Pipeline
 {
-    Register<Instruction *> *source;
-    Fetch(Register<Instruction *> *instructionMemory);
+    Cpu *cpu;
+    Fetch(Cpu *cpu);
 
     void tick(ulong time, EventQueue *eventQueue);
     void process(Event *event, EventQueue *eventQueue);

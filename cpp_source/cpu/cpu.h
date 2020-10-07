@@ -7,14 +7,14 @@
 #define __CPU__
 
 #include "pipeline.h"
-#include "instruction_queue.h"
+#include "instruction.h"
 
 struct Cpu : SimulationDevice
 {
     int programCounter;
 
     Register<int> intRegister;
-    Register<double> floatRegister;
+    Register<double> fpRegister;
 
     // TODO put these somewhere else
     Register<Instruction *> instructionMemory;
@@ -24,7 +24,6 @@ struct Cpu : SimulationDevice
     std::vector<Pipeline *> pipelines;
 
     Cpu();
-    // Cpu(InstructionQueue *instructionSource);
 
     Cpu *addPipeline(Pipeline *pipeline);
 

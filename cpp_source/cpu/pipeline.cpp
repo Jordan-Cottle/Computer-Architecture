@@ -75,10 +75,6 @@ void Pipeline::process(Event *event, EventQueue *eventQueue)
         event->handled = true;
         this->flush();
     }
-    else if (!event->handled)
-    {
-        throw UnrecognizedEvent(event->type);
-    }
 
     SimulationDevice::process(event, eventQueue);
 }

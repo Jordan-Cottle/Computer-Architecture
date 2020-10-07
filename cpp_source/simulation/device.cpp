@@ -19,6 +19,11 @@ void SimulationDevice::tick(ulong time, EventQueue *masterEventQueue)
 
 void SimulationDevice::process(Event *event, EventQueue *masterEventQueue)
 {
+    if (!event->handled)
+    {
+        throw UnrecognizedEvent(event->type);
+    }
+
     this->eventsProcessed += 1;
     delete event;
 }
