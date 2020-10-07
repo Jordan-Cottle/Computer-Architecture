@@ -20,6 +20,8 @@
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
 
+#include "cpu.h"
+
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
 {
@@ -200,8 +202,34 @@ void fpTest()
     std::cout << fpMemory << "\n";
 }
 
+void decodeTest()
+{
+    Cpu *cpu = new Cpu();
+    Instruction *instruction = new Instruction("fsd", {0, 0});
+
+    Decode decode = Decode(cpu);
+
+    cpu->addPipeline(&decode);
+    cpu->addPipeline(new TestPipeline());
+
+    cpu->intRegister.write(0, 2);
+
+    Event *event = new PipelineInsertEvent(0, &decode, instruction);
+
+    meq.push(event);
+
+    Clock clock;
+    while (!meq.empty())
+    {
+        std::cout << clock << "\n";
+        meq.tick(clock.cycle);
+        cpu->tick(clock.cycle, &meq);
+        clock.tick();
+    }
+}
+
 int main()
 {
-    fpTest();
+    decodeTest();
     return 0;
 }

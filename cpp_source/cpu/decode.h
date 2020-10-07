@@ -8,10 +8,15 @@
 
 #include "pipeline.h"
 
+struct Cpu;
+
 struct Decode : Pipeline
 {
+    Cpu *cpu;
 
-    Decode();
+    Decode(Cpu *cpu);
+
+    Instruction *decode(Instruction *instruction);
 
     void tick(ulong time, EventQueue *eventQueue);
 };
