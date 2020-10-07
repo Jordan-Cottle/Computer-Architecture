@@ -23,4 +23,13 @@ struct Instruction : printable
     std::string __str__();
 };
 
+struct Branch : Instruction
+{
+    std::string label;
+
+    Branch(std::string operation, std::vector<int> arguments, std::string label);
+
+    std::string __str__();
+};
+
 #endif

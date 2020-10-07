@@ -15,6 +15,8 @@
 #include "fetch.h"
 #include "decode.h"
 
+#include "program.h"
+
 EventQueue meq;
 
 void instructionQueueTest()
@@ -111,8 +113,30 @@ void fetchTest()
         clock.tick();
     }
 }
+
+void programTest()
+{
+    Program program = Program({new Instruction("fld", {0, 1}),
+                               new Instruction("addi", {1, 1, -8}),
+                               new Instruction("fadd.d", {4, 0, 2}),
+                               new Instruction("stall", {}),
+                               new Instruction("stall", {}),
+                               new Instruction("fsd", {4, 0, 1}),
+                               new Branch("bne", {1, 2}, "Loop")},
+                              {{"Loop", 0}, {"Test", 5}});
+
+    std::cout << program << "\n\n";
+
+    for (auto label : {"Loop", "Test"})
+    {
+        int line = program.index(label);
+        std::cout << label << ": " << line << "\n";
+        std::cout << "Instruction at '" << label << "': " << program.line(line) << "\n";
+    }
+}
+
 int main()
 {
-    fetchTest();
+    programTest();
     return 0;
 }
