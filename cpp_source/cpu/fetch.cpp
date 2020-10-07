@@ -15,7 +15,7 @@ std::string FetchEvent::__str__()
     return "FetchEvent " + str(this->id) + " IM(" + str(this->address) + ")";
 }
 
-Fetch::Fetch(Pipeline *next, Register<Instruction *> *instructionMemory) : Pipeline("Fetch", next)
+Fetch::Fetch(Register<Instruction *> *instructionMemory) : Pipeline("Fetch")
 {
     this->source = instructionMemory;
 }
@@ -24,7 +24,7 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
 {
     if (this->staged() != NULL)
     {
-        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->staged(), this->next);
+        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, this->staged());
 
         eventQueue->push(event);
     }

@@ -7,7 +7,7 @@
 
 #include "pipeline.h"
 
-PipelineInsertEvent::PipelineInsertEvent(ulong time, Instruction *instruction, Pipeline *pipeline) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
+PipelineInsertEvent::PipelineInsertEvent(ulong time, Pipeline *pipeline, Instruction *instruction) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
 {
 }
 
@@ -61,8 +61,6 @@ void Pipeline::tick(ulong time, EventQueue *eventQueue)
 
 void Pipeline::process(Event *event, EventQueue *eventQueue)
 {
-    this->eventsProcessed += 1;
-
     std::cout << this->type << " processing " << event->type << "\n";
     if (event->type == "PipelineInsertEvent")
     {

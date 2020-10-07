@@ -20,6 +20,33 @@
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
 
+#include "cpu.h"
+
+// Echo any events/instructions for debugging partial pipelines
+struct TestPipeline : Pipeline
+{
+    TestPipeline() : Pipeline("TestPipeline")
+    {
+    }
+
+    void tick(ulong time, EventQueue *eventQueue)
+    {
+        Instruction *staged = this->staged();
+
+        std::cout << this->type << " T " << time << ": ";
+        if (staged == NULL)
+        {
+            std::cout << " no instruction\n";
+        }
+        else
+        {
+            std::cout << this->staged() << "\n";
+        }
+
+        Pipeline::tick(time, eventQueue);
+    }
+};
+
 EventQueue meq;
 
 void instructionQueueTest()
@@ -69,8 +96,10 @@ void fetchTest()
 {
     Register<Instruction *> instructionMemory = Register<Instruction *>(5);
 
-    Decode decodeUnit = Decode(NULL);
-    Fetch fetchUnit = Fetch(&decodeUnit, &instructionMemory);
+    TestPipeline testPipeline;
+
+    Fetch fetchUnit = Fetch(&instructionMemory);
+    fetchUnit.next = &testPipeline;
 
     instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
     instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));
@@ -92,26 +121,18 @@ void fetchTest()
 
     Clock clock;
 
-    while (clock.cycle < 10)
+    while (!meq.empty())
     {
         std::cout << clock << "\n";
-        while (!meq.empty() && meq.nextTime() == clock.cycle)
-        {
-            Event *event = meq.pop();
-            SimulationDevice *device = event->device;
-
-            std::cout << "Processing " << event << "\n";
-            device->process(event, &meq);
-            std::cout << device << "\n";
-        }
+        meq.tick(clock.cycle);
 
         std::cout << "Ticking devices:\n";
 
         fetchUnit.tick(clock.cycle, &meq);
-        decodeUnit.tick(clock.cycle, &meq);
-
         std::cout << fetchUnit << "\n";
-        std::cout << decodeUnit << "\n";
+
+        testPipeline.tick(clock.cycle, &meq);
+        std::cout << testPipeline << "\n";
 
         clock.tick();
     }
@@ -181,8 +202,34 @@ void fpTest()
     std::cout << fpMemory << "\n";
 }
 
+void decodeTest()
+{
+    Cpu *cpu = new Cpu();
+    Instruction *instruction = new Instruction("fsd", {0, 0});
+
+    Decode decode = Decode(cpu);
+
+    cpu->addPipeline(&decode);
+    cpu->addPipeline(new TestPipeline());
+
+    cpu->intRegister.write(0, 2);
+
+    Event *event = new PipelineInsertEvent(0, &decode, instruction);
+
+    meq.push(event);
+
+    Clock clock;
+    while (!meq.empty())
+    {
+        std::cout << clock << "\n";
+        meq.tick(clock.cycle);
+        cpu->tick(clock.cycle, &meq);
+        clock.tick();
+    }
+}
+
 int main()
 {
-    fpTest();
+    decodeTest();
     return 0;
 }
