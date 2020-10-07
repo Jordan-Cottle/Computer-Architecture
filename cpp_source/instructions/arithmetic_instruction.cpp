@@ -45,11 +45,11 @@ void Add::execute(Cpu *cpu)
     }
     else
     {
-        int left = cpu->fpRegister.read(this->leftIndex);
+        int left = cpu->intRegister.read(this->leftIndex);
 
         int right = this->immediate ? this->immediateValue : cpu->intRegister.read(this->rightIndex);
 
-        cpu->fpRegister.write(this->destinationIndex, right + left);
+        cpu->intRegister.write(this->destinationIndex, left + right);
     }
 }
 
