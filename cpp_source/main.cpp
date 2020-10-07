@@ -22,6 +22,8 @@
 
 #include "cpu.h"
 
+#include "execute.h"
+
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
 {
@@ -225,8 +227,43 @@ void decodeTest()
     }
 }
 
+void executeTest()
+{
+    Cpu cpu = Cpu();
+
+    Execute execute = Execute(&cpu);
+    cpu.addPipeline(&execute);
+    cpu.addPipeline(new TestPipeline());
+
+    Instruction *instruction = new Instruction("addi", {0, 1});
+    Add add = Add(instruction, instruction->arguments[1]);
+
+    Event *event = new PipelineInsertEvent(0, &execute, &add);
+    meq.push(event);
+
+    instruction = new Instruction("fsd", {0, 0});
+    Store store = Store(instruction, &cpu.intRegister);
+
+    event = new PipelineInsertEvent(1, &execute, &store);
+    meq.push(event);
+
+    std::cout << cpu.intRegister << "\n";
+
+    Clock clock;
+    while (!meq.empty())
+    {
+        std::cout << clock << "\n";
+        meq.tick(clock.cycle);
+        cpu.tick(clock.cycle, &meq);
+        clock.tick();
+    }
+
+    std::cout << "Integer ";
+    std::cout << cpu.intRegister << "\n";
+}
+
 int main()
 {
-    decodeTest();
+    executeTest();
     return 0;
 }
