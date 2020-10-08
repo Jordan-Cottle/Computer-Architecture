@@ -41,7 +41,7 @@ void Fetch::process(Event *event, EventQueue *eventQueue)
     if (event->type == "FetchEvent")
     {
         event->handled = true;
-        this->stage(this->cpu->instructionMemory.read(this->cpu->programCounter));
+        this->stage(this->cpu->program->line(this->cpu->programCounter));
     }
     else if (event->type == "PipelineInsertEvent")
     {

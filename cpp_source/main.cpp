@@ -117,27 +117,18 @@ void fetchTest()
     cpu.addPipeline(&fetchUnit);
     cpu.addPipeline(new TestPipeline());
 
-    cpu.instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
-    cpu.instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));
-    cpu.instructionMemory.write(2, new Instruction("MULT", {2, 3, 4}));
-    cpu.instructionMemory.write(3, new Instruction("DIV", {3, 6, 3}));
-    cpu.instructionMemory.write(4, new Instruction("BRANCH", {4, 1}));
-
-    std::cout << "Instructions " << cpu.instructionMemory << "\n";
-
-    for (int i = 0; i < cpu.instructionMemory.size; i++)
-    {
-        FetchEvent *event = new FetchEvent(i, &fetchUnit);
-        std::cout << event << "\n";
-
-        meq.push(event);
-    }
-
-    std::cout << meq << "\n";
-
     Clock clock;
 
-    while (!meq.empty())
+    cpu.tick(-1, &meq);
+    cpu.loadProgram(new Program({new Instruction("ADD", {0, 1, 2}),
+                                 new Instruction("SUB", {1, 2, 1}),
+                                 new Instruction("MULT", {2, 3, 4}),
+                                 new Instruction("DIV", {3, 6, 3}),
+                                 new Instruction("BRANCH", {4, 1})},
+                                {}));
+    std::cout << cpu.program << "\n";
+
+    while (clock.cycle <= 5)
     {
         std::cout << clock << "\n";
         meq.tick(clock.cycle);
@@ -352,7 +343,7 @@ void cpuTest()
 
     std::cout << "Initial float memory " << cpu.fpMemory << "\n";
 
-    std::cout << "Instruction " << cpu.instructionMemory << "\n";
+    std::cout << "Instruction " << cpu.program << "\n";
 
     // Set up initial fetch event (so meq isn't empty)
     meq.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
@@ -390,6 +381,6 @@ void cpuTest()
 
 int main()
 {
-    cpuTest();
+    fetchTest();
     return 0;
 }

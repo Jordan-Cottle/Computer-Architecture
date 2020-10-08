@@ -15,7 +15,6 @@
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
              fpRegister(Register<double>(REGISTER_COUNT)),
-             instructionMemory(Register<Instruction *>(INSTRUCTION_MEMORY_COUNT)),
              intMemory(Register<int>(MEMORY_COUNT)),
              fpMemory(Register<double>(MEMORY_COUNT))
 {
@@ -60,11 +59,8 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
 
 void Cpu::loadProgram(Program *program)
 {
-    int i = 0;
-    for (auto instruction : program->instructions)
-    {
-        this->instructionMemory.write(i++, instruction);
-    }
+    this->program = program;
+    this->programCounter = 0;
 }
 
 std::string Cpu::__str__()

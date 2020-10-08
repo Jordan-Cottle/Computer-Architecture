@@ -19,7 +19,7 @@ struct Cpu : SimulationDevice
     Register<double> fpRegister;
 
     // TODO put these somewhere else
-    Register<Instruction *> instructionMemory;
+    Program *program;
     Register<int> intMemory;
     Register<double> fpMemory;
 
