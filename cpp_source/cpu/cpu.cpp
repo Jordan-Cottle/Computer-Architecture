@@ -49,11 +49,6 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
         {
             continue;
         }
-
-        FetchEvent *fetch = new FetchEvent(time + 1, fetchUnit);
-        this->programCounter += 1;
-
-        eventQueue->push(fetch);
     }
 }
 

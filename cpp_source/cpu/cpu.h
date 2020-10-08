@@ -14,6 +14,7 @@
 struct Cpu : SimulationDevice
 {
     int programCounter;
+    bool branchSpeculated = false;
 
     Register<int> intRegister;
     Register<double> fpRegister;

@@ -24,6 +24,15 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
     Instruction *instruction = this->staged();
     Pipeline::tick(time, eventQueue);
 
+    Branch *branch = dynamic_cast<Branch *>(instruction);
+
+    if (branch != NULL)
+    {
+        this->cpu->programCounter = this->cpu->program->index(branch->label);
+        this->cpu->branchSpeculated = true; // Predict True for all branches
+        std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
+    }
+
     if (instruction == NULL)
     {
         std::cout << "No instructions fetched\n";
@@ -34,6 +43,9 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
 
         eventQueue->push(event);
     }
+
+    FetchEvent *fetch = new FetchEvent(time + 1, this);
+    eventQueue->push(fetch);
 }
 
 void Fetch::process(Event *event, EventQueue *eventQueue)
@@ -41,7 +53,7 @@ void Fetch::process(Event *event, EventQueue *eventQueue)
     if (event->type == "FetchEvent")
     {
         event->handled = true;
-        this->stage(this->cpu->program->line(this->cpu->programCounter));
+        this->stage(this->cpu->program->line(this->cpu->programCounter++));
     }
     else if (event->type == "PipelineInsertEvent")
     {

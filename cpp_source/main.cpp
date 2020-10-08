@@ -117,18 +117,19 @@ void fetchTest()
     cpu.addPipeline(&fetchUnit);
     cpu.addPipeline(new TestPipeline());
 
-    Clock clock;
-
-    cpu.tick(-1, &meq);
     cpu.loadProgram(new Program({new Instruction("ADD", {0, 1, 2}),
                                  new Instruction("SUB", {1, 2, 1}),
                                  new Instruction("MULT", {2, 3, 4}),
                                  new Instruction("DIV", {3, 6, 3}),
-                                 new Instruction("BRANCH", {4, 1})},
-                                {}));
+                                 new Branch("BRANCH", {}, "Test")},
+                                {{"Test", 0}}));
     std::cout << cpu.program << "\n";
 
-    while (clock.cycle <= 5)
+    // Initialize cpu
+    cpu.tick(-1, &meq);
+
+    Clock clock;
+    while (clock.cycle <= 10)
     {
         std::cout << clock << "\n";
         meq.tick(clock.cycle);
@@ -138,12 +139,6 @@ void fetchTest()
         cpu.tick(clock.cycle, &meq);
         std::cout << fetchUnit << "\n";
         clock.tick();
-
-        // TODO Remove this once branches are handled
-        if (cpu.programCounter > 4)
-        {
-            cpu.programCounter = 0;
-        }
     }
 }
 
