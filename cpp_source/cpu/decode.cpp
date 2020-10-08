@@ -7,7 +7,7 @@
 
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
-#include "branch_instructions.h"
+#include "control_instructions.h"
 
 Decode::Decode(Cpu *cpu) : Pipeline("Decode")
 {

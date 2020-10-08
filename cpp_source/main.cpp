@@ -26,7 +26,7 @@
 #include "execute.h"
 #include "store.h"
 
-#include "branch_instructions.h"
+#include "control_instructions.h"
 
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline

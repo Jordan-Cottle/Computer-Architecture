@@ -3,8 +3,8 @@
     Created: 10/08/2020
 */
 
-#ifndef __BRANCH_INSTRUCTIONS__
-#define __BRANCH_INSTRUCTIONS__
+#ifndef __CONTROL_INSTRUCTIONS__
+#define __CONTROL_INSTRUCTIONS__
 
 #include "instruction.h"
 
