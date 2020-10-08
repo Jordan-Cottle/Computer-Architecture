@@ -58,6 +58,14 @@ void Cpu::loadProgram(Program *program)
     this->programCounter = 0;
 }
 
+void Cpu::flush()
+{
+    for (auto pipeline : this->pipelines)
+    {
+        pipeline->flush();
+    }
+}
+
 std::string Cpu::__str__()
 {
     std::string s = "Cpu{\n";

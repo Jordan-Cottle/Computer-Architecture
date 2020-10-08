@@ -34,6 +34,8 @@ struct Cpu : SimulationDevice
 
     void loadProgram(Program *program);
 
+    void flush();
+
     std::string __str__();
 };
 
