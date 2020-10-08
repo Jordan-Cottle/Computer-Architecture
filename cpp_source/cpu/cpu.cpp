@@ -19,6 +19,8 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
              fpMemory(Register<double>(MEMORY_COUNT))
 {
     this->programCounter = 0;
+    this->branchSpeculated = false;
+    this->jumpedFrom = -1;
 
     this->pipelines = {};
 }

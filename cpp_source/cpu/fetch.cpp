@@ -28,8 +28,10 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
 
     if (branch != NULL)
     {
-        this->cpu->programCounter = this->cpu->program->index(branch->label);
         this->cpu->branchSpeculated = true; // Predict True for all branches
+        this->cpu->jumpedFrom = this->cpu->programCounter;
+        this->cpu->programCounter = this->cpu->program->index(branch->label);
+
         std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
     }
 
