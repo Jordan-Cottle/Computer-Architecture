@@ -23,6 +23,7 @@
 #include "cpu.h"
 
 #include "execute.h"
+#include "store.h"
 
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
@@ -262,8 +263,49 @@ void executeTest()
     std::cout << cpu.intRegister << "\n";
 }
 
+void storeTest()
+{
+    Cpu cpu = Cpu();
+    cpu.intRegister.write(0, 0); // Store in memory address 0
+    cpu.intRegister.write(1, 1); // Store in memory address 1
+
+    cpu.fpRegister.write(0, 3.141592654); // Pi
+    cpu.fpRegister.write(1, 2.718281828); // E
+
+    StorePipeline store = StorePipeline(&cpu);
+    cpu.addPipeline(&store);
+
+    Instruction *instruction = new Instruction("fsd", {0, 0});
+    instruction = new Store(instruction, &cpu.intRegister);
+
+    Event *event = new PipelineInsertEvent(0, &store, instruction);
+    meq.push(event);
+
+    instruction = new Instruction("fsd", {1, 1});
+    instruction = new Store(instruction, &cpu.intRegister);
+
+    event = new PipelineInsertEvent(1, &store, instruction);
+    meq.push(event);
+
+    std::cout << "Float " << cpu.fpRegister << "\n";
+
+    std::cout << "Float Memory " << cpu.fpMemory << "\n";
+
+    Clock clock;
+    while (!meq.empty())
+    {
+        std::cout << clock << "\n";
+        meq.tick(clock.cycle);
+        cpu.tick(clock.cycle, &meq);
+        clock.tick();
+    }
+
+    std::cout << "Float memory ";
+    std::cout << cpu.fpMemory << "\n";
+}
+
 int main()
 {
-    executeTest();
+    storeTest();
     return 0;
 }
