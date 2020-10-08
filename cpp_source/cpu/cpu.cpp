@@ -20,6 +20,7 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
     this->jumpedFrom = -1;
 
     this->pipelines = {};
+    this->complete = false;
 }
 
 Cpu *Cpu::addPipeline(Pipeline *pipeline)

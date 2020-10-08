@@ -38,16 +38,21 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
     if (instruction == NULL)
     {
         std::cout << "No instructions fetched\n";
+        return;
     }
-    else
+    else if (instruction->operation != "stall") // Don't pass on stall instructions
     {
         PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, instruction);
 
         eventQueue->push(event);
     }
 
-    FetchEvent *fetch = new FetchEvent(time + 1, this);
-    eventQueue->push(fetch);
+    // Stop fetching if halt is encountered
+    if (instruction->operation != "halt")
+    {
+        FetchEvent *fetch = new FetchEvent(time + 1, this);
+        eventQueue->push(fetch);
+    }
 }
 
 void Fetch::process(Event *event, EventQueue *eventQueue)

@@ -40,7 +40,7 @@ Instruction *Decode::decode(Instruction *instruction)
         int destination = this->cpu->program->index(branch->label);
         return new Bne(branch, destination);
     }
-    else if (op == "stall")
+    else if (op == "halt")
     {
         return instruction;
     }
