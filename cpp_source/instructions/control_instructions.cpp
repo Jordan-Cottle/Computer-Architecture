@@ -30,7 +30,7 @@ void DecodedBranch::execute(Cpu *cpu)
         }
         else
         {
-            cpu->programCounter = cpu->jumpedFrom + 1;
+            cpu->programCounter = cpu->jumpedFrom;
         }
     }
 
