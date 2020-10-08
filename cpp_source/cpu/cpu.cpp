@@ -43,7 +43,19 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
         pipeline->tick(time, eventQueue);
     }
 
+    for (auto pipeline : this->pipelines)
+    {
+        Fetch *fetchUnit = dynamic_cast<Fetch *>(pipeline);
+        if (fetchUnit == NULL)
+        {
+            continue;
+        }
+
+        FetchEvent *fetch = new FetchEvent(time + 1, fetchUnit);
     this->programCounter += 1;
+
+        eventQueue->push(fetch);
+    }
 }
 
 void Cpu::loadProgram(Program *program)
