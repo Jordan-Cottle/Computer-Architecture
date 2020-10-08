@@ -13,8 +13,7 @@ struct Fetch;
 
 struct FetchEvent : Event
 {
-    int address;
-    FetchEvent(ulong time, Fetch *device, int address);
+    FetchEvent(ulong time, Fetch *device);
 
     std::string __str__();
 };

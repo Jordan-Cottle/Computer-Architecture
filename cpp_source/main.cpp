@@ -99,10 +99,9 @@ void fetchTest()
 {
     Cpu cpu;
 
-    TestPipeline testPipeline;
-
     Fetch fetchUnit = Fetch(&cpu);
-    fetchUnit.next = &testPipeline;
+    cpu.addPipeline(&fetchUnit);
+    cpu.addPipeline(new TestPipeline());
 
     cpu.instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
     cpu.instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));
@@ -114,7 +113,7 @@ void fetchTest()
 
     for (int i = 0; i < cpu.instructionMemory.size; i++)
     {
-        FetchEvent *event = new FetchEvent(i, &fetchUnit, i);
+        FetchEvent *event = new FetchEvent(i, &fetchUnit);
         std::cout << event << "\n";
 
         meq.push(event);
@@ -131,13 +130,15 @@ void fetchTest()
 
         std::cout << "Ticking devices:\n";
 
-        fetchUnit.tick(clock.cycle, &meq);
+        cpu.tick(clock.cycle, &meq);
         std::cout << fetchUnit << "\n";
-
-        testPipeline.tick(clock.cycle, &meq);
-        std::cout << testPipeline << "\n";
-
         clock.tick();
+
+        // TODO Remove this once branches are handled
+        if (cpu.programCounter > 4)
+        {
+            cpu.programCounter = 0;
+        }
     }
 }
 
@@ -306,6 +307,6 @@ void storeTest()
 
 int main()
 {
-    storeTest();
+    fetchTest();
     return 0;
 }

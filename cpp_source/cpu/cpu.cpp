@@ -42,6 +42,8 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
     {
         pipeline->tick(time, eventQueue);
     }
+
+    this->programCounter += 1;
 }
 
 std::string Cpu::__str__()
