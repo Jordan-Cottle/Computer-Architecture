@@ -21,18 +21,19 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 
 void Fetch::tick(ulong time, EventQueue *eventQueue)
 {
-    if (this->staged() != NULL)
-    {
-        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, this->staged());
+    Instruction *instruction = this->staged();
+    Pipeline::tick(time, eventQueue);
 
-        eventQueue->push(event);
-    }
-    else
+    if (instruction == NULL)
     {
         std::cout << "No instructions fetched\n";
     }
+    else
+    {
+        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, instruction);
 
-    Pipeline::tick(time, eventQueue);
+        eventQueue->push(event);
+    }
 }
 
 void Fetch::process(Event *event, EventQueue *eventQueue)

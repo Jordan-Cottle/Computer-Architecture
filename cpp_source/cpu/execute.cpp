@@ -14,23 +14,32 @@ Execute::Execute(Cpu *cpu) : Pipeline("Execute")
 
 void Execute::tick(ulong time, EventQueue *eventQueue)
 {
-    if (this->staged() == NULL)
+    Instruction *instruction = this->staged();
+    Pipeline::tick(time, eventQueue);
+
+    if (instruction == NULL)
     {
+        std::cout << "No instruction to execute\n";
         return;
     }
 
-    Store *store = dynamic_cast<Store *>(this->staged());
+    Store *store = dynamic_cast<Store *>(instruction);
     if (store != NULL)
     {
+        std::cout << "Passing store on from execute stage\n";
         PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, store);
         eventQueue->push(new_event);
     }
+    else if (instruction->operation == "stall")
+    {
+        std::cout << "Executing stall\n";
+        return;
+    }
     else
     {
-        DecodedInstruction *instruction = dynamic_cast<DecodedInstruction *>(this->staged());
+        std::cout << "Executing " << instruction << "\n";
+        DecodedInstruction *decoded = dynamic_cast<DecodedInstruction *>(instruction);
 
-        instruction->execute(this->cpu);
+        decoded->execute(this->cpu);
     }
-
-    Pipeline::tick(time, eventQueue);
 }

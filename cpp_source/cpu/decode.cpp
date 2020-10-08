@@ -33,27 +33,30 @@ Instruction *Decode::decode(Instruction *instruction)
     {
         return new Add(instruction, instruction->arguments[2]);
     }
+    else if (op == "stall")
+    {
+        return instruction;
+    }
 
     throw std::runtime_error("Unrecognized instruction " + str(instruction));
 }
 
 void Decode::tick(ulong time, EventQueue *eventQueue)
 {
-    Instruction *staged = this->staged();
+    Instruction *instruction = this->staged();
+    Pipeline::tick(time, eventQueue);
 
-    if (staged == NULL)
+    if (instruction == NULL)
     {
         std::cout << "No instruction to decode\n";
     }
     else
     {
-        std::cout << "Decoding: " << this->staged() << "\n";
-        Instruction *decodedInstruction = this->decode(staged);
+        std::cout << "Decoding: " << instruction << "\n";
+        Instruction *decodedInstruction = this->decode(instruction);
 
         PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, decodedInstruction);
 
         eventQueue->push(new_event);
     }
-
-    Pipeline::tick(time, eventQueue);
 }
