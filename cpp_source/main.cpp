@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "event_queue.h"
 #include "event.h"
@@ -24,6 +25,8 @@
 
 #include "execute.h"
 #include "store.h"
+
+#include "branch_instructions.h"
 
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
@@ -231,14 +234,18 @@ void executeTest()
 
     Instruction *instruction = new Instruction("addi", {0, 1});
     Add add = Add(instruction, instruction->arguments[1]);
-
     Event *event = new PipelineInsertEvent(0, &execute, &add);
     meq.push(event);
 
+    cpu.fpMemory.write(1, 3.14);
     instruction = new Instruction("fsd", {0, 0});
     Store store = Store(instruction, &cpu.intRegister);
-
     event = new PipelineInsertEvent(1, &execute, &store);
+    meq.push(event);
+
+    Branch *branchInstruction = new Branch("branch", {}, "Test");
+    DecodedBranch branch = DecodedBranch(branchInstruction, 42);
+    event = new PipelineInsertEvent(2, &execute, &branch);
     meq.push(event);
 
     std::cout << cpu.intRegister << "\n";
@@ -248,14 +255,23 @@ void executeTest()
     {
         std::cout << clock << "\n";
         meq.tick(clock.cycle);
+
+        cpu.programCounter = clock.cycle;
         cpu.tick(clock.cycle, &meq);
+
         clock.tick();
     }
 
     std::cout << "Integer ";
     std::cout << cpu.intRegister << "\n";
-}
+    assert(cpu.intRegister.read(0) == 1);
 
+    std::cout << "fpMemory[1]: " << cpu.fpMemory.read(1) << "\n";
+    assert(cpu.fpMemory.read(1) == 3.14);
+
+    std::cout << "Final PC: " << cpu.programCounter << "\n";
+    assert(cpu.programCounter == 42);
+}
 void storeTest()
 {
     Cpu cpu = Cpu();
@@ -376,6 +392,6 @@ void cpuTest()
 
 int main()
 {
-    fetchTest();
+    executeTest();
     return 0;
 }
