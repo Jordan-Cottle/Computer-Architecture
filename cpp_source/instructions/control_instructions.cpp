@@ -3,7 +3,7 @@
     Created: 10/08/2020
 */
 
-#include "branch_instructions.h"
+#include "control_instructions.h"
 #include "cpu.h"
 
 DecodedBranch::DecodedBranch(Branch *branch, int destination) : DecodedInstruction(branch)
@@ -30,7 +30,7 @@ void DecodedBranch::execute(Cpu *cpu)
         }
         else
         {
-            cpu->programCounter = cpu->jumpedFrom + 1;
+            cpu->programCounter = cpu->jumpedFrom;
         }
     }
 

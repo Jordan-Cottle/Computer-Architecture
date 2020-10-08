@@ -17,6 +17,8 @@ struct Cpu : SimulationDevice
     bool branchSpeculated;
     int jumpedFrom;
 
+    bool complete;
+
     Register<int> intRegister;
     Register<double> fpRegister;
 

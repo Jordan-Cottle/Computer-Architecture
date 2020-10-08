@@ -24,16 +24,11 @@ void Execute::tick(ulong time, EventQueue *eventQueue)
     }
 
     Store *store = dynamic_cast<Store *>(instruction);
-    if (store != NULL)
+    if (store != NULL || instruction->operation == "halt")
     {
-        std::cout << "Passing store on from execute stage\n";
-        PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, store);
+        std::cout << "Passing store/halt on from execute stage\n";
+        PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, instruction);
         eventQueue->push(new_event);
-    }
-    else if (instruction->operation == "stall")
-    {
-        std::cout << "Executing stall\n";
-        return;
     }
     else
     {

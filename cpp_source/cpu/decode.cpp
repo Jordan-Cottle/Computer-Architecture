@@ -7,7 +7,7 @@
 
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
-#include "branch_instructions.h"
+#include "control_instructions.h"
 
 Decode::Decode(Cpu *cpu) : Pipeline("Decode")
 {
@@ -40,7 +40,7 @@ Instruction *Decode::decode(Instruction *instruction)
         int destination = this->cpu->program->index(branch->label);
         return new Bne(branch, destination);
     }
-    else if (op == "stall")
+    else if (op == "halt")
     {
         return instruction;
     }

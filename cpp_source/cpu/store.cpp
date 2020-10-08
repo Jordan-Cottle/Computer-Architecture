@@ -7,6 +7,8 @@
 
 #include "memory_instruction.h"
 
+#include "cpu.h"
+
 StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 {
     this->cpu = cpu;
@@ -20,6 +22,12 @@ void StorePipeline::tick(ulong time, EventQueue *eventQueue)
     if (instruction == NULL)
     {
         std::cout << "No instruction to store\n";
+        return;
+    }
+
+    if (instruction->operation == "halt")
+    {
+        this->cpu->complete = true;
         return;
     }
 

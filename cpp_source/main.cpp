@@ -26,7 +26,7 @@
 #include "execute.h"
 #include "store.h"
 
-#include "branch_instructions.h"
+#include "control_instructions.h"
 
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
@@ -66,6 +66,7 @@ Program program = Program({
                               new Instruction("addi", {START, START, -1}),
                               new Instruction("fsd", {3, 1}),
                               new Branch("bne", {START, END}, "Loop"),
+                              new Instruction("halt", {}),
                           },
                           {{"Loop", 0}});
 
@@ -320,15 +321,18 @@ void cpuTest()
     const double INITIAL = 0.5;
     const double OFFSET = 0.5;
 
+    const int ARRAY_START = 1;
+    const int ARRAY_END = 100;
+
     // Indexes of array
-    cpu.intRegister.write(START, 100);
-    cpu.intRegister.write(END, 0);
+    cpu.intRegister.write(START, ARRAY_END);
+    cpu.intRegister.write(END, ARRAY_START - 1);
 
     // Constant float to add to fp array
     cpu.fpRegister.write(2, 1.0);
 
     // Initialize array in fp memory
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < ARRAY_END; i++)
     {
         cpu.fpMemory.write(i + 1, INITIAL + i * OFFSET);
     }
@@ -348,7 +352,7 @@ void cpuTest()
     meq.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
 
     Clock clock;
-    while (cpu.programCounter != 9)
+    while (!cpu.complete)
     {
         std::cout << "\n"
                   << clock << "\n";
@@ -368,7 +372,7 @@ void cpuTest()
     std::cout << "\n~~~Result~~~\n";
     std::cout << "Float Memory " << cpu.fpMemory << "\n";
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < ARRAY_END; i++)
     {
         assert(cpu.fpMemory.read(i + 1) == 1.0 + INITIAL + i * OFFSET);
     }
