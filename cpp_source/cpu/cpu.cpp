@@ -8,7 +8,7 @@
 #include "fetch.h"
 #include "decode.h"
 
-#define REGISTER_COUNT 2
+#define REGISTER_COUNT 4
 #define MEMORY_COUNT 4
 #define INSTRUCTION_MEMORY_COUNT 8
 
@@ -46,13 +46,22 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
     this->programCounter += 1;
 }
 
+void Cpu::loadProgram(Program *program)
+{
+    int i = 0;
+    for (auto instruction : program->instructions)
+    {
+        this->instructionMemory.write(i++, instruction);
+    }
+}
+
 std::string Cpu::__str__()
 {
     std::string s = "Cpu{\n";
 
     s += "\tRegisters: {\n";
-    s += "\t\tInteger" + addIndent(str(this->intRegister), 2) + "\n";
-    s += "\t\tFloat" + addIndent(str(this->fpRegister), 2) + "\n";
+    s += "\t\tInteger " + addIndent(str(this->intRegister), 2) + "\n";
+    s += "\t\tFloat " + addIndent(str(this->fpRegister), 2) + "\n";
 
     s += "\t}\n\tMemory: {\n";
     s += "\t\tInteger " + addIndent(str(this->intMemory), 2) + "\n";

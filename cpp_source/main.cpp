@@ -52,6 +52,15 @@ struct TestPipeline : Pipeline
 
 EventQueue meq;
 
+Program program = Program({new Instruction("fld", {0, 1}),
+                           new Instruction("addi", {1, 1, -8}),
+                           new Instruction("fadd.d", {4, 0, 2}),
+                           new Instruction("stall", {}),
+                           new Instruction("stall", {}),
+                           new Instruction("fsd", {4, 1}),
+                           new Branch("bne", {1, 2}, "Loop")},
+                          {{"Loop", 0}});
+
 void instructionQueueTest()
 {
     std::vector<Instruction *> instructions = std::vector<Instruction *>();
@@ -144,15 +153,7 @@ void fetchTest()
 
 void programTest()
 {
-    Program program = Program({new Instruction("fld", {0, 1}),
-                               new Instruction("addi", {1, 1, -8}),
-                               new Instruction("fadd.d", {4, 0, 2}),
-                               new Instruction("stall", {}),
-                               new Instruction("stall", {}),
-                               new Instruction("fsd", {4, 1}),
-                               new Branch("bne", {1, 2}, "Loop")},
-                              {{"Loop", 0}, {"Test", 5}});
-
+    program.labels["Test"] = 5;
     std::cout << program << "\n\n";
 
     for (auto label : {"Loop", "Test"})
@@ -305,8 +306,23 @@ void storeTest()
     std::cout << cpu.fpMemory << "\n";
 }
 
+void cpuTest()
+{
+    Cpu cpu = Cpu();
+    cpu.addPipeline(new Fetch(&cpu))
+        ->addPipeline(new Decode(&cpu))
+        ->addPipeline(new Execute(&cpu))
+        ->addPipeline(new StorePipeline(&cpu));
+
+    cpu.loadProgram(&program);
+
+    std::cout << cpu << "\n";
+
+    std::cout << "Instruction " << cpu.instructionMemory << "\n";
+}
+
 int main()
 {
-    fetchTest();
+    cpuTest();
     return 0;
 }
