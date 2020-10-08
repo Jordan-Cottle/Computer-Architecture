@@ -41,3 +41,14 @@ std::string DecodedBranch::__str__()
 {
     return "PC -> " + str(this->destination);
 }
+
+Bne::Bne(Branch *branch, int destination) : DecodedBranch(branch, destination)
+{
+    this->leftIndex = branch->arguments[0];
+    this->rightIndex = branch->arguments[1];
+}
+
+bool Bne::take(Cpu *cpu)
+{
+    return cpu->intRegister.read(this->leftIndex) != cpu->intRegister.read(this->rightIndex);
+}

@@ -5,9 +5,6 @@
 
 #include "cpu.h"
 
-#include "fetch.h"
-#include "decode.h"
-
 #define REGISTER_COUNT 4
 #define MEMORY_COUNT 128
 #define INSTRUCTION_MEMORY_COUNT 8
@@ -43,15 +40,6 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
     {
         pipeline->tick(time, eventQueue);
     }
-
-    for (auto pipeline : this->pipelines)
-    {
-        Fetch *fetchUnit = dynamic_cast<Fetch *>(pipeline);
-        if (fetchUnit == NULL)
-        {
-            continue;
-        }
-    }
 }
 
 void Cpu::loadProgram(Program *program)
@@ -64,7 +52,15 @@ void Cpu::flush()
 {
     for (auto pipeline : this->pipelines)
     {
-        pipeline->flush();
+        // Don't flush anything past the execute stage
+        if (pipeline->type == "Execute")
+        {
+            break;
+        }
+        else
+        {
+            pipeline->flush();
+        }
     }
 }
 

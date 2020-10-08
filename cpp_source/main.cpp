@@ -317,6 +317,9 @@ void cpuTest()
 {
     Cpu cpu = Cpu();
 
+    const double INITIAL = 0.5;
+    const double OFFSET = 0.5;
+
     // Indexes of array
     cpu.intRegister.write(START, 100);
     cpu.intRegister.write(END, 0);
@@ -327,7 +330,7 @@ void cpuTest()
     // Initialize array in fp memory
     for (int i = 0; i < 100; i++)
     {
-        cpu.fpMemory.write(i + 1, 0.5 + (i * 0.5));
+        cpu.fpMemory.write(i + 1, INITIAL + i * OFFSET);
     }
 
     cpu.addPipeline(new Fetch(&cpu))
@@ -337,21 +340,6 @@ void cpuTest()
 
     cpu.loadProgram(&program);
 
-    int branchPos = -1;
-    for (auto instruction : program.instructions)
-    {
-        Branch *branch = dynamic_cast<Branch *>(instruction);
-
-        if (branch != NULL)
-        {
-            break;
-        }
-        else
-        {
-            branchPos += 1;
-        }
-    }
-
     std::cout << "Initial float memory " << cpu.fpMemory << "\n";
 
     std::cout << "Instruction " << cpu.program << "\n";
@@ -360,7 +348,7 @@ void cpuTest()
     meq.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
 
     Clock clock;
-    while (!meq.empty())
+    while (cpu.programCounter != 9)
     {
         std::cout << "\n"
                   << clock << "\n";
@@ -372,26 +360,22 @@ void cpuTest()
         cpu.tick(clock.cycle, &meq);
 
         std::cout << cpu.intRegister << "\n";
-        if (cpu.programCounter > branchPos)
-        {
-            if (cpu.intRegister.read(START) == cpu.intRegister.read(END))
-            {
-                break;
-            }
-            cpu.programCounter = 0;
-        }
 
         clock.tick();
     }
     std::cout << "Program complete!\n";
 
     std::cout << "\n~~~Result~~~\n";
-
     std::cout << "Float Memory " << cpu.fpMemory << "\n";
+
+    for (int i = 0; i < 100; i++)
+    {
+        assert(cpu.fpMemory.read(i + 1) == 1.0 + INITIAL + i * OFFSET);
+    }
 }
 
 int main()
 {
-    executeTest();
+    cpuTest();
     return 0;
 }
