@@ -9,7 +9,7 @@
 #include "decode.h"
 
 #define REGISTER_COUNT 4
-#define MEMORY_COUNT 4
+#define MEMORY_COUNT 128
 #define INSTRUCTION_MEMORY_COUNT 8
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
@@ -52,7 +52,7 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
         }
 
         FetchEvent *fetch = new FetchEvent(time + 1, fetchUnit);
-    this->programCounter += 1;
+        this->programCounter += 1;
 
         eventQueue->push(fetch);
     }

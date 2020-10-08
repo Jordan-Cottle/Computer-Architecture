@@ -52,13 +52,18 @@ struct TestPipeline : Pipeline
 
 EventQueue meq;
 
-Program program = Program({new Instruction("fld", {0, 1}),
-                           new Instruction("addi", {1, 1, -8}),
-                           new Instruction("fadd.d", {4, 0, 2}),
-                           new Instruction("stall", {}),
-                           new Instruction("stall", {}),
-                           new Instruction("fsd", {4, 1}),
-                           new Branch("bne", {1, 2}, "Loop")},
+#define START 1
+#define END 2
+Program program = Program({
+                              new Instruction("fld", {0, 1}),
+                              new Instruction("stall", {}),
+                              new Instruction("fadd.d", {3, 0, 2}),
+                              new Instruction("stall", {}),
+                              new Instruction("stall", {}),
+                              new Instruction("addi", {START, START, -1}),
+                              new Instruction("fsd", {3, 1}),
+                              new Branch("bne", {START, END}, "Loop"),
+                          },
                           {{"Loop", 0}});
 
 void instructionQueueTest()
@@ -309,6 +314,20 @@ void storeTest()
 void cpuTest()
 {
     Cpu cpu = Cpu();
+
+    // Indexes of array
+    cpu.intRegister.write(START, 100);
+    cpu.intRegister.write(END, 0);
+
+    // Constant float to add to fp array
+    cpu.fpRegister.write(2, 1.0);
+
+    // Initialize array in fp memory
+    for (int i = 0; i < 100; i++)
+    {
+        cpu.fpMemory.write(i + 1, 0.5 + (i * 0.5));
+    }
+
     cpu.addPipeline(new Fetch(&cpu))
         ->addPipeline(new Decode(&cpu))
         ->addPipeline(new Execute(&cpu))
@@ -316,9 +335,57 @@ void cpuTest()
 
     cpu.loadProgram(&program);
 
-    std::cout << cpu << "\n";
+    int branchPos = -1;
+    for (auto instruction : program.instructions)
+    {
+        Branch *branch = dynamic_cast<Branch *>(instruction);
+
+        if (branch != NULL)
+        {
+            break;
+        }
+        else
+        {
+            branchPos += 1;
+        }
+    }
+
+    std::cout << "Initial float memory " << cpu.fpMemory << "\n";
 
     std::cout << "Instruction " << cpu.instructionMemory << "\n";
+
+    // Set up initial fetch event (so meq isn't empty)
+    meq.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
+
+    Clock clock;
+    while (!meq.empty())
+    {
+        std::cout << "\n"
+                  << clock << "\n";
+
+        std::cout << "~~~Processing events~~~\n";
+        meq.tick(clock.cycle);
+
+        std::cout << "\n~~~Ticking cpu~~~\n";
+        cpu.tick(clock.cycle, &meq);
+
+        std::cout << cpu.intRegister << "\n";
+        if (cpu.programCounter > branchPos)
+        {
+            if (cpu.intRegister.read(START) == cpu.intRegister.read(END))
+            {
+                break;
+            }
+            cpu.programCounter = 0;
+        }
+
+        clock.tick();
+    }
+    std::cout << "Program complete!\n";
+
+    std::cout << "\n~~~Result~~~\n";
+
+    std::cout << "Float Memory " << cpu.fpMemory << "\n";
 }
 
 int main()
