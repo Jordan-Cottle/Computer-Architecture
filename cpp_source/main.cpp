@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "event_queue.h"
 #include "event.h"
@@ -24,6 +25,8 @@
 
 #include "execute.h"
 #include "store.h"
+
+#include "branch_instructions.h"
 
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
@@ -117,27 +120,19 @@ void fetchTest()
     cpu.addPipeline(&fetchUnit);
     cpu.addPipeline(new TestPipeline());
 
-    cpu.instructionMemory.write(0, new Instruction("ADD", {0, 1, 2}));
-    cpu.instructionMemory.write(1, new Instruction("SUB", {1, 2, 1}));
-    cpu.instructionMemory.write(2, new Instruction("MULT", {2, 3, 4}));
-    cpu.instructionMemory.write(3, new Instruction("DIV", {3, 6, 3}));
-    cpu.instructionMemory.write(4, new Instruction("BRANCH", {4, 1}));
+    cpu.loadProgram(new Program({new Instruction("ADD", {0, 1, 2}),
+                                 new Instruction("SUB", {1, 2, 1}),
+                                 new Instruction("MULT", {2, 3, 4}),
+                                 new Instruction("DIV", {3, 6, 3}),
+                                 new Branch("BRANCH", {}, "Test")},
+                                {{"Test", 0}}));
+    std::cout << cpu.program << "\n";
 
-    std::cout << "Instructions " << cpu.instructionMemory << "\n";
-
-    for (int i = 0; i < cpu.instructionMemory.size; i++)
-    {
-        FetchEvent *event = new FetchEvent(i, &fetchUnit);
-        std::cout << event << "\n";
-
-        meq.push(event);
-    }
-
-    std::cout << meq << "\n";
+    // Initialize cpu
+    cpu.tick(-1, &meq);
 
     Clock clock;
-
-    while (!meq.empty())
+    while (clock.cycle <= 10)
     {
         std::cout << clock << "\n";
         meq.tick(clock.cycle);
@@ -147,12 +142,6 @@ void fetchTest()
         cpu.tick(clock.cycle, &meq);
         std::cout << fetchUnit << "\n";
         clock.tick();
-
-        // TODO Remove this once branches are handled
-        if (cpu.programCounter > 4)
-        {
-            cpu.programCounter = 0;
-        }
     }
 }
 
@@ -245,14 +234,18 @@ void executeTest()
 
     Instruction *instruction = new Instruction("addi", {0, 1});
     Add add = Add(instruction, instruction->arguments[1]);
-
     Event *event = new PipelineInsertEvent(0, &execute, &add);
     meq.push(event);
 
+    cpu.fpMemory.write(1, 3.14);
     instruction = new Instruction("fsd", {0, 0});
     Store store = Store(instruction, &cpu.intRegister);
-
     event = new PipelineInsertEvent(1, &execute, &store);
+    meq.push(event);
+
+    Branch *branchInstruction = new Branch("branch", {}, "Test");
+    DecodedBranch branch = DecodedBranch(branchInstruction, 42);
+    event = new PipelineInsertEvent(2, &execute, &branch);
     meq.push(event);
 
     std::cout << cpu.intRegister << "\n";
@@ -262,14 +255,23 @@ void executeTest()
     {
         std::cout << clock << "\n";
         meq.tick(clock.cycle);
+
+        cpu.programCounter = clock.cycle;
         cpu.tick(clock.cycle, &meq);
+
         clock.tick();
     }
 
     std::cout << "Integer ";
     std::cout << cpu.intRegister << "\n";
-}
+    assert(cpu.intRegister.read(0) == 1);
 
+    std::cout << "fpMemory[1]: " << cpu.fpMemory.read(1) << "\n";
+    assert(cpu.fpMemory.read(1) == 3.14);
+
+    std::cout << "Final PC: " << cpu.programCounter << "\n";
+    assert(cpu.programCounter == 42);
+}
 void storeTest()
 {
     Cpu cpu = Cpu();
@@ -315,6 +317,9 @@ void cpuTest()
 {
     Cpu cpu = Cpu();
 
+    const double INITIAL = 0.5;
+    const double OFFSET = 0.5;
+
     // Indexes of array
     cpu.intRegister.write(START, 100);
     cpu.intRegister.write(END, 0);
@@ -325,7 +330,7 @@ void cpuTest()
     // Initialize array in fp memory
     for (int i = 0; i < 100; i++)
     {
-        cpu.fpMemory.write(i + 1, 0.5 + (i * 0.5));
+        cpu.fpMemory.write(i + 1, INITIAL + i * OFFSET);
     }
 
     cpu.addPipeline(new Fetch(&cpu))
@@ -335,30 +340,15 @@ void cpuTest()
 
     cpu.loadProgram(&program);
 
-    int branchPos = -1;
-    for (auto instruction : program.instructions)
-    {
-        Branch *branch = dynamic_cast<Branch *>(instruction);
-
-        if (branch != NULL)
-        {
-            break;
-        }
-        else
-        {
-            branchPos += 1;
-        }
-    }
-
     std::cout << "Initial float memory " << cpu.fpMemory << "\n";
 
-    std::cout << "Instruction " << cpu.instructionMemory << "\n";
+    std::cout << "Instruction " << cpu.program << "\n";
 
     // Set up initial fetch event (so meq isn't empty)
     meq.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
 
     Clock clock;
-    while (!meq.empty())
+    while (cpu.programCounter != 9)
     {
         std::cout << "\n"
                   << clock << "\n";
@@ -370,22 +360,18 @@ void cpuTest()
         cpu.tick(clock.cycle, &meq);
 
         std::cout << cpu.intRegister << "\n";
-        if (cpu.programCounter > branchPos)
-        {
-            if (cpu.intRegister.read(START) == cpu.intRegister.read(END))
-            {
-                break;
-            }
-            cpu.programCounter = 0;
-        }
 
         clock.tick();
     }
     std::cout << "Program complete!\n";
 
     std::cout << "\n~~~Result~~~\n";
-
     std::cout << "Float Memory " << cpu.fpMemory << "\n";
+
+    for (int i = 0; i < 100; i++)
+    {
+        assert(cpu.fpMemory.read(i + 1) == 1.0 + INITIAL + i * OFFSET);
+    }
 }
 
 int main()

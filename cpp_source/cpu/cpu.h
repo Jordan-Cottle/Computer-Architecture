@@ -14,12 +14,14 @@
 struct Cpu : SimulationDevice
 {
     int programCounter;
+    bool branchSpeculated;
+    int jumpedFrom;
 
     Register<int> intRegister;
     Register<double> fpRegister;
 
     // TODO put these somewhere else
-    Register<Instruction *> instructionMemory;
+    Program *program;
     Register<int> intMemory;
     Register<double> fpMemory;
 
@@ -32,6 +34,8 @@ struct Cpu : SimulationDevice
     void tick(ulong time, EventQueue *eventQueue);
 
     void loadProgram(Program *program);
+
+    void flush();
 
     std::string __str__();
 };

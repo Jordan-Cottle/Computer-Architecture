@@ -5,9 +5,6 @@
 
 #include "cpu.h"
 
-#include "fetch.h"
-#include "decode.h"
-
 #define REGISTER_COUNT 4
 #define MEMORY_COUNT 128
 #define INSTRUCTION_MEMORY_COUNT 8
@@ -15,11 +12,12 @@
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
              fpRegister(Register<double>(REGISTER_COUNT)),
-             instructionMemory(Register<Instruction *>(INSTRUCTION_MEMORY_COUNT)),
              intMemory(Register<int>(MEMORY_COUNT)),
              fpMemory(Register<double>(MEMORY_COUNT))
 {
     this->programCounter = 0;
+    this->branchSpeculated = false;
+    this->jumpedFrom = -1;
 
     this->pipelines = {};
 }
@@ -42,28 +40,27 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
     {
         pipeline->tick(time, eventQueue);
     }
-
-    for (auto pipeline : this->pipelines)
-    {
-        Fetch *fetchUnit = dynamic_cast<Fetch *>(pipeline);
-        if (fetchUnit == NULL)
-        {
-            continue;
-        }
-
-        FetchEvent *fetch = new FetchEvent(time + 1, fetchUnit);
-        this->programCounter += 1;
-
-        eventQueue->push(fetch);
-    }
 }
 
 void Cpu::loadProgram(Program *program)
 {
-    int i = 0;
-    for (auto instruction : program->instructions)
+    this->program = program;
+    this->programCounter = 0;
+}
+
+void Cpu::flush()
+{
+    for (auto pipeline : this->pipelines)
     {
-        this->instructionMemory.write(i++, instruction);
+        // Don't flush anything past the execute stage
+        if (pipeline->type == "Execute")
+        {
+            break;
+        }
+        else
+        {
+            pipeline->flush();
+        }
     }
 }
 

@@ -7,6 +7,7 @@
 
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
+#include "branch_instructions.h"
 
 Decode::Decode(Cpu *cpu) : Pipeline("Decode")
 {
@@ -32,6 +33,12 @@ Instruction *Decode::decode(Instruction *instruction)
     else if (op == "addi")
     {
         return new Add(instruction, instruction->arguments[2]);
+    }
+    else if (op == "bne")
+    {
+        Branch *branch = dynamic_cast<Branch *>(instruction);
+        int destination = this->cpu->program->index(branch->label);
+        return new Bne(branch, destination);
     }
     else if (op == "stall")
     {
