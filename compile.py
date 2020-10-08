@@ -21,7 +21,7 @@ INCLUDE_DISPLAY = "\n\t".join(INCLUDE_DIRS)
 print(f"Including the follow directories in compile commands:\n\t{INCLUDE_DISPLAY}")
 
 INCLUDE_FLAGS = [f"-iquote {directory}" for directory in INCLUDE_DIRS]
-FLAGS = ["-Wall"] + INCLUDE_FLAGS
+FLAGS = ["-Wall", "-g"] + INCLUDE_FLAGS
 GCC = f"g++ {' '.join(FLAGS)}"
 
 

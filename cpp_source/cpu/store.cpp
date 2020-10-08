@@ -14,12 +14,16 @@ StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 
 void StorePipeline::tick(ulong time, EventQueue *eventQueue)
 {
-    if (this->staged() == NULL)
+    Instruction *instruction = this->staged();
+    Pipeline::tick(time, eventQueue);
+
+    if (instruction == NULL)
     {
+        std::cout << "No instruction to store\n";
         return;
     }
 
-    Store *store = dynamic_cast<Store *>(this->staged());
+    Store *store = dynamic_cast<Store *>(instruction);
 
     if (store == NULL)
     {
@@ -27,6 +31,4 @@ void StorePipeline::tick(ulong time, EventQueue *eventQueue)
     }
 
     store->execute(this->cpu);
-
-    Pipeline::tick(time, eventQueue);
 }

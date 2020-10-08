@@ -9,6 +9,8 @@
 #include "pipeline.h"
 #include "instruction.h"
 
+#include "program.h"
+
 struct Cpu : SimulationDevice
 {
     int programCounter;
@@ -28,6 +30,8 @@ struct Cpu : SimulationDevice
     Cpu *addPipeline(Pipeline *pipeline);
 
     void tick(ulong time, EventQueue *eventQueue);
+
+    void loadProgram(Program *program);
 
     std::string __str__();
 };

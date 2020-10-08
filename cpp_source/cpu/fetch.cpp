@@ -5,14 +5,13 @@
 
 #include "fetch.h"
 
-FetchEvent::FetchEvent(ulong time, Fetch *device, int address) : Event("FetchEvent", time, device)
+FetchEvent::FetchEvent(ulong time, Fetch *device) : Event("FetchEvent", time, device)
 {
-    this->address = address;
 }
 
 std::string FetchEvent::__str__()
 {
-    return "FetchEvent " + str(this->id) + " IM(" + str(this->address) + ")";
+    return "FetchEvent " + str(this->id);
 }
 
 Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
@@ -22,18 +21,19 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 
 void Fetch::tick(ulong time, EventQueue *eventQueue)
 {
-    if (this->staged() != NULL)
-    {
-        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, this->staged());
+    Instruction *instruction = this->staged();
+    Pipeline::tick(time, eventQueue);
 
-        eventQueue->push(event);
-    }
-    else
+    if (instruction == NULL)
     {
         std::cout << "No instructions fetched\n";
     }
+    else
+    {
+        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, instruction);
 
-    Pipeline::tick(time, eventQueue);
+        eventQueue->push(event);
+    }
 }
 
 void Fetch::process(Event *event, EventQueue *eventQueue)
@@ -41,12 +41,11 @@ void Fetch::process(Event *event, EventQueue *eventQueue)
     if (event->type == "FetchEvent")
     {
         event->handled = true;
-        FetchEvent *fetchEvent = dynamic_cast<FetchEvent *>(event);
-        this->stage(this->cpu->instructionMemory.read(fetchEvent->address));
+        this->stage(this->cpu->instructionMemory.read(this->cpu->programCounter));
     }
     else if (event->type == "PipelineInsertEvent")
     {
-        throw UnrecognizedEvent("Fetch units do not accept generic PipelineInsertEvents");
+        throw UnrecognizedEvent("Fetch units do not accept PipelineInsertEvents");
     }
 
     Pipeline::process(event, eventQueue);

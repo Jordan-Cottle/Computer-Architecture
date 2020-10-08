@@ -8,8 +8,8 @@
 #include "fetch.h"
 #include "decode.h"
 
-#define REGISTER_COUNT 2
-#define MEMORY_COUNT 4
+#define REGISTER_COUNT 4
+#define MEMORY_COUNT 128
 #define INSTRUCTION_MEMORY_COUNT 8
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
@@ -42,6 +42,29 @@ void Cpu::tick(ulong time, EventQueue *eventQueue)
     {
         pipeline->tick(time, eventQueue);
     }
+
+    for (auto pipeline : this->pipelines)
+    {
+        Fetch *fetchUnit = dynamic_cast<Fetch *>(pipeline);
+        if (fetchUnit == NULL)
+        {
+            continue;
+        }
+
+        FetchEvent *fetch = new FetchEvent(time + 1, fetchUnit);
+        this->programCounter += 1;
+
+        eventQueue->push(fetch);
+    }
+}
+
+void Cpu::loadProgram(Program *program)
+{
+    int i = 0;
+    for (auto instruction : program->instructions)
+    {
+        this->instructionMemory.write(i++, instruction);
+    }
 }
 
 std::string Cpu::__str__()
@@ -49,8 +72,8 @@ std::string Cpu::__str__()
     std::string s = "Cpu{\n";
 
     s += "\tRegisters: {\n";
-    s += "\t\tInteger" + addIndent(str(this->intRegister), 2) + "\n";
-    s += "\t\tFloat" + addIndent(str(this->fpRegister), 2) + "\n";
+    s += "\t\tInteger " + addIndent(str(this->intRegister), 2) + "\n";
+    s += "\t\tFloat " + addIndent(str(this->fpRegister), 2) + "\n";
 
     s += "\t}\n\tMemory: {\n";
     s += "\t\tInteger " + addIndent(str(this->intMemory), 2) + "\n";
