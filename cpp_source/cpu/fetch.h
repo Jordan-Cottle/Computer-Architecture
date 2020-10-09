@@ -14,8 +14,6 @@ struct Fetch;
 struct FetchEvent : Event
 {
     FetchEvent(ulong time, Fetch *device);
-
-    std::string __str__();
 };
 
 struct Fetch : Pipeline

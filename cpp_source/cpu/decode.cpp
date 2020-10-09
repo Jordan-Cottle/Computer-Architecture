@@ -59,7 +59,7 @@ void Decode::tick(ulong time, EventQueue *eventQueue)
     }
     else
     {
-        std::cout << "Decoding: " << instruction << "\n";
+        std::cout << "Decode processing instruction: " << instruction << "\n";
         Instruction *decodedInstruction = this->decode(instruction);
 
         PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, decodedInstruction);

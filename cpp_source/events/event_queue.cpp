@@ -38,9 +38,7 @@ void EventQueue::tick(ulong time)
         Event *event = this->pop();
         SimulationDevice *device = event->device;
 
-        std::cout << "Processing " << event << "\n";
         device->process(event, this);
-        std::cout << device << "\n";
     }
 }
 

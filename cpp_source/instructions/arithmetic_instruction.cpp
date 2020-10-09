@@ -65,7 +65,7 @@ std::string Add::__str__()
         prefix = "R";
     }
 
-    std::string s = prefix + str(this->destinationIndex) + " <- " + prefix + str(this->leftIndex) + " + ";
+    std::string s = DecodedInstruction::__str__() + " (" + prefix + str(this->destinationIndex) + " <- " + prefix + str(this->leftIndex) + " + ";
     if (this->immediate)
     {
         s += "#" + str(this->immediateValue);
@@ -75,5 +75,5 @@ std::string Add::__str__()
         s += prefix + str(this->rightIndex);
     }
 
-    return s;
+    return s + ")";
 }

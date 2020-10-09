@@ -39,7 +39,7 @@ void BranchInstruction::execute(Cpu *cpu)
 
 std::string BranchInstruction::__str__()
 {
-    return "PC -> " + str(this->destination);
+    return DecodedInstruction::__str__() + " (PC -> " + str(this->destination) + ")";
 }
 
 Bne::Bne(Branch *branch, int destination) : BranchInstruction(branch, destination)
@@ -51,4 +51,9 @@ Bne::Bne(Branch *branch, int destination) : BranchInstruction(branch, destinatio
 bool Bne::take(Cpu *cpu)
 {
     return cpu->intRegister.read(this->leftIndex) != cpu->intRegister.read(this->rightIndex);
+}
+
+std::string Bne::__str__()
+{
+    return BranchInstruction::__str__() + " if R" + str(this->leftIndex) + " != R" + str(this->rightIndex);
 }

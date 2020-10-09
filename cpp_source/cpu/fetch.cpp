@@ -9,11 +9,6 @@ FetchEvent::FetchEvent(ulong time, Fetch *device) : Event("FetchEvent", time, de
 {
 }
 
-std::string FetchEvent::__str__()
-{
-    return "FetchEvent " + str(this->id);
-}
-
 Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 {
     this->cpu = cpu;
@@ -23,6 +18,13 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
 {
     Instruction *instruction = this->staged();
     Pipeline::tick(time, eventQueue);
+
+    if (instruction == NULL)
+    {
+        std::cout << "No instruction fetched\n";
+        return;
+    }
+    std::cout << "Fetch processing instruction: " << instruction << "\n";
 
     Branch *branch = dynamic_cast<Branch *>(instruction);
 
@@ -35,12 +37,7 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
         std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
     }
 
-    if (instruction == NULL)
-    {
-        std::cout << "No instructions fetched\n";
-        return;
-    }
-    else if (instruction->operation != "stall") // Don't pass on stall instructions
+    if (instruction->operation != "stall") // Don't pass on stall instructions
     {
         PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, instruction);
 

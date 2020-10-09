@@ -27,6 +27,8 @@ struct Bne : BranchInstruction
     Bne(Branch *branch, int destination);
 
     bool take(Cpu *cpu);
+
+    std::string __str__();
 };
 
 #endif

@@ -48,7 +48,7 @@ std::string Store::__str__()
         prefix = "R";
     }
 
-    return prefix + "M" + str(this->memoryLocation) + " <- " + prefix + str(this->registerIndex);
+    return MemoryInstruction::__str__() + " (" + prefix + "M" + str(this->memoryLocation) + " <- " + prefix + str(this->registerIndex) + ")";
 }
 
 Load::Load(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction(instruction, cpuRegister)
@@ -61,15 +61,11 @@ void Load::execute(Cpu *cpu)
     {
         double data = cpu->fpMemory.read(this->memoryLocation);
 
-        std::cout << "Loading: " << data << "\n";
-
         cpu->fpRegister.write(this->registerIndex, data);
     }
     else
     {
         int data = cpu->intMemory.read(this->memoryLocation);
-
-        std::cout << "Loading: " << data << "\n";
 
         cpu->intRegister.write(this->registerIndex, data);
     }
@@ -87,5 +83,5 @@ std::string Load::__str__()
         prefix = "R";
     }
 
-    return prefix + str(this->registerIndex) + " <- " + prefix + "M" + str(this->memoryLocation);
+    return MemoryInstruction::__str__() + " (" + prefix + str(this->registerIndex) + " <- " + prefix + "M" + str(this->memoryLocation) + ")";
 }
