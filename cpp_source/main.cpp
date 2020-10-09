@@ -55,17 +55,17 @@ struct TestPipeline : Pipeline
     }
 };
 
-#define START 1
+#define ASM_I 1
 #define END 2
 Program program = Program({
-                              new Instruction("fld", {0, 1}),
+                              new Instruction("fld", {0, ASM_I}),
                               new Instruction("stall", {}),
                               new Instruction("fadd.d", {3, 0, 2}),
                               new Instruction("stall", {}),
                               new Instruction("stall", {}),
-                              new Instruction("addi", {START, START, -1}),
-                              new Instruction("fsd", {3, 1}),
-                              new Branch("bne", {START, END}, "Loop"),
+                              new Instruction("addi", {ASM_I, ASM_I, -1}),
+                              new Instruction("fsd", {3, ASM_I}),
+                              new Branch("bne", {ASM_I, END}, "Loop"),
                               new Instruction("halt", {}),
                           },
                           {{"Loop", 0}});
@@ -310,23 +310,25 @@ void storeTest()
 void cpuTest()
 {
 
-    const double INITIAL = 0.5;
+    const double INITIAL = 1.0;
     const double OFFSET = 0.5;
 
-    const int ARRAY_START = 1;
-    const int ARRAY_END = 100;
+    const int ARRAY_SIZE = 1000;
+    const int ARRAY_START = 22; // Don't make it bigger than Cpu.memorySize - ARRAY_SIZE
 
     // Indexes of array
-    cpu.intRegister.write(START, ARRAY_END);
+    cpu.intRegister.write(ASM_I, ARRAY_START + ARRAY_SIZE - 1); // -1 for 0 indexed arrays
+
+    // Since we're counting down and using != as the branch we need the end to be one less than first index
     cpu.intRegister.write(END, ARRAY_START - 1);
 
     // Constant float to add to fp array
     cpu.fpRegister.write(2, 1.0);
 
     // Initialize array in fp memory
-    for (int i = 0; i < ARRAY_END; i++)
+    for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        cpu.fpMemory.write(i + 1, INITIAL + i * OFFSET);
+        cpu.fpMemory.write(ARRAY_START + i, INITIAL + i * OFFSET);
     }
 
     cpu.addPipeline(new Fetch(&cpu))
@@ -359,9 +361,12 @@ void cpuTest()
     }
     std::cout << "Program complete!\n";
 
-    for (int i = 0; i < ARRAY_END; i++)
+    // Uncomment this to see the float memory printed out (it's big)
+    // std::cout << cpu.fpMemory << "\n";
+
+    for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        assert(cpu.fpMemory.read(i + 1) == 1.0 + INITIAL + i * OFFSET);
+        assert(cpu.fpMemory.read(ARRAY_START + i) == 1.0 + INITIAL + i * OFFSET);
     }
 }
 
