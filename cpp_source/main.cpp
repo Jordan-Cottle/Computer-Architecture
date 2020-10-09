@@ -9,7 +9,6 @@
 #include "instruction_queue.h"
 
 #include "device.h"
-#include "clock.h"
 
 #include "sim_register.h"
 #include "pipeline.h"
@@ -133,17 +132,16 @@ void fetchTest()
     // Initialize cpu
     cpu.tick(-1, &masterEventQueue);
 
-    Clock clock;
-    while (clock.cycle <= 10)
+    while (simulationClock.cycle <= 10)
     {
-        std::cout << clock << "\n";
-        masterEventQueue.tick(clock.cycle);
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
 
         std::cout << "Ticking devices:\n";
 
-        cpu.tick(clock.cycle, &masterEventQueue);
+        cpu.tick(simulationClock.cycle, &masterEventQueue);
         std::cout << fetchUnit << "\n";
-        clock.tick();
+        simulationClock.tick();
     }
 }
 
@@ -216,13 +214,12 @@ void decodeTest()
 
     masterEventQueue.push(event);
 
-    Clock clock;
     while (!masterEventQueue.empty())
     {
-        std::cout << clock << "\n";
-        masterEventQueue.tick(clock.cycle);
-        cpu.tick(clock.cycle, &masterEventQueue);
-        clock.tick();
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
+        cpu.tick(simulationClock.cycle, &masterEventQueue);
+        simulationClock.tick();
     }
 }
 
@@ -252,16 +249,15 @@ void executeTest()
 
     std::cout << cpu.intRegister << "\n";
 
-    Clock clock;
     while (!masterEventQueue.empty())
     {
-        std::cout << clock << "\n";
-        masterEventQueue.tick(clock.cycle);
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
 
-        cpu.programCounter = clock.cycle;
-        cpu.tick(clock.cycle, &masterEventQueue);
+        cpu.programCounter = simulationClock.cycle;
+        cpu.tick(simulationClock.cycle, &masterEventQueue);
 
-        clock.tick();
+        simulationClock.tick();
     }
 
     std::cout << "Integer ";
@@ -302,13 +298,12 @@ void storeTest()
 
     std::cout << "Float Memory " << cpu.fpMemory << "\n";
 
-    Clock clock;
     while (!masterEventQueue.empty())
     {
-        std::cout << clock << "\n";
-        masterEventQueue.tick(clock.cycle);
-        cpu.tick(clock.cycle, &masterEventQueue);
-        clock.tick();
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
+        cpu.tick(simulationClock.cycle, &masterEventQueue);
+        simulationClock.tick();
     }
 
     std::cout << "Float memory ";
@@ -350,22 +345,21 @@ void cpuTest()
     // Set up initial fetch event (so masterEventQueue isn't empty)
     masterEventQueue.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
 
-    Clock clock;
     while (!cpu.complete)
     {
         std::cout << "\n"
-                  << clock << "\n";
+                  << simulationClock << "\n";
 
         std::cout << "\n~~~EventQueue~~~\n";
         std::cout << masterEventQueue << "\n";
 
         std::cout << "\n~~~Processing events~~~\n";
-        masterEventQueue.tick(clock.cycle);
+        masterEventQueue.tick(simulationClock.cycle);
 
         std::cout << "\n~~~Ticking cpu~~~\n";
-        cpu.tick(clock.cycle, &masterEventQueue);
+        cpu.tick(simulationClock.cycle, &masterEventQueue);
 
-        clock.tick();
+        simulationClock.tick();
     }
     std::cout << "Program complete!\n";
 

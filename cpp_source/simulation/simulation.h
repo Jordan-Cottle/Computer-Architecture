@@ -7,10 +7,12 @@
 #define __SIMULATION__
 
 #include "event_queue.h"
+#include "clock.h"
 
 namespace Simulation
 {
     static EventQueue masterEventQueue;
+    static Clock simulationClock;
 } // namespace Simulation
 
 #endif
