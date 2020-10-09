@@ -9,7 +9,6 @@
 #include "instruction_queue.h"
 
 #include "device.h"
-#include "clock.h"
 
 #include "sim_register.h"
 #include "pipeline.h"
@@ -28,6 +27,9 @@
 
 #include "control_instructions.h"
 
+#include "simulation.h"
+using namespace Simulation;
+
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
 {
@@ -35,11 +37,11 @@ struct TestPipeline : Pipeline
     {
     }
 
-    void tick(ulong time, EventQueue *eventQueue)
+    void tick()
     {
         Instruction *staged = this->staged();
 
-        std::cout << this->type << " T " << time << ": ";
+        std::cout << this->type << " T " << simulationClock.cycle << ": ";
         if (staged == NULL)
         {
             std::cout << " no instruction\n";
@@ -49,11 +51,9 @@ struct TestPipeline : Pipeline
             std::cout << this->staged() << "\n";
         }
 
-        Pipeline::tick(time, eventQueue);
+        Pipeline::tick();
     }
 };
-
-EventQueue meq;
 
 #define START 1
 #define END 2
@@ -115,7 +115,6 @@ void memory_test()
 
 void fetchTest()
 {
-    Cpu cpu;
 
     Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
@@ -129,20 +128,19 @@ void fetchTest()
                                 {{"Test", 0}}));
     std::cout << cpu.program << "\n";
 
-    // Initialize cpu
-    cpu.tick(-1, &meq);
+    // Set up initial fetch event (so masterEventQueue isn't empty)
+    masterEventQueue.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
 
-    Clock clock;
-    while (clock.cycle <= 10)
+    while (simulationClock.cycle <= 10)
     {
-        std::cout << clock << "\n";
-        meq.tick(clock.cycle);
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
 
         std::cout << "Ticking devices:\n";
 
-        cpu.tick(clock.cycle, &meq);
+        cpu.tick();
         std::cout << fetchUnit << "\n";
-        clock.tick();
+        simulationClock.tick();
     }
 }
 
@@ -161,7 +159,6 @@ void programTest()
 
 void fpTest()
 {
-    Cpu cpu;
 
     cpu.fpMemory.write(0, 3.141592654);   // Pi
     cpu.fpRegister.write(1, 2.718281828); // E
@@ -201,7 +198,7 @@ void fpTest()
 
 void decodeTest()
 {
-    Cpu cpu = Cpu();
+
     Instruction *instruction = new Instruction("fsd", {0, 0});
 
     Decode decode = Decode(&cpu);
@@ -213,21 +210,19 @@ void decodeTest()
 
     Event *event = new PipelineInsertEvent(0, &decode, instruction);
 
-    meq.push(event);
+    masterEventQueue.push(event);
 
-    Clock clock;
-    while (!meq.empty())
+    while (!masterEventQueue.empty())
     {
-        std::cout << clock << "\n";
-        meq.tick(clock.cycle);
-        cpu.tick(clock.cycle, &meq);
-        clock.tick();
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
+        cpu.tick();
+        simulationClock.tick();
     }
 }
 
 void executeTest()
 {
-    Cpu cpu = Cpu();
 
     Execute execute = Execute(&cpu);
     cpu.addPipeline(&execute);
@@ -236,31 +231,30 @@ void executeTest()
     Instruction *instruction = new Instruction("addi", {0, 1});
     Add add = Add(instruction, instruction->arguments[1]);
     Event *event = new PipelineInsertEvent(0, &execute, &add);
-    meq.push(event);
+    masterEventQueue.push(event);
 
     cpu.fpMemory.write(1, 3.14);
     instruction = new Instruction("fsd", {0, 0});
     Store store = Store(instruction, &cpu.intRegister);
     event = new PipelineInsertEvent(1, &execute, &store);
-    meq.push(event);
+    masterEventQueue.push(event);
 
     Branch *branchInstruction = new Branch("branch", {}, "Test");
     BranchInstruction branch = BranchInstruction(branchInstruction, 42);
     event = new PipelineInsertEvent(2, &execute, &branch);
-    meq.push(event);
+    masterEventQueue.push(event);
 
     std::cout << cpu.intRegister << "\n";
 
-    Clock clock;
-    while (!meq.empty())
+    while (!masterEventQueue.empty())
     {
-        std::cout << clock << "\n";
-        meq.tick(clock.cycle);
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
 
-        cpu.programCounter = clock.cycle;
-        cpu.tick(clock.cycle, &meq);
+        cpu.programCounter = simulationClock.cycle;
+        cpu.tick();
 
-        clock.tick();
+        simulationClock.tick();
     }
 
     std::cout << "Integer ";
@@ -275,7 +269,7 @@ void executeTest()
 }
 void storeTest()
 {
-    Cpu cpu = Cpu();
+
     cpu.intRegister.write(0, 0); // Store in memory address 0
     cpu.intRegister.write(1, 1); // Store in memory address 1
 
@@ -289,25 +283,24 @@ void storeTest()
     instruction = new Store(instruction, &cpu.intRegister);
 
     Event *event = new PipelineInsertEvent(0, &store, instruction);
-    meq.push(event);
+    masterEventQueue.push(event);
 
     instruction = new Instruction("fsd", {1, 1});
     instruction = new Store(instruction, &cpu.intRegister);
 
     event = new PipelineInsertEvent(1, &store, instruction);
-    meq.push(event);
+    masterEventQueue.push(event);
 
     std::cout << "Float " << cpu.fpRegister << "\n";
 
     std::cout << "Float Memory " << cpu.fpMemory << "\n";
 
-    Clock clock;
-    while (!meq.empty())
+    while (!masterEventQueue.empty())
     {
-        std::cout << clock << "\n";
-        meq.tick(clock.cycle);
-        cpu.tick(clock.cycle, &meq);
-        clock.tick();
+        std::cout << simulationClock << "\n";
+        masterEventQueue.tick(simulationClock.cycle);
+        cpu.tick();
+        simulationClock.tick();
     }
 
     std::cout << "Float memory ";
@@ -316,7 +309,6 @@ void storeTest()
 
 void cpuTest()
 {
-    Cpu cpu = Cpu();
 
     const double INITIAL = 0.5;
     const double OFFSET = 0.5;
@@ -346,25 +338,24 @@ void cpuTest()
 
     std::cout << cpu.program << "\n";
 
-    // Set up initial fetch event (so meq isn't empty)
-    meq.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
+    // Set up initial fetch event (so masterEventQueue isn't empty)
+    masterEventQueue.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
 
-    Clock clock;
     while (!cpu.complete)
     {
         std::cout << "\n"
-                  << clock << "\n";
+                  << simulationClock << "\n";
 
         std::cout << "\n~~~EventQueue~~~\n";
-        std::cout << meq << "\n";
+        std::cout << masterEventQueue << "\n";
 
         std::cout << "\n~~~Processing events~~~\n";
-        meq.tick(clock.cycle);
+        masterEventQueue.tick(simulationClock.cycle);
 
         std::cout << "\n~~~Ticking cpu~~~\n";
-        cpu.tick(clock.cycle, &meq);
+        cpu.tick();
 
-        clock.tick();
+        simulationClock.tick();
     }
     std::cout << "Program complete!\n";
 

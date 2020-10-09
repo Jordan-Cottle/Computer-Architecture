@@ -6,18 +6,18 @@
 #include "event.h"
 #include "device.h"
 
-SimulationDevice::SimulationDevice(std::string name) : EnumeratedObject(name)
+SimulationDevice::SimulationDevice(std::string name)
 {
     this->clocksProcessed = 0;
     this->eventsProcessed = 0;
 }
 
-void SimulationDevice::tick(ulong time, EventQueue *masterEventQueue)
+void SimulationDevice::tick()
 {
     this->clocksProcessed += 1;
 }
 
-void SimulationDevice::process(Event *event, EventQueue *masterEventQueue)
+void SimulationDevice::process(Event *event)
 {
     if (!event->handled)
     {

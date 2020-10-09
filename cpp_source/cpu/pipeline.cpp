@@ -6,6 +6,8 @@
 #include <iostream>
 
 #include "pipeline.h"
+#include "simulation.h"
+using namespace Simulation;
 
 PipelineInsertEvent::PipelineInsertEvent(ulong time, Pipeline *pipeline, Instruction *instruction) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
 {
@@ -28,12 +30,14 @@ Pipeline::Pipeline(std::string type) : SimulationDevice(type),
                                        memory(Register<Instruction *>(1))
 {
     this->next = NULL;
+    this->type = type;
 }
 
 Pipeline::Pipeline(std::string type, Pipeline *next) : SimulationDevice(type),
                                                        memory(Register<Instruction *>(1))
 {
     this->next = next;
+    this->type = type;
 }
 
 bool Pipeline::free()
@@ -62,13 +66,13 @@ Instruction *Pipeline::staged()
     return this->memory.read(0);
 }
 
-void Pipeline::tick(ulong time, EventQueue *eventQueue)
+void Pipeline::tick()
 {
     this->flush();
-    SimulationDevice::tick(time, eventQueue);
+    SimulationDevice::tick();
 }
 
-void Pipeline::process(Event *event, EventQueue *eventQueue)
+void Pipeline::process(Event *event)
 {
     std::cout << this->type << " processing event: " << event << "\n";
     if (event->type == "PipelineInsertEvent")
@@ -85,7 +89,7 @@ void Pipeline::process(Event *event, EventQueue *eventQueue)
         this->flush();
     }
 
-    SimulationDevice::process(event, eventQueue);
+    SimulationDevice::process(event);
 }
 
 std::string Pipeline::__str__()

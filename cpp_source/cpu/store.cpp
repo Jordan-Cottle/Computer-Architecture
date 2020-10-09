@@ -14,10 +14,10 @@ StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
     this->cpu = cpu;
 }
 
-void StorePipeline::tick(ulong time, EventQueue *eventQueue)
+void StorePipeline::tick()
 {
     Instruction *instruction = this->staged();
-    Pipeline::tick(time, eventQueue);
+    Pipeline::tick();
 
     if (instruction == NULL)
     {

@@ -4,6 +4,11 @@
 */
 
 #include "cpu.h"
+#include "fetch.h"
+
+#include "simulation.h"
+
+using namespace Simulation;
 
 #define REGISTER_COUNT 4
 #define MEMORY_COUNT 128
@@ -35,11 +40,12 @@ Cpu *Cpu::addPipeline(Pipeline *pipeline)
     return this;
 }
 
-void Cpu::tick(ulong time, EventQueue *eventQueue)
+void Cpu::tick()
 {
+    std::cout << simulationClock << "\n";
     for (auto pipeline : this->pipelines)
     {
-        pipeline->tick(time, eventQueue);
+        pipeline->tick();
     }
 }
 
@@ -53,16 +59,38 @@ void Cpu::flush()
 {
     for (auto pipeline : this->pipelines)
     {
+        pipeline->flush();
+        masterEventQueue.flush(simulationClock.cycle + 1, pipeline);
+
         // Don't flush anything past the execute stage
         if (pipeline->type == "Execute")
         {
             break;
         }
-        else
+    }
+
+    // Fetch event was deleted, put it back
+    if (!this->complete)
+    {
+        Fetch *fetchUnit = dynamic_cast<Fetch *>(this->getPipeline("Fetch"));
+
+        FetchEvent *fetchEvent = new FetchEvent(simulationClock.cycle + 1, fetchUnit);
+
+        masterEventQueue.push(fetchEvent);
+    }
+}
+
+Pipeline *Cpu::getPipeline(std::string type)
+{
+    for (auto pipeline : this->pipelines)
+    {
+        if (pipeline->type == type)
         {
-            pipeline->flush();
+            return pipeline;
         }
     }
+
+    return NULL;
 }
 
 std::string Cpu::__str__()

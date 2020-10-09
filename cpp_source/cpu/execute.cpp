@@ -7,15 +7,18 @@
 
 #include "memory_instruction.h"
 
+#include "simulation.h"
+using namespace Simulation;
+
 Execute::Execute(Cpu *cpu) : Pipeline("Execute")
 {
     this->cpu = cpu;
 }
 
-void Execute::tick(ulong time, EventQueue *eventQueue)
+void Execute::tick()
 {
     Instruction *instruction = this->staged();
-    Pipeline::tick(time, eventQueue);
+    Pipeline::tick();
 
     if (instruction == NULL)
     {
@@ -27,8 +30,8 @@ void Execute::tick(ulong time, EventQueue *eventQueue)
     Store *store = dynamic_cast<Store *>(instruction);
     if (store != NULL || instruction->operation == "halt")
     {
-        PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, instruction);
-        eventQueue->push(new_event);
+        PipelineInsertEvent *new_event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, instruction);
+        masterEventQueue.push(new_event);
     }
     else
     {

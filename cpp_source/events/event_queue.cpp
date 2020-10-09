@@ -38,7 +38,47 @@ void EventQueue::tick(ulong time)
         Event *event = this->pop();
         SimulationDevice *device = event->device;
 
-        device->process(event, this);
+        device->process(event);
+    }
+}
+
+void EventQueue::flush(ulong time, SimulationDevice *device)
+{
+    if (this->empty())
+    {
+        return; // No events, nothing to do
+    }
+
+    if (time < this->nextTime())
+    {
+        throw std::runtime_error("Attempted to flush events in the past!");
+    }
+
+    // TODO: Structure EventQueue better to make this better
+
+    std::vector<Event *> events = std::vector<Event *>();
+
+    // Skip to time requested
+    while (!this->empty() && this->nextTime() < time)
+    {
+        events.push_back(this->pop());
+    }
+
+    // Filter out events with the specified event
+    while (!this->empty() && this->nextTime() == time)
+    {
+        Event *event = this->pop();
+
+        if (event->device != device)
+        {
+            events.push_back(event);
+        }
+    }
+
+    // Put events back in their place
+    for (auto event : events)
+    {
+        this->push(event);
     }
 }
 

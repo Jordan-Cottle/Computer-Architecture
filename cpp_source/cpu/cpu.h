@@ -33,11 +33,13 @@ struct Cpu : SimulationDevice
 
     Cpu *addPipeline(Pipeline *pipeline);
 
-    void tick(ulong time, EventQueue *eventQueue);
+    void tick();
 
     void loadProgram(Program *program);
 
     void flush();
+
+    Pipeline *getPipeline(std::string type);
 
     std::string __str__();
 };

@@ -9,22 +9,20 @@
 #include <vector>
 #include <iostream>
 
-#include "enumerated_object.h"
+#include "misc.h"
 
 template <typename T>
-struct Register : EnumeratedObject
+struct Register : printable
 {
+    std::string name;
     std::vector<T> addresses;
     int size;
-    Register(int size) : EnumeratedObject("Register")
+    Register(int size, std::string name = "Register")
     {
         this->addresses = std::vector<T>(size);
         this->size = size;
-    }
-    Register(int size, std::string type) : EnumeratedObject(type)
-    {
-        this->addresses = std::vector<T>(size);
-        this->size = size;
+
+        this->name = name;
     }
 
     void clear()
@@ -55,7 +53,7 @@ struct Register : EnumeratedObject
 
     std::string __str__()
     {
-        std::string s = this->type + ": {";
+        std::string s = this->name + ": {";
 
         int mem_address = 0;
         for (auto item : this->addresses)

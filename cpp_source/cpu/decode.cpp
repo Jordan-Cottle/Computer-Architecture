@@ -9,6 +9,9 @@
 #include "arithmetic_instruction.h"
 #include "control_instructions.h"
 
+#include "simulation.h"
+using namespace Simulation;
+
 Decode::Decode(Cpu *cpu) : Pipeline("Decode")
 {
     this->cpu = cpu;
@@ -48,10 +51,10 @@ Instruction *Decode::decode(Instruction *instruction)
     throw std::runtime_error("Unrecognized instruction " + str(instruction));
 }
 
-void Decode::tick(ulong time, EventQueue *eventQueue)
+void Decode::tick()
 {
     Instruction *instruction = this->staged();
-    Pipeline::tick(time, eventQueue);
+    Pipeline::tick();
 
     if (instruction == NULL)
     {
@@ -62,8 +65,8 @@ void Decode::tick(ulong time, EventQueue *eventQueue)
         std::cout << "Decode processing instruction: " << instruction << "\n";
         Instruction *decodedInstruction = this->decode(instruction);
 
-        PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, decodedInstruction);
+        PipelineInsertEvent *new_event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, decodedInstruction);
 
-        eventQueue->push(new_event);
+        masterEventQueue.push(new_event);
     }
 }

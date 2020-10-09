@@ -16,7 +16,7 @@ struct Execute : Pipeline
     Cpu *cpu;
     Execute(Cpu *cpu);
 
-    void tick(ulong time, EventQueue *eventQueue);
+    void tick();
 };
 
 #endif
