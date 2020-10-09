@@ -18,6 +18,8 @@ struct PipelineInsertEvent : Event
     Instruction *instruction;
 
     PipelineInsertEvent(ulong time, Pipeline *device, Instruction *instruction);
+
+    std::string __str__();
 };
 
 struct PipelineFlushEvent : Event

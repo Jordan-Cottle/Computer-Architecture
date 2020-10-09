@@ -9,11 +9,6 @@ FetchEvent::FetchEvent(ulong time, Fetch *device) : Event("FetchEvent", time, de
 {
 }
 
-std::string FetchEvent::__str__()
-{
-    return "FetchEvent " + str(this->id);
-}
-
 Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 {
     this->cpu = cpu;

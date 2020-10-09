@@ -11,6 +11,15 @@ PipelineInsertEvent::PipelineInsertEvent(ulong time, Pipeline *pipeline, Instruc
 {
 }
 
+std::string PipelineInsertEvent::__str__()
+{
+    std::string s = this->device->type + " " + Event::__str__();
+
+    s += " <" + str(this->instruction) + ">";
+
+    return s;
+}
+
 PipelineFlushEvent::PipelineFlushEvent(ulong time, Pipeline *pipeline) : Event("PipelineFlushEvent", time, pipeline)
 {
 }
