@@ -8,11 +8,13 @@
 
 #include "event_queue.h"
 #include "clock.h"
+#include "cpu.h"
 
 namespace Simulation
 {
     static EventQueue masterEventQueue;
     static Clock simulationClock;
+    static Cpu cpu;
 } // namespace Simulation
 
 #endif

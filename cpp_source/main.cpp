@@ -115,7 +115,6 @@ void memory_test()
 
 void fetchTest()
 {
-    Cpu cpu;
 
     Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
@@ -160,7 +159,6 @@ void programTest()
 
 void fpTest()
 {
-    Cpu cpu;
 
     cpu.fpMemory.write(0, 3.141592654);   // Pi
     cpu.fpRegister.write(1, 2.718281828); // E
@@ -200,7 +198,7 @@ void fpTest()
 
 void decodeTest()
 {
-    Cpu cpu = Cpu();
+
     Instruction *instruction = new Instruction("fsd", {0, 0});
 
     Decode decode = Decode(&cpu);
@@ -225,7 +223,6 @@ void decodeTest()
 
 void executeTest()
 {
-    Cpu cpu = Cpu();
 
     Execute execute = Execute(&cpu);
     cpu.addPipeline(&execute);
@@ -272,7 +269,7 @@ void executeTest()
 }
 void storeTest()
 {
-    Cpu cpu = Cpu();
+
     cpu.intRegister.write(0, 0); // Store in memory address 0
     cpu.intRegister.write(1, 1); // Store in memory address 1
 
@@ -312,7 +309,6 @@ void storeTest()
 
 void cpuTest()
 {
-    Cpu cpu = Cpu();
 
     const double INITIAL = 0.5;
     const double OFFSET = 0.5;
