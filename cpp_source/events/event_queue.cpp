@@ -38,7 +38,7 @@ void EventQueue::tick(ulong time)
         Event *event = this->pop();
         SimulationDevice *device = event->device;
 
-        device->process(event, this);
+        device->process(event);
     }
 }
 

@@ -5,6 +5,9 @@
 
 #include "fetch.h"
 
+#include "simulation.h"
+using namespace Simulation;
+
 FetchEvent::FetchEvent(ulong time, Fetch *device) : Event("FetchEvent", time, device)
 {
 }
@@ -14,10 +17,10 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
     this->cpu = cpu;
 }
 
-void Fetch::tick(ulong time, EventQueue *eventQueue)
+void Fetch::tick()
 {
     Instruction *instruction = this->staged();
-    Pipeline::tick(time, eventQueue);
+    Pipeline::tick();
 
     if (instruction == NULL)
     {
@@ -39,20 +42,20 @@ void Fetch::tick(ulong time, EventQueue *eventQueue)
 
     if (instruction->operation != "stall") // Don't pass on stall instructions
     {
-        PipelineInsertEvent *event = new PipelineInsertEvent(time + 1, this->next, instruction);
+        PipelineInsertEvent *event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, instruction);
 
-        eventQueue->push(event);
+        masterEventQueue.push(event);
     }
 
     // Stop fetching if halt is encountered
     if (instruction->operation != "halt")
     {
-        FetchEvent *fetch = new FetchEvent(time + 1, this);
-        eventQueue->push(fetch);
+        FetchEvent *fetch = new FetchEvent(simulationClock.cycle + 1, this);
+        masterEventQueue.push(fetch);
     }
 }
 
-void Fetch::process(Event *event, EventQueue *eventQueue)
+void Fetch::process(Event *event)
 {
     if (event->type == "FetchEvent")
     {
@@ -64,5 +67,5 @@ void Fetch::process(Event *event, EventQueue *eventQueue)
         throw UnrecognizedEvent("Fetch units do not accept PipelineInsertEvents");
     }
 
-    Pipeline::process(event, eventQueue);
+    Pipeline::process(event);
 }

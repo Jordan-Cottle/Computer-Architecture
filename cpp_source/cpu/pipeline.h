@@ -42,8 +42,8 @@ struct Pipeline : SimulationDevice
 
     Instruction *staged();
 
-    void tick(ulong time, EventQueue *eventQueue);
-    void process(Event *event, EventQueue *eventQueue);
+    void tick();
+    void process(Event *event);
 
     std::string __str__();
 };

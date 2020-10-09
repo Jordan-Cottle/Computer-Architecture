@@ -12,12 +12,12 @@ SimulationDevice::SimulationDevice(std::string name)
     this->eventsProcessed = 0;
 }
 
-void SimulationDevice::tick(ulong time, EventQueue *masterEventQueue)
+void SimulationDevice::tick()
 {
     this->clocksProcessed += 1;
 }
 
-void SimulationDevice::process(Event *event, EventQueue *masterEventQueue)
+void SimulationDevice::process(Event *event)
 {
     if (!event->handled)
     {

@@ -14,7 +14,7 @@ struct StorePipeline : Pipeline
     Cpu *cpu;
     StorePipeline(Cpu *cpu);
 
-    void tick(ulong time, EventQueue *eventQueue);
+    void tick();
 };
 
 #endif

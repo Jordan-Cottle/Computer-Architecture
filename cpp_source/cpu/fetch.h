@@ -21,8 +21,8 @@ struct Fetch : Pipeline
     Cpu *cpu;
     Fetch(Cpu *cpu);
 
-    void tick(ulong time, EventQueue *eventQueue);
-    void process(Event *event, EventQueue *eventQueue);
+    void tick();
+    void process(Event *event);
 };
 
 #endif

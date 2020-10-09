@@ -44,7 +44,7 @@ void Cpu::tick()
     std::cout << simulationClock << "\n";
     for (auto pipeline : this->pipelines)
     {
-        pipeline->tick(simulationClock.cycle, &masterEventQueue);
+        pipeline->tick();
     }
 }
 

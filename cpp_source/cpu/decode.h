@@ -18,7 +18,7 @@ struct Decode : Pipeline
 
     Instruction *decode(Instruction *instruction);
 
-    void tick(ulong time, EventQueue *eventQueue);
+    void tick();
 };
 
 #endif

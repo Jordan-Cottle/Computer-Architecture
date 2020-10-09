@@ -37,11 +37,11 @@ struct TestPipeline : Pipeline
     {
     }
 
-    void tick(ulong time, EventQueue *eventQueue)
+    void tick()
     {
         Instruction *staged = this->staged();
 
-        std::cout << this->type << " T " << time << ": ";
+        std::cout << this->type << " T " << simulationClock.cycle << ": ";
         if (staged == NULL)
         {
             std::cout << " no instruction\n";
@@ -51,7 +51,7 @@ struct TestPipeline : Pipeline
             std::cout << this->staged() << "\n";
         }
 
-        Pipeline::tick(time, eventQueue);
+        Pipeline::tick();
     }
 };
 

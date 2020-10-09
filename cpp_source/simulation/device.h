@@ -21,8 +21,8 @@ struct SimulationDevice : printable
 
     SimulationDevice(std::string);
 
-    virtual void tick(ulong time, EventQueue *masterEventQueue);
-    virtual void process(Event *event, EventQueue *masterEventQueue);
+    virtual void tick();
+    virtual void process(Event *event);
 
     std::string __str__();
 };
