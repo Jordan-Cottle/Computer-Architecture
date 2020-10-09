@@ -11,11 +11,13 @@
 struct Event;
 struct EventQueue;
 
-struct SimulationDevice : EnumeratedObject
+struct SimulationDevice : printable
 {
 
     ulong clocksProcessed;
     int eventsProcessed;
+
+    std::string type;
 
     SimulationDevice(std::string);
 

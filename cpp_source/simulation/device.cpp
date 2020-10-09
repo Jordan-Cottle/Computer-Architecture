@@ -6,7 +6,7 @@
 #include "event.h"
 #include "device.h"
 
-SimulationDevice::SimulationDevice(std::string name) : EnumeratedObject(name)
+SimulationDevice::SimulationDevice(std::string name)
 {
     this->clocksProcessed = 0;
     this->eventsProcessed = 0;
