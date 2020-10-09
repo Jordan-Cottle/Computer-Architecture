@@ -374,6 +374,6 @@ void cpuTest()
 
 int main()
 {
-    fetchTest();
+    cpuTest();
     return 0;
 }
