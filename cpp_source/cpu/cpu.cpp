@@ -11,7 +11,7 @@
 using namespace Simulation;
 
 #define REGISTER_COUNT 4
-#define MEMORY_COUNT 128
+#define MEMORY_COUNT 1024
 #define INSTRUCTION_MEMORY_COUNT 8
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
