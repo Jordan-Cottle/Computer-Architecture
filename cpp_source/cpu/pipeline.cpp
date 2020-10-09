@@ -70,7 +70,7 @@ void Pipeline::tick(ulong time, EventQueue *eventQueue)
 
 void Pipeline::process(Event *event, EventQueue *eventQueue)
 {
-    std::cout << this->type << " processing " << event->type << "\n";
+    std::cout << this->type << " processing event: " << event << "\n";
     if (event->type == "PipelineInsertEvent")
     {
         event->handled = true;

@@ -25,6 +25,7 @@ void StorePipeline::tick(ulong time, EventQueue *eventQueue)
         return;
     }
 
+    std::cout << "Store processing instruction: " << instruction << "\n";
     if (instruction->operation == "halt")
     {
         this->cpu->complete = true;

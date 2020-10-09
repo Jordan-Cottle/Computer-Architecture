@@ -23,16 +23,15 @@ void Execute::tick(ulong time, EventQueue *eventQueue)
         return;
     }
 
+    std::cout << "Execute processing instruction: " << instruction << "\n";
     Store *store = dynamic_cast<Store *>(instruction);
     if (store != NULL || instruction->operation == "halt")
     {
-        std::cout << "Passing store/halt on from execute stage\n";
         PipelineInsertEvent *new_event = new PipelineInsertEvent(time + 1, this->next, instruction);
         eventQueue->push(new_event);
     }
     else
     {
-        std::cout << "Executing " << instruction << "\n";
         DecodedInstruction *decoded = dynamic_cast<DecodedInstruction *>(instruction);
 
         decoded->execute(this->cpu);
