@@ -6,17 +6,17 @@
 #include "control_instructions.h"
 #include "cpu.h"
 
-DecodedBranch::DecodedBranch(Branch *branch, int destination) : DecodedInstruction(branch)
+BranchInstruction::BranchInstruction(Branch *branch, int destination) : DecodedInstruction(branch)
 {
     this->destination = destination;
 }
 
-bool DecodedBranch::take(Cpu *cpu)
+bool BranchInstruction::take(Cpu *cpu)
 {
     return true; // Default branch behavior is to always take
 }
 
-void DecodedBranch::execute(Cpu *cpu)
+void BranchInstruction::execute(Cpu *cpu)
 {
     bool take = this->take(cpu);
     if (this->take(cpu) != cpu->branchSpeculated)
@@ -37,12 +37,12 @@ void DecodedBranch::execute(Cpu *cpu)
     // Fetch unit has already made a correct prediction, nothing to do
 }
 
-std::string DecodedBranch::__str__()
+std::string BranchInstruction::__str__()
 {
     return "PC -> " + str(this->destination);
 }
 
-Bne::Bne(Branch *branch, int destination) : DecodedBranch(branch, destination)
+Bne::Bne(Branch *branch, int destination) : BranchInstruction(branch, destination)
 {
     this->leftIndex = branch->arguments[0];
     this->rightIndex = branch->arguments[1];

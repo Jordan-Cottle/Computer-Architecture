@@ -245,7 +245,7 @@ void executeTest()
     meq.push(event);
 
     Branch *branchInstruction = new Branch("branch", {}, "Test");
-    DecodedBranch branch = DecodedBranch(branchInstruction, 42);
+    BranchInstruction branch = BranchInstruction(branchInstruction, 42);
     event = new PipelineInsertEvent(2, &execute, &branch);
     meq.push(event);
 

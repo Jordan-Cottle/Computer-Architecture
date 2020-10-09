@@ -8,10 +8,10 @@
 
 #include "instruction.h"
 
-struct DecodedBranch : DecodedInstruction
+struct BranchInstruction : DecodedInstruction
 {
     int destination;
-    DecodedBranch(Branch *branch, int destination);
+    BranchInstruction(Branch *branch, int destination);
 
     virtual bool take(Cpu *cpu);
 
@@ -20,7 +20,7 @@ struct DecodedBranch : DecodedInstruction
     std::string __str__();
 };
 
-struct Bne : DecodedBranch
+struct Bne : BranchInstruction
 {
     int leftIndex;
     int rightIndex;
