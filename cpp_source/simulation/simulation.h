@@ -12,9 +12,9 @@
 
 namespace Simulation
 {
-    static EventQueue masterEventQueue;
-    static Clock simulationClock;
-    static Cpu cpu;
+    extern EventQueue masterEventQueue;
+    extern Clock simulationClock;
+    extern Cpu cpu;
 } // namespace Simulation
 
 #endif

@@ -33,7 +33,7 @@ struct Cpu : SimulationDevice
 
     Cpu *addPipeline(Pipeline *pipeline);
 
-    void tick(ulong time, EventQueue *eventQueue);
+    void tick();
 
     void loadProgram(Program *program);
 

@@ -5,6 +5,10 @@
 
 #include "cpu.h"
 
+#include "simulation.h"
+
+using namespace Simulation;
+
 #define REGISTER_COUNT 4
 #define MEMORY_COUNT 128
 #define INSTRUCTION_MEMORY_COUNT 8
@@ -35,11 +39,12 @@ Cpu *Cpu::addPipeline(Pipeline *pipeline)
     return this;
 }
 
-void Cpu::tick(ulong time, EventQueue *eventQueue)
+void Cpu::tick()
 {
+    std::cout << simulationClock << "\n";
     for (auto pipeline : this->pipelines)
     {
-        pipeline->tick(time, eventQueue);
+        pipeline->tick(simulationClock.cycle, &masterEventQueue);
     }
 }
 

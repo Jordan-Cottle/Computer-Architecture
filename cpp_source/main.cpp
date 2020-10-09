@@ -128,8 +128,8 @@ void fetchTest()
                                 {{"Test", 0}}));
     std::cout << cpu.program << "\n";
 
-    // Initialize cpu
-    cpu.tick(-1, &masterEventQueue);
+    // Set up initial fetch event (so masterEventQueue isn't empty)
+    masterEventQueue.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
 
     while (simulationClock.cycle <= 10)
     {
@@ -138,7 +138,7 @@ void fetchTest()
 
         std::cout << "Ticking devices:\n";
 
-        cpu.tick(simulationClock.cycle, &masterEventQueue);
+        cpu.tick();
         std::cout << fetchUnit << "\n";
         simulationClock.tick();
     }
@@ -216,7 +216,7 @@ void decodeTest()
     {
         std::cout << simulationClock << "\n";
         masterEventQueue.tick(simulationClock.cycle);
-        cpu.tick(simulationClock.cycle, &masterEventQueue);
+        cpu.tick();
         simulationClock.tick();
     }
 }
@@ -252,7 +252,7 @@ void executeTest()
         masterEventQueue.tick(simulationClock.cycle);
 
         cpu.programCounter = simulationClock.cycle;
-        cpu.tick(simulationClock.cycle, &masterEventQueue);
+        cpu.tick();
 
         simulationClock.tick();
     }
@@ -299,7 +299,7 @@ void storeTest()
     {
         std::cout << simulationClock << "\n";
         masterEventQueue.tick(simulationClock.cycle);
-        cpu.tick(simulationClock.cycle, &masterEventQueue);
+        cpu.tick();
         simulationClock.tick();
     }
 
@@ -353,7 +353,7 @@ void cpuTest()
         masterEventQueue.tick(simulationClock.cycle);
 
         std::cout << "\n~~~Ticking cpu~~~\n";
-        cpu.tick(simulationClock.cycle, &masterEventQueue);
+        cpu.tick();
 
         simulationClock.tick();
     }
