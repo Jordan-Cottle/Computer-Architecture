@@ -39,6 +39,8 @@ struct Cpu : SimulationDevice
 
     void flush();
 
+    Pipeline *getPipeline(std::string type);
+
     std::string __str__();
 };
 
