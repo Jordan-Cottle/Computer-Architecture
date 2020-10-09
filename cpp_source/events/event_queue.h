@@ -22,6 +22,8 @@ struct EventQueue : printable
 
     void tick(ulong time);
 
+    void flush(ulong time, SimulationDevice *device);
+
     std::string __str__();
 };
 
