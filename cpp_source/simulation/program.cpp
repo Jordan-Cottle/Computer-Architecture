@@ -10,6 +10,16 @@ Program::Program(std::vector<Instruction *> instructions, std::unordered_map<std
     this->labels = labels;
 }
 
+Program::~Program()
+{
+    for (auto instruction : this->instructions)
+    {
+        delete instruction;
+    }
+
+    this->instructions.clear();
+}
+
 Instruction *Program::line(int index)
 {
     return this->instructions.at(index);

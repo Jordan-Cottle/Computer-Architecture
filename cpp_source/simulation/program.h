@@ -16,6 +16,7 @@ struct Program : printable
     std::unordered_map<std::string, int> labels;
 
     Program(std::vector<Instruction *> instructions, std::unordered_map<std::string, int> labels);
+    ~Program();
 
     Instruction *line(int index);
     int index(std::string label);

@@ -38,5 +38,8 @@ void Execute::tick()
         DecodedInstruction *decoded = dynamic_cast<DecodedInstruction *>(instruction);
 
         decoded->execute(this->cpu);
+
+        // Decoded instructions are not pointers to the ones in the program
+        delete decoded;
     }
 }

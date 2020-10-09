@@ -142,6 +142,8 @@ void fetchTest()
         std::cout << fetchUnit << "\n";
         simulationClock.tick();
     }
+
+    delete cpu.program;
 }
 
 void programTest()
@@ -372,6 +374,6 @@ void cpuTest()
 
 int main()
 {
-    cpuTest();
+    fetchTest();
     return 0;
 }

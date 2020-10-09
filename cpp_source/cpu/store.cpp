@@ -40,4 +40,7 @@ void StorePipeline::tick()
     }
 
     store->execute(this->cpu);
+
+    // Decoded instructions are not the main copy of the instruction
+    delete store;
 }
