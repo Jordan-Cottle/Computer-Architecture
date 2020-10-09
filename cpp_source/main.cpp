@@ -344,9 +344,7 @@ void cpuTest()
 
     cpu.loadProgram(&program);
 
-    std::cout << "Initial float memory " << cpu.fpMemory << "\n";
-
-    std::cout << "Instruction " << cpu.program << "\n";
+    std::cout << cpu.program << "\n";
 
     // Set up initial fetch event (so meq isn't empty)
     meq.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
@@ -357,20 +355,18 @@ void cpuTest()
         std::cout << "\n"
                   << clock << "\n";
 
-        std::cout << "~~~Processing events~~~\n";
+        std::cout << "\n~~~EventQueue~~~\n";
+        std::cout << meq << "\n";
+
+        std::cout << "\n~~~Processing events~~~\n";
         meq.tick(clock.cycle);
 
         std::cout << "\n~~~Ticking cpu~~~\n";
         cpu.tick(clock.cycle, &meq);
 
-        std::cout << cpu.intRegister << "\n";
-
         clock.tick();
     }
     std::cout << "Program complete!\n";
-
-    std::cout << "\n~~~Result~~~\n";
-    std::cout << "Float Memory " << cpu.fpMemory << "\n";
 
     for (int i = 0; i < ARRAY_END; i++)
     {
