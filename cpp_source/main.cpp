@@ -129,7 +129,7 @@ void fetchTest()
     std::cout << cpu.program << "\n";
 
     // Set up initial fetch event (so masterEventQueue isn't empty)
-    masterEventQueue.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
+    masterEventQueue.push(new Event(0, (Fetch *)cpu.pipelines[0]));
 
     while (simulationClock.cycle <= 10)
     {
@@ -343,7 +343,7 @@ void cpuTest()
     std::cout << cpu.program << "\n";
 
     // Set up initial fetch event (so masterEventQueue isn't empty)
-    masterEventQueue.push(new FetchEvent(0, (Fetch *)cpu.pipelines[0]));
+    masterEventQueue.push(new Event("Fetch", 0, cpu.pipelines[0]));
 
     while (!cpu.complete)
     {

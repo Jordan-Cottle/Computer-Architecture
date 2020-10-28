@@ -74,7 +74,7 @@ void Cpu::flush()
     {
         Fetch *fetchUnit = dynamic_cast<Fetch *>(this->getPipeline("Fetch"));
 
-        FetchEvent *fetchEvent = new FetchEvent(simulationClock.cycle + 1, fetchUnit);
+        Event *fetchEvent = new Event("Fetch", simulationClock.cycle + 1, fetchUnit);
 
         masterEventQueue.push(fetchEvent);
     }

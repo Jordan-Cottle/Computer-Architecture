@@ -11,11 +11,6 @@
 
 struct Fetch;
 
-struct FetchEvent : Event
-{
-    FetchEvent(ulong time, Fetch *device);
-};
-
 struct Fetch : Pipeline
 {
     Cpu *cpu;
