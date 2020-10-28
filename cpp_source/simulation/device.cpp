@@ -8,6 +8,7 @@
 
 SimulationDevice::SimulationDevice(std::string name)
 {
+    this->type = name;
     this->clocksProcessed = 0;
     this->eventsProcessed = 0;
 }

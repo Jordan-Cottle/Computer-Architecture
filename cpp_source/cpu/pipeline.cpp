@@ -26,14 +26,12 @@ Pipeline::Pipeline(std::string type) : SimulationDevice(type),
                                        memory(Register<Instruction *>(1))
 {
     this->next = NULL;
-    this->type = type;
 }
 
 Pipeline::Pipeline(std::string type, Pipeline *next) : SimulationDevice(type),
                                                        memory(Register<Instruction *>(1))
 {
     this->next = next;
-    this->type = type;
 }
 
 bool Pipeline::free()
