@@ -27,7 +27,7 @@ Event ::Event(std::string type, ulong time, SimulationDevice *device, int priori
 
 std::string Event::__str__()
 {
-    return this->type + " #" + str(this->id) + " T:" + str(this->time);
+    return this->device->type + " " + this->type + " #" + str(this->id) + " T:" + str(this->time);
 }
 
 bool Event ::operator<(const Event &other)
