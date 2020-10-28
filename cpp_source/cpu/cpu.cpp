@@ -43,9 +43,10 @@ Cpu *Cpu::addPipeline(Pipeline *pipeline)
 void Cpu::tick()
 {
     std::cout << simulationClock << "\n";
+    int i = 0;
     for (auto pipeline : this->pipelines)
     {
-        pipeline->tick();
+        masterEventQueue.push(new Event("Tick", simulationClock.cycle + i++, pipeline));
     }
 
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + 10, this, 0));
