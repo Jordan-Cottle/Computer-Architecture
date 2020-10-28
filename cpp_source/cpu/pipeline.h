@@ -22,11 +22,6 @@ struct PipelineInsertEvent : Event
     std::string __str__();
 };
 
-struct PipelineFlushEvent : Event
-{
-    PipelineFlushEvent(ulong time, Pipeline *device);
-};
-
 struct Pipeline : SimulationDevice
 {
     Register<Instruction *> memory;

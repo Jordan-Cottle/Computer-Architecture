@@ -22,10 +22,6 @@ std::string PipelineInsertEvent::__str__()
     return s;
 }
 
-PipelineFlushEvent::PipelineFlushEvent(ulong time, Pipeline *pipeline) : Event("PipelineFlushEvent", time, pipeline)
-{
-}
-
 Pipeline::Pipeline(std::string type) : SimulationDevice(type),
                                        memory(Register<Instruction *>(1))
 {
@@ -82,11 +78,6 @@ void Pipeline::process(Event *event)
         Instruction *instruction = insert->instruction;
 
         this->stage(instruction);
-    }
-    else if (event->type == "PipelineFlushEvent")
-    {
-        event->handled = true;
-        this->flush();
     }
 
     SimulationDevice::process(event);
