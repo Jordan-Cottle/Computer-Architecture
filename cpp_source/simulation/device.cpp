@@ -19,6 +19,12 @@ void SimulationDevice::tick()
 
 void SimulationDevice::process(Event *event)
 {
+    if (event->type == "Tick")
+    {
+        this->tick();
+        event->handled = true;
+    }
+
     if (!event->handled)
     {
         throw UnrecognizedEvent(event->type);

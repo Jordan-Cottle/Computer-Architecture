@@ -47,6 +47,8 @@ void Cpu::tick()
     {
         pipeline->tick();
     }
+
+    masterEventQueue.push(new Event("Tick", simulationClock.cycle + 1, this, 0));
 }
 
 void Cpu::loadProgram(Program *program)

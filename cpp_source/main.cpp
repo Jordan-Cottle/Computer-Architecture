@@ -344,6 +344,7 @@ void cpuTest()
 
     // Set up initial fetch event (so masterEventQueue isn't empty)
     masterEventQueue.push(new Event("Fetch", 0, cpu.pipelines[0]));
+    masterEventQueue.push(new Event("Tick", 0, &cpu));
 
     while (!cpu.complete)
     {
@@ -357,7 +358,6 @@ void cpuTest()
         masterEventQueue.tick(simulationClock.cycle);
 
         std::cout << "\n~~~Ticking cpu~~~\n";
-        cpu.tick();
 
         simulationClock.tick();
     }
