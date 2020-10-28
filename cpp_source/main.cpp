@@ -318,6 +318,8 @@ void cpuTest()
     const int ARRAY_SIZE = 1000;
     const int ARRAY_START = 22; // Don't make it bigger than Cpu.memorySize - ARRAY_SIZE
 
+    const double VALUE_ADDED = 1.0;
+
     // Indexes of array
     cpu.intRegister.write(ASM_I, ARRAY_START + ARRAY_SIZE - 1); // -1 for 0 indexed arrays
 
@@ -325,7 +327,7 @@ void cpuTest()
     cpu.intRegister.write(END, ARRAY_START - 1);
 
     // Constant float to add to fp array
-    cpu.fpRegister.write(2, 1.0);
+    cpu.fpRegister.write(2, VALUE_ADDED);
 
     // Initialize array in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)
@@ -368,7 +370,9 @@ void cpuTest()
 
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        assert(cpu.fpMemory.read(ARRAY_START + i) == 1.0 + INITIAL + i * OFFSET);
+        float expected = (INITIAL + i * OFFSET) + VALUE_ADDED;
+        float actual = cpu.fpMemory.read(ARRAY_START + i);
+        assert(actual == expected);
     }
 }
 
