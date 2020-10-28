@@ -13,6 +13,7 @@ using namespace Simulation;
 constexpr int REGISTER_COUNT = 4;
 constexpr int MEMORY_COUNT = 1024;
 constexpr int INSTRUCTION_MEMORY_COUNT = 8;
+constexpr int SIM_CYCLES_PER_CPU = 10;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
@@ -49,7 +50,7 @@ void Cpu::tick()
         masterEventQueue.push(new Event("Tick", simulationClock.cycle + i++, pipeline));
     }
 
-    masterEventQueue.push(new Event("Tick", simulationClock.cycle + 10, this, 0));
+    masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 }
 
 void Cpu::loadProgram(Program *program)
