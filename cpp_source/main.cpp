@@ -63,12 +63,14 @@ Program program = Program({
                               new Instruction("fadd.d", {3, 0, 2}),
                               new Instruction("stall", {}),
                               new Instruction("stall", {}),
-                              new Instruction("addi", {ASM_I, ASM_I, -1}),
                               new Instruction("fsd", {3, ASM_I}),
+                              new Instruction("addi", {ASM_I, ASM_I, -1}),
                               new Branch("bne", {ASM_I, END}, "Loop"),
                               new Instruction("halt", {}),
                           },
                           {{"Loop", 0}});
+
+TestPipeline testPipeline;
 
 void instructionQueueTest()
 {
@@ -206,69 +208,53 @@ void decodeTest()
     Decode decode = Decode(&cpu);
 
     cpu.addPipeline(&decode);
-    cpu.addPipeline(new TestPipeline());
+    cpu.addPipeline(&testPipeline);
 
     cpu.intRegister.write(0, 2);
 
-    Event *event = new PipelineInsertEvent(0, &decode, instruction);
-
-    masterEventQueue.push(event);
-
-    while (!masterEventQueue.empty())
-    {
-        std::cout << simulationClock << "\n";
-        masterEventQueue.tick(simulationClock.cycle);
-        cpu.tick();
-        simulationClock.tick();
-    }
+    decode.stage(instruction);
+    decode.tick();
+    testPipeline.tick();
 }
 
 void executeTest()
 {
-
     Execute execute = Execute(&cpu);
     cpu.addPipeline(&execute);
-    cpu.addPipeline(new TestPipeline());
+    cpu.addPipeline(&testPipeline);
 
     Instruction *instruction = new Instruction("addi", {0, 1});
     Add add = Add(instruction, instruction->arguments[1]);
-    Event *event = new PipelineInsertEvent(0, &execute, &add);
-    masterEventQueue.push(event);
+
+    execute.stage(&add);
+    execute.tick();
+    testPipeline.tick();
+
+    std::cout << cpu.intRegister << "\n";
+    assert(cpu.intRegister.read(0) == 1);
 
     cpu.fpMemory.write(1, 3.14);
     instruction = new Instruction("fsd", {0, 0});
     Store store = Store(instruction, &cpu.intRegister);
-    event = new PipelineInsertEvent(1, &execute, &store);
-    masterEventQueue.push(event);
 
-    Branch *branchInstruction = new Branch("branch", {}, "Test");
-    BranchInstruction branch = BranchInstruction(branchInstruction, 42);
-    event = new PipelineInsertEvent(2, &execute, &branch);
-    masterEventQueue.push(event);
-
-    std::cout << cpu.intRegister << "\n";
-
-    while (!masterEventQueue.empty())
-    {
-        std::cout << simulationClock << "\n";
-        masterEventQueue.tick(simulationClock.cycle);
-
-        cpu.programCounter = simulationClock.cycle;
-        cpu.tick();
-
-        simulationClock.tick();
-    }
-
-    std::cout << "Integer ";
-    std::cout << cpu.intRegister << "\n";
-    assert(cpu.intRegister.read(0) == 1);
+    execute.stage(&store);
+    execute.tick();
+    testPipeline.tick();
 
     std::cout << "fpMemory[1]: " << cpu.fpMemory.read(1) << "\n";
     assert(cpu.fpMemory.read(1) == 3.14);
 
+    Branch *branchInstruction = new Branch("branch", {}, "Test");
+    BranchInstruction branch = BranchInstruction(branchInstruction, 42);
+
+    execute.stage(&branch);
+    execute.tick();
+    testPipeline.tick();
+
     std::cout << "Final PC: " << cpu.programCounter << "\n";
     assert(cpu.programCounter == 42);
 }
+
 void storeTest()
 {
 
@@ -277,6 +263,8 @@ void storeTest()
 
     cpu.fpRegister.write(0, 3.141592654); // Pi
     cpu.fpRegister.write(1, 2.718281828); // E
+    std::cout << "Float " << cpu.fpRegister << "\n";
+    std::cout << "Float Memory " << cpu.fpMemory << "\n";
 
     StorePipeline store = StorePipeline(&cpu);
     cpu.addPipeline(&store);
@@ -284,26 +272,13 @@ void storeTest()
     Instruction *instruction = new Instruction("fsd", {0, 0});
     instruction = new Store(instruction, &cpu.intRegister);
 
-    Event *event = new PipelineInsertEvent(0, &store, instruction);
-    masterEventQueue.push(event);
+    store.stage(instruction);
+    store.tick();
 
     instruction = new Instruction("fsd", {1, 1});
     instruction = new Store(instruction, &cpu.intRegister);
-
-    event = new PipelineInsertEvent(1, &store, instruction);
-    masterEventQueue.push(event);
-
-    std::cout << "Float " << cpu.fpRegister << "\n";
-
-    std::cout << "Float Memory " << cpu.fpMemory << "\n";
-
-    while (!masterEventQueue.empty())
-    {
-        std::cout << simulationClock << "\n";
-        masterEventQueue.tick(simulationClock.cycle);
-        cpu.tick();
-        simulationClock.tick();
-    }
+    store.stage(instruction);
+    store.tick();
 
     std::cout << "Float memory ";
     std::cout << cpu.fpMemory << "\n";
@@ -366,14 +341,18 @@ void cpuTest()
     std::cout << "Program complete!\n";
 
     // Uncomment this to see the float memory printed out (it's big)
-    // std::cout << cpu.fpMemory << "\n";
+    std::cout << cpu.fpMemory << "\n";
 
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         float expected = (INITIAL + i * OFFSET) + VALUE_ADDED;
         float actual = cpu.fpMemory.read(ARRAY_START + i);
+        // std::cout << "Expected: " << expected << "\n";
+        // std::cout << "Actual: " << actual << "\n";
         assert(actual == expected);
     }
+
+    std::cout << "Memory state verified!\n";
 }
 
 int main()
