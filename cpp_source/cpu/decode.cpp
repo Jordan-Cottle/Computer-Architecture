@@ -65,8 +65,6 @@ void Decode::tick()
         std::cout << "Decode processing instruction: " << instruction << "\n";
         Instruction *decodedInstruction = this->decode(instruction);
 
-        PipelineInsertEvent *new_event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, decodedInstruction);
-
-        masterEventQueue.push(new_event);
+        this->next->stage(decodedInstruction);
     }
 }

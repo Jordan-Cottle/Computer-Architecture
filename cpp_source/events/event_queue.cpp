@@ -1,6 +1,9 @@
 #include "event.h"
 #include "event_queue.h"
 
+#include "simulation.h"
+using namespace Simulation;
+
 void EventQueue::push(Event *event)
 {
     if (event == NULL)
@@ -49,7 +52,7 @@ void EventQueue::flush(ulong time, SimulationDevice *device)
         return; // No events, nothing to do
     }
 
-    if (time < this->nextTime())
+    if (time < simulationClock.cycle)
     {
         throw std::runtime_error("Attempted to flush events in the past!");
     }

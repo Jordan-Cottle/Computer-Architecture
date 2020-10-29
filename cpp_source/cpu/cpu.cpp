@@ -10,9 +10,10 @@
 
 using namespace Simulation;
 
-#define REGISTER_COUNT 4
-#define MEMORY_COUNT 1024
-#define INSTRUCTION_MEMORY_COUNT 8
+constexpr int REGISTER_COUNT = 4;
+constexpr int MEMORY_COUNT = 1024;
+constexpr int INSTRUCTION_MEMORY_COUNT = 8;
+constexpr int SIM_CYCLES_PER_CPU = 10;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
@@ -43,10 +44,16 @@ Cpu *Cpu::addPipeline(Pipeline *pipeline)
 void Cpu::tick()
 {
     std::cout << simulationClock << "\n";
+    // Work pipelines backwards
+    // This allows allows each stage to set the instruction into the next stage with worrying
+    // about the instruction being boosted all the way through the pipeline in a single cycle
+    int i = SIM_CYCLES_PER_CPU;
     for (auto pipeline : this->pipelines)
     {
-        pipeline->tick();
+        masterEventQueue.push(new Event("Tick", simulationClock.cycle + --i, pipeline));
     }
+
+    masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 }
 
 void Cpu::loadProgram(Program *program)
@@ -74,7 +81,7 @@ void Cpu::flush()
     {
         Fetch *fetchUnit = dynamic_cast<Fetch *>(this->getPipeline("Fetch"));
 
-        FetchEvent *fetchEvent = new FetchEvent(simulationClock.cycle + 1, fetchUnit);
+        Event *fetchEvent = new Event("Fetch", simulationClock.cycle + 1, fetchUnit);
 
         masterEventQueue.push(fetchEvent);
     }

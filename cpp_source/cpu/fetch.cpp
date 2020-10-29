@@ -8,10 +8,6 @@
 #include "simulation.h"
 using namespace Simulation;
 
-FetchEvent::FetchEvent(ulong time, Fetch *device) : Event("FetchEvent", time, device)
-{
-}
-
 Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 {
     this->cpu = cpu;
@@ -42,29 +38,23 @@ void Fetch::tick()
 
     if (instruction->operation != "stall") // Don't pass on stall instructions
     {
-        PipelineInsertEvent *event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, instruction);
-
-        masterEventQueue.push(event);
+        this->next->stage(instruction);
     }
 
     // Stop fetching if halt is encountered
     if (instruction->operation != "halt")
     {
-        FetchEvent *fetch = new FetchEvent(simulationClock.cycle + 1, this);
+        Event *fetch = new Event("Fetch", simulationClock.cycle + 1, this);
         masterEventQueue.push(fetch);
     }
 }
 
 void Fetch::process(Event *event)
 {
-    if (event->type == "FetchEvent")
+    if (event->type == "Fetch")
     {
         event->handled = true;
         this->stage(this->cpu->program->line(this->cpu->programCounter++));
-    }
-    else if (event->type == "PipelineInsertEvent")
-    {
-        throw UnrecognizedEvent("Fetch units do not accept PipelineInsertEvents");
     }
 
     Pipeline::process(event);

@@ -30,8 +30,7 @@ void Execute::tick()
     Store *store = dynamic_cast<Store *>(instruction);
     if (store != NULL || instruction->operation == "halt")
     {
-        PipelineInsertEvent *new_event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, instruction);
-        masterEventQueue.push(new_event);
+        this->next->stage(instruction);
     }
     else
     {
