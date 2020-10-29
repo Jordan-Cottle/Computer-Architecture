@@ -9,19 +9,6 @@
 #include "simulation.h"
 using namespace Simulation;
 
-PipelineInsertEvent::PipelineInsertEvent(ulong time, Pipeline *pipeline, Instruction *instruction) : Event("PipelineInsertEvent", time, pipeline), instruction(instruction)
-{
-}
-
-std::string PipelineInsertEvent::__str__()
-{
-    std::string s = this->device->type + " " + Event::__str__();
-
-    s += " <" + str(this->instruction) + ">";
-
-    return s;
-}
-
 Pipeline::Pipeline(std::string type) : SimulationDevice(type),
                                        memory(Register<Instruction *>(1))
 {
@@ -64,21 +51,6 @@ void Pipeline::tick()
 {
     this->flush();
     SimulationDevice::tick();
-}
-
-void Pipeline::process(Event *event)
-{
-    std::cout << this->type << " processing event: " << event << "\n";
-    if (event->type == "PipelineInsertEvent")
-    {
-        event->handled = true;
-        PipelineInsertEvent *insert = dynamic_cast<PipelineInsertEvent *>(event);
-        Instruction *instruction = insert->instruction;
-
-        this->stage(instruction);
-    }
-
-    SimulationDevice::process(event);
 }
 
 std::string Pipeline::__str__()

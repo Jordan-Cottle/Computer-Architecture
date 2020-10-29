@@ -38,9 +38,7 @@ void Fetch::tick()
 
     if (instruction->operation != "stall") // Don't pass on stall instructions
     {
-        PipelineInsertEvent *event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, instruction);
-
-        masterEventQueue.push(event);
+        this->next->stage(instruction);
     }
 
     // Stop fetching if halt is encountered
@@ -57,10 +55,6 @@ void Fetch::process(Event *event)
     {
         event->handled = true;
         this->stage(this->cpu->program->line(this->cpu->programCounter++));
-    }
-    else if (event->type == "PipelineInsertEvent")
-    {
-        throw UnrecognizedEvent("Fetch units do not accept PipelineInsertEvents");
     }
 
     Pipeline::process(event);

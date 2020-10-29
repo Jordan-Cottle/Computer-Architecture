@@ -44,10 +44,13 @@ Cpu *Cpu::addPipeline(Pipeline *pipeline)
 void Cpu::tick()
 {
     std::cout << simulationClock << "\n";
-    int i = 0;
+    // Work pipelines backwards
+    // This allows allows each stage to set the instruction into the next stage with worrying
+    // about the instruction being boosted all the way through the pipeline in a single cycle
+    int i = SIM_CYCLES_PER_CPU;
     for (auto pipeline : this->pipelines)
     {
-        masterEventQueue.push(new Event("Tick", simulationClock.cycle + i++, pipeline));
+        masterEventQueue.push(new Event("Tick", simulationClock.cycle + --i, pipeline));
     }
 
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));

@@ -11,17 +11,6 @@
 #include "sim_register.h"
 #include "instruction.h"
 
-struct Pipeline;
-
-struct PipelineInsertEvent : Event
-{
-    Instruction *instruction;
-
-    PipelineInsertEvent(ulong time, Pipeline *device, Instruction *instruction);
-
-    std::string __str__();
-};
-
 struct Pipeline : SimulationDevice
 {
     Register<Instruction *> memory;
@@ -38,7 +27,6 @@ struct Pipeline : SimulationDevice
     Instruction *staged();
 
     void tick();
-    void process(Event *event);
 
     std::string __str__();
 };
