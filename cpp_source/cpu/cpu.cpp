@@ -20,7 +20,6 @@ constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
              fpRegister(Register<double>(REGISTER_COUNT)),
-             intMemory(Register<int>(MEMORY_COUNT)),
              fpMemory(Register<double>(MEMORY_COUNT)),
              ram(Memory(MEMORY_COUNT * 4, MEMORY_DELAY))
 {
@@ -117,7 +116,6 @@ std::string Cpu::__str__()
 
     s += "\t}\n\t" + addIndent(str(this->ram));
     s += "\n\tRegMemory: {\n";
-    s += "\t\tInteger " + addIndent(str(this->intMemory), 2) + "\n";
     s += "\t\tFloat " + addIndent(str(this->fpMemory), 2) + "\n";
 
     s += "\t}\n\tPipelines: {\n";

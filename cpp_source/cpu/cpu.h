@@ -26,7 +26,6 @@ struct Cpu : SimulationDevice
 
     // TODO put these somewhere else
     Program *program;
-    Register<int> intMemory;
     Register<double> fpMemory;
     Memory ram;
 
