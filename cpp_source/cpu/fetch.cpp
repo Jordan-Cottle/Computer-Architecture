@@ -23,6 +23,7 @@ void Fetch::tick()
         std::cout << "No instruction fetched\n";
         return;
     }
+
     std::cout << "Fetch processing instruction: " << instruction << "\n";
 
     Branch *branch = dynamic_cast<Branch *>(instruction);
@@ -30,8 +31,8 @@ void Fetch::tick()
     if (branch != NULL)
     {
         this->cpu->branchSpeculated = true; // Predict True for all branches
-        this->cpu->jumpedFrom = this->cpu->programCounter;
-        this->cpu->programCounter = this->cpu->program->index(branch->label);
+        this->cpu->jumpedFrom = this->cpu->programCounter.value;
+        this->cpu->programCounter.jump(this->cpu->program->index(branch->label));
 
         std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
     }
@@ -54,7 +55,8 @@ void Fetch::process(Event *event)
     if (event->type == "Fetch")
     {
         event->handled = true;
-        this->stage(this->cpu->program->line(this->cpu->programCounter++));
+        this->stage(this->cpu->program->line(this->cpu->programCounter.value));
+        ++this->cpu->programCounter;
     }
 
     Pipeline::process(event);
