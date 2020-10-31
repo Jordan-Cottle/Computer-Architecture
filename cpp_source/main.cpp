@@ -60,13 +60,12 @@ struct TestPipeline : Pipeline
 #define ASM_I 1
 #define END 2
 Program program = Program({
-                              new Instruction("fld", {0, ASM_I}),
+                              new Instruction("flw", {0, ASM_I}),
                               new Instruction("stall", {}),
-                              new Instruction("fadd.d", {3, 0, 2}),
+                              new Instruction("fadd.s", {3, 0, 2}),
                               new Instruction("stall", {}),
                               new Instruction("stall", {}),
-                              new Instruction("fsd", {3, ASM_I}),
-                              new Instruction("addi", {ASM_I, ASM_I, -1}),
+                              new Instruction("fsw", {3, ASM_I}),
                               new Branch("bne", {ASM_I, END}, "Loop"),
                               new Instruction("halt", {}),
                           },

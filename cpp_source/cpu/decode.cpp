@@ -21,15 +21,15 @@ Instruction *Decode::decode(Instruction *instruction)
 {
     std::string op = instruction->operation;
 
-    if (op == "fsd")
+    if (op == "fsw")
     {
         return new Store(instruction, &cpu->intRegister);
     }
-    else if (op == "fld")
+    else if (op == "flw")
     {
         return new Load(instruction, &cpu->intRegister);
     }
-    else if (op == "fadd.d")
+    else if (op == "fadd.s")
     {
         return new Add(instruction);
     }
