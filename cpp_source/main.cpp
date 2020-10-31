@@ -60,13 +60,13 @@ struct TestPipeline : Pipeline
 #define ASM_I 1
 #define END 2
 Program program = Program({
-                              new Instruction("fld", {0, ASM_I}),
+                              new Instruction("flw", {0, ASM_I}),
                               new Instruction("stall", {}),
-                              new Instruction("fadd.d", {3, 0, 2}),
+                              new Instruction("fadd.s", {3, 0, 2}),
                               new Instruction("stall", {}),
                               new Instruction("stall", {}),
-                              new Instruction("fsd", {3, ASM_I}),
-                              new Instruction("addi", {ASM_I, ASM_I, -1}),
+                              new Instruction("fsw", {3, ASM_I}),
+                              new Instruction("addi", {ASM_I, ASM_I, -4}),
                               new Branch("bne", {ASM_I, END}, "Loop"),
                               new Instruction("halt", {}),
                           },
@@ -163,49 +163,51 @@ void programTest()
     }
 }
 
+constexpr float PI = 3.141592654f;
+constexpr float E = 2.718281828f;
+
 void fpTest()
 {
+    cpu.ram.write(0, PI);
+    cpu.fpRegister.write(1, E);
 
-    cpu.fpMemory.write(0, 3.141592654);   // Pi
-    cpu.fpRegister.write(1, 2.718281828); // E
+    cpu.intRegister.write(0, 0); // Read/write from ram[0]
 
-    cpu.intRegister.write(0, 0); // Read/write from fpMemory[0]
-
-    std::cout << "Load test\n";
-    std::cout << cpu.fpRegister << "\n";
-    Instruction *l = new Instruction("fld", {0, 0});
+    Instruction *l = new Instruction("flw", {0, 0});
     Load load = Load(l, &cpu.intRegister);
 
+    assert(cpu.fpRegister.read(0) == 0);
     load.execute(&cpu);
-    std::cout << cpu.fpRegister << "\n";
+    assert(cpu.fpRegister.read(0) == PI);
 
-    std::cout << "Add immediate test\n";
-    std::cout << cpu.intRegister << "\n";
-    Instruction *a = new Instruction("addi", {0, 0, 1});
+    Instruction *a = new Instruction("addi", {0, 0, 4});
     Add add = Add(a, a->arguments[2]);
+
+    assert(cpu.intRegister.read(0) == 0);
     add.execute(&cpu);
-    std::cout << cpu.intRegister << "\n";
+    assert(cpu.intRegister.read(0) == 4);
 
-    std::cout << "Add test\n";
-    std::cout << cpu.fpRegister << "\n";
-    Instruction *fa = new Instruction("fadd.d", {1, 0, 1});
+    Instruction *fa = new Instruction("fadd.s", {1, 0, 1});
     Add fadd = Add(fa);
-    fadd.execute(&cpu);
-    std::cout << cpu.fpRegister << "\n";
 
-    std::cout << "Store test\n";
-    std::cout << cpu.fpMemory << "\n";
-    Instruction *s = new Instruction("fsd", {1, 0});
+    assert(cpu.fpRegister.read(1) == E);
+    fadd.execute(&cpu);
+    assert(cpu.fpRegister.read(1) == PI + E);
+
+    Instruction *s = new Instruction("fsw", {1, 0});
     Store store = Store(s, &cpu.intRegister);
 
+    assert(cpu.ram.read<float>(4) == 0);
     store.execute(&cpu);
-    std::cout << cpu.fpMemory << "\n";
+    assert(cpu.ram.read<float>(4) == PI + E);
+
+    std::cout << cpu.ram << "\n";
 }
 
 void decodeTest()
 {
 
-    Instruction *instruction = new Instruction("fsd", {0, 0});
+    Instruction *instruction = new Instruction("fsw", {0, 0});
 
     Decode decode = Decode(&cpu);
 
@@ -225,31 +227,30 @@ void executeTest()
     cpu.addPipeline(&execute);
     cpu.addPipeline(&testPipeline);
 
-    Instruction *instruction = new Instruction("addi", {0, 1});
-    Add add = Add(instruction, instruction->arguments[1]);
+    Instruction *instruction = new Instruction("addi", {0, 0});
+    Add *add = new Add(instruction, 4);
 
-    execute.stage(&add);
+    execute.stage(add);
     execute.tick();
     testPipeline.tick();
 
     std::cout << cpu.intRegister << "\n";
-    assert(cpu.intRegister.read(0) == 1);
+    assert(cpu.intRegister.read(0) == 4);
 
-    cpu.fpMemory.write(1, 3.14);
-    instruction = new Instruction("fsd", {0, 0});
-    Store store = Store(instruction, &cpu.intRegister);
+    instruction = new Instruction("fsw", {0, 0});
+    Store *store = new Store(instruction, &cpu.intRegister);
 
-    execute.stage(&store);
+    assert(testPipeline.staged() == NULL);
+    execute.stage(store);
     execute.tick();
+    assert(testPipeline.staged() != NULL);
+
     testPipeline.tick();
 
-    std::cout << "fpMemory[1]: " << cpu.fpMemory.read(1) << "\n";
-    assert(cpu.fpMemory.read(1) == 3.14);
-
     Branch *branchInstruction = new Branch("branch", {}, "Test");
-    BranchInstruction branch = BranchInstruction(branchInstruction, 42);
+    BranchInstruction *branch = new BranchInstruction(branchInstruction, 42);
 
-    execute.stage(&branch);
+    execute.stage(branch);
     execute.tick();
     testPipeline.tick();
 
@@ -261,47 +262,50 @@ void storeTest()
 {
 
     cpu.intRegister.write(0, 0); // Store in memory address 0
-    cpu.intRegister.write(1, 1); // Store in memory address 1
+    cpu.intRegister.write(1, 4); // Store in memory address 1
 
-    cpu.fpRegister.write(0, 3.141592654); // Pi
-    cpu.fpRegister.write(1, 2.718281828); // E
+    cpu.fpRegister.write(0, PI); // Pi
+    cpu.fpRegister.write(1, E);  // E
     std::cout << "Float " << cpu.fpRegister << "\n";
-    std::cout << "Float Memory " << cpu.fpMemory << "\n";
 
     StorePipeline store = StorePipeline(&cpu);
     cpu.addPipeline(&store);
 
-    Instruction *instruction = new Instruction("fsd", {0, 0});
+    Instruction *instruction = new Instruction("fsw", {0, 0});
     instruction = new Store(instruction, &cpu.intRegister);
 
+    assert(cpu.ram.read<float>(0) == 0);
     store.stage(instruction);
     store.tick();
+    assert(cpu.ram.read<float>(0) == PI);
 
-    instruction = new Instruction("fsd", {1, 1});
+    instruction = new Instruction("fsw", {1, 1});
     instruction = new Store(instruction, &cpu.intRegister);
+
+    assert(cpu.ram.read<float>(4) == 0);
     store.stage(instruction);
     store.tick();
+    assert(cpu.ram.read<float>(4) == E);
 
-    std::cout << "Float memory ";
-    std::cout << cpu.fpMemory << "\n";
+    std::cout << cpu.ram << "\n";
 }
 
 void cpuTest()
 {
 
-    const double INITIAL = 1.0;
-    const double OFFSET = 0.5;
+    const float INITIAL = 1.0;
+    const float OFFSET = 0.5;
 
-    const int ARRAY_SIZE = 1000;
-    const int ARRAY_START = 22; // Don't make it bigger than Cpu.memorySize - ARRAY_SIZE
+    const int ARRAY_SIZE = 10;
+    const int ARRAY_START = 20; // Don't make it bigger than Cpu.memorySize - ARRAY_SIZE
 
-    const double VALUE_ADDED = 1.0;
+    const float VALUE_ADDED = 1.0;
 
     // Indexes of array
-    cpu.intRegister.write(ASM_I, ARRAY_START + ARRAY_SIZE - 1); // -1 for 0 indexed arrays
+    cpu.intRegister.write(ASM_I, ARRAY_START + (ARRAY_SIZE - 1) * sizeof(INITIAL)); // -1 for 0 indexed arrays
 
     // Since we're counting down and using != as the branch we need the end to be one less than first index
-    cpu.intRegister.write(END, ARRAY_START - 1);
+    cpu.intRegister.write(END, ARRAY_START - 4);
 
     // Constant float to add to fp array
     cpu.fpRegister.write(2, VALUE_ADDED);
@@ -309,7 +313,7 @@ void cpuTest()
     // Initialize array in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        cpu.fpMemory.write(ARRAY_START + i, INITIAL + i * OFFSET);
+        cpu.ram.write(ARRAY_START + (i * sizeof(INITIAL)), INITIAL + i * OFFSET);
     }
 
     cpu.addPipeline(new Fetch(&cpu))
@@ -341,19 +345,21 @@ void cpuTest()
     }
     std::cout << "Program complete!\n";
 
-    // Uncomment this to see the float memory printed out (it's big)
-    std::cout << cpu.fpMemory << "\n";
+    // Uncomment this to see the ram printed out (it's big)
+    std::cout << cpu.ram << "\n";
 
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         float expected = (INITIAL + i * OFFSET) + VALUE_ADDED;
-        float actual = cpu.fpMemory.read(ARRAY_START + i);
+        float actual = cpu.ram.read<float>(ARRAY_START + (i * sizeof(INITIAL)));
         // std::cout << "Expected: " << expected << "\n";
         // std::cout << "Actual: " << actual << "\n";
         assert(actual == expected);
     }
 
     std::cout << "Memory state verified!\n";
+
+    std::cout << cpu.ram << "\n";
 }
 
 void memoryTest()
@@ -376,6 +382,6 @@ void memoryTest()
 
 int main()
 {
-    memoryTest();
+    cpuTest();
     return 0;
 }

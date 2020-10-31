@@ -37,9 +37,9 @@ void Add::execute(Cpu *cpu)
 {
     if (this->isFp)
     {
-        double left = cpu->fpRegister.read(this->leftIndex);
+        float left = cpu->fpRegister.read(this->leftIndex);
 
-        double right = cpu->fpRegister.read(this->rightIndex);
+        float right = cpu->fpRegister.read(this->rightIndex);
 
         cpu->fpRegister.write(this->destinationIndex, right + left);
     }

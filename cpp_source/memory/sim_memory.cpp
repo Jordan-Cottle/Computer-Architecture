@@ -17,13 +17,28 @@ std::string Memory::__str__()
 {
     std::string s = "Memory : {";
 
+    std::string line = "";
     int mem_address = 0;
+
+    // Display memory words ordered msb -> lsb
     for (auto item : this->data)
     {
-        s += "\n\t" + str(mem_address++) + ": ";
+        // Use hex digits, display msb -> lsb
+        line = HEX_CHARS[(item & 0x0F)] + line;
+        line = HEX_CHARS[(item & 0xF0) >> 4] + line;
 
-        s += HEX_CHARS[(item & 0xF0) >> 4];
-        s += HEX_CHARS[(item & 0x0F)];
+        // Group bytes into a word per line
+        if (mem_address % 4 == 3)
+        {
+            s += "\n\t" + str(mem_address - 3) + ": " + line;
+            line = "";
+        }
+        else // Not a word boundary, split bytes
+        {
+            line = " " + line;
+        }
+
+        ++mem_address;
     }
 
     s += "\n}";

@@ -8,6 +8,7 @@
 
 #include "pipeline.h"
 #include "instruction.h"
+#include "sim_memory.h"
 
 #include "program.h"
 #include "program_counter.h"
@@ -21,12 +22,11 @@ struct Cpu : SimulationDevice
     bool complete;
 
     Register<int> intRegister;
-    Register<double> fpRegister;
+    Register<float> fpRegister;
 
     // TODO put these somewhere else
     Program *program;
-    Register<int> intMemory;
-    Register<double> fpMemory;
+    Memory ram;
 
     std::vector<Pipeline *> pipelines;
 
