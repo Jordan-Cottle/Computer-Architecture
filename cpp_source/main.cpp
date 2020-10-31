@@ -289,13 +289,13 @@ void storeTest()
 void cpuTest()
 {
 
-    const double INITIAL = 1.0;
-    const double OFFSET = 0.5;
+    const float INITIAL = 1.0;
+    const float OFFSET = 0.5;
 
     const int ARRAY_SIZE = 1000;
     const int ARRAY_START = 22; // Don't make it bigger than Cpu.memorySize - ARRAY_SIZE
 
-    const double VALUE_ADDED = 1.0;
+    const float VALUE_ADDED = 1.0;
 
     // Indexes of array
     cpu.intRegister.write(ASM_I, ARRAY_START + ARRAY_SIZE - 1); // -1 for 0 indexed arrays

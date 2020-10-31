@@ -22,7 +22,7 @@ void Store::execute(Cpu *cpu)
 {
     if (this->isFp)
     {
-        double data = cpu->fpRegister.read(this->registerIndex);
+        float data = cpu->fpRegister.read(this->registerIndex);
 
         std::cout << "Storing: " << data << "\n";
         cpu->fpMemory.write(this->memoryLocation, data);
@@ -59,7 +59,7 @@ void Load::execute(Cpu *cpu)
 {
     if (this->isFp)
     {
-        double data = cpu->fpMemory.read(this->memoryLocation);
+        float data = cpu->fpMemory.read(this->memoryLocation);
 
         cpu->fpRegister.write(this->registerIndex, data);
     }

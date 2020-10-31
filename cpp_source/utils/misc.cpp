@@ -21,7 +21,7 @@ std::string str(ulong num)
     return std::to_string(num);
 }
 
-std::string str(double num)
+std::string str(float num)
 {
     return std::to_string(num);
 }

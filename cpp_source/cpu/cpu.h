@@ -22,11 +22,11 @@ struct Cpu : SimulationDevice
     bool complete;
 
     Register<int> intRegister;
-    Register<double> fpRegister;
+    Register<float> fpRegister;
 
     // TODO put these somewhere else
     Program *program;
-    Register<double> fpMemory;
+    Register<float> fpMemory;
     Memory ram;
 
     std::vector<Pipeline *> pipelines;

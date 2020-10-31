@@ -19,8 +19,8 @@ constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
-             fpRegister(Register<double>(REGISTER_COUNT)),
-             fpMemory(Register<double>(MEMORY_COUNT)),
+             fpRegister(Register<float>(REGISTER_COUNT)),
+             fpMemory(Register<float>(MEMORY_COUNT)),
              ram(Memory(MEMORY_COUNT * 4, MEMORY_DELAY))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
