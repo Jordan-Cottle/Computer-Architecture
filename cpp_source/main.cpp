@@ -27,6 +27,8 @@
 
 #include "control_instructions.h"
 
+#include "sim_memory.h"
+
 #include "simulation.h"
 using namespace Simulation;
 
@@ -354,8 +356,26 @@ void cpuTest()
     std::cout << "Memory state verified!\n";
 }
 
+void memoryTest()
+{
+    Memory memory = Memory(8, 20);
+
+    for (int i = 0; i < 32; i++)
+    {
+        int num = 1 << i;
+        memory.write(0, num);
+        assert(memory.read<int>(0) == num);
+    }
+
+    float num = .1f;
+    memory.write(4, num);
+    assert(memory.read<float>(4) == num);
+
+    std::cout << memory << "\n";
+}
+
 int main()
 {
-    cpuTest();
+    memoryTest();
     return 0;
 }
