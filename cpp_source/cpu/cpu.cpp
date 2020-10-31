@@ -12,6 +12,7 @@ using namespace Simulation;
 
 constexpr int REGISTER_COUNT = 4;
 constexpr int MEMORY_COUNT = 1024;
+constexpr int MEMORY_DELAY = 20;
 constexpr int INSTRUCTION_MEMORY_COUNT = 8;
 constexpr int SIM_CYCLES_PER_CPU = 10;
 constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
@@ -20,7 +21,8 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
              fpRegister(Register<double>(REGISTER_COUNT)),
              intMemory(Register<int>(MEMORY_COUNT)),
-             fpMemory(Register<double>(MEMORY_COUNT))
+             fpMemory(Register<double>(MEMORY_COUNT)),
+             ram(Memory(MEMORY_COUNT * 4, MEMORY_DELAY))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
@@ -113,7 +115,8 @@ std::string Cpu::__str__()
     s += "\t\tInteger " + addIndent(str(this->intRegister), 2) + "\n";
     s += "\t\tFloat " + addIndent(str(this->fpRegister), 2) + "\n";
 
-    s += "\t}\n\tMemory: {\n";
+    s += "\t}\n\t" + addIndent(str(this->ram));
+    s += "\n\tRegMemory: {\n";
     s += "\t\tInteger " + addIndent(str(this->intMemory), 2) + "\n";
     s += "\t\tFloat " + addIndent(str(this->fpMemory), 2) + "\n";
 
