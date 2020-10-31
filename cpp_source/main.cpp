@@ -251,8 +251,8 @@ void executeTest()
     execute.tick();
     testPipeline.tick();
 
-    std::cout << "Final PC: " << cpu.programCounter << "\n";
-    assert(cpu.programCounter == 42);
+    std::cout << cpu.programCounter << "\n";
+    assert(cpu.programCounter.value == 42);
 }
 
 void storeTest()
@@ -319,8 +319,7 @@ void cpuTest()
 
     std::cout << cpu.program << "\n";
 
-    // Set up initial fetch event (so masterEventQueue isn't empty)
-    masterEventQueue.push(new Event("Fetch", 0, cpu.pipelines[0]));
+    // Set up initial cpu tick to kick things off
     masterEventQueue.push(new Event("Tick", 0, &cpu));
 
     while (!cpu.complete)

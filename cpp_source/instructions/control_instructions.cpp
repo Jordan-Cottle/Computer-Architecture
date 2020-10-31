@@ -26,11 +26,11 @@ void BranchInstruction::execute(Cpu *cpu)
 
         if (take)
         {
-            cpu->programCounter = this->destination;
+            cpu->programCounter.jump(this->destination);
         }
         else
         {
-            cpu->programCounter = cpu->jumpedFrom;
+            cpu->programCounter.jump(cpu->jumpedFrom);
         }
     }
 

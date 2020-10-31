@@ -14,6 +14,7 @@ constexpr int REGISTER_COUNT = 4;
 constexpr int MEMORY_COUNT = 1024;
 constexpr int INSTRUCTION_MEMORY_COUNT = 8;
 constexpr int SIM_CYCLES_PER_CPU = 10;
+constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
@@ -21,7 +22,7 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
              intMemory(Register<int>(MEMORY_COUNT)),
              fpMemory(Register<double>(MEMORY_COUNT))
 {
-    this->programCounter = 0;
+    this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
     this->jumpedFrom = -1;
 
@@ -59,7 +60,9 @@ void Cpu::tick()
 void Cpu::loadProgram(Program *program)
 {
     this->program = program;
-    this->programCounter = 0;
+    this->programCounter.value = 0;
+
+    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0]));
 }
 
 void Cpu::flush()
@@ -103,6 +106,8 @@ Pipeline *Cpu::getPipeline(std::string type)
 std::string Cpu::__str__()
 {
     std::string s = "Cpu{\n";
+
+    s += "\t" + str(this->programCounter) + "\n";
 
     s += "\tRegisters: {\n";
     s += "\t\tInteger " + addIndent(str(this->intRegister), 2) + "\n";

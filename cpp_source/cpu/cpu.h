@@ -10,10 +10,11 @@
 #include "instruction.h"
 
 #include "program.h"
+#include "program_counter.h"
 
 struct Cpu : SimulationDevice
 {
-    int programCounter;
+    ProgramCounter programCounter;
     bool branchSpeculated;
     int jumpedFrom;
 
