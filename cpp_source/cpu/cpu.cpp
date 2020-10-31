@@ -20,7 +20,6 @@ constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
              fpRegister(Register<float>(REGISTER_COUNT)),
-             fpMemory(Register<float>(MEMORY_COUNT)),
              ram(Memory(MEMORY_COUNT * 4, MEMORY_DELAY))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
@@ -115,8 +114,6 @@ std::string Cpu::__str__()
     s += "\t\tFloat " + addIndent(str(this->fpRegister), 2) + "\n";
 
     s += "\t}\n\t" + addIndent(str(this->ram));
-    s += "\n\tRegMemory: {\n";
-    s += "\t\tFloat " + addIndent(str(this->fpMemory), 2) + "\n";
 
     s += "\t}\n\tPipelines: {\n";
     for (auto pipeline : this->pipelines)

@@ -26,7 +26,6 @@ struct Cpu : SimulationDevice
 
     // TODO put these somewhere else
     Program *program;
-    Register<float> fpMemory;
     Memory ram;
 
     std::vector<Pipeline *> pipelines;
