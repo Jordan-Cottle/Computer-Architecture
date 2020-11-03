@@ -2,6 +2,7 @@
 import re
 import os
 import sys
+import struct
 
 
 class BinarySection:
@@ -408,18 +409,40 @@ def assemble_program(data):
     return program
 
 
-def write_program(file_name, program):
+def to_bytes(binary_string):
 
-    with open(f"{file_name}.sim", "w") as sim_file:
+    print(int(binary_string, 2))
+    return struct.pack("I", int(binary_string, 2))
+
+
+def write_program(file_name, program, binary=False):
+
+    if binary:
+        write_mode = "wb"
+        ext = "bin"
+    else:
+        write_mode = "w"
+        ext = "sim"
+
+    with open(f"{file_name}.{ext}", write_mode) as sim_file:
         for instruction in program:
-            print(instruction.binary, file=sim_file)
+            bin_string = instruction.binary
+
+            if binary:
+                sim_file.write(to_bytes(bin_string))
+            else:
+                print(bin_string, file=sim_file)
+
+
+def main(file, binary=False):
+
+    data = read_file(file)
+    program = assemble_program(data)
+
+    output_file, ext = os.path.splitext(file)
+    write_program(output_file, program, binary)
 
 
 if __name__ == "__main__":
-
     for file in sys.argv[1:]:
-        data = read_file(file)
-        program = assemble_program(data)
-
-        output_file, ext = os.path.splitext(file)
-        write_program(output_file, program)
+        main(sys.argv[1:])
