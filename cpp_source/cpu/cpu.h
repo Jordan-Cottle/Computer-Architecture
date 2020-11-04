@@ -37,6 +37,7 @@ struct Cpu : SimulationDevice
     void tick();
 
     void loadProgram(Program *program);
+    void loadProgram(std::string fileName);
 
     void flush();
 
