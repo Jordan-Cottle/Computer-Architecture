@@ -41,7 +41,7 @@ struct TestPipeline : Pipeline
 
     void tick()
     {
-        Instruction *staged = this->staged();
+        RawInstruction *staged = this->staged();
 
         std::cout << this->type << " T " << simulationClock.cycle << ": ";
         if (staged == NULL)
@@ -407,6 +407,6 @@ void binaryReadTest()
 
 int main()
 {
-    binaryReadTest();
+    cpuTest();
     return 0;
 }

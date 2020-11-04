@@ -13,7 +13,7 @@
 
 struct Pipeline : SimulationDevice
 {
-    Register<Instruction *> memory;
+    Register<RawInstruction *> memory;
     Pipeline *next;
 
     Pipeline(std::string type);
@@ -21,10 +21,10 @@ struct Pipeline : SimulationDevice
 
     bool free();
 
-    void stage(Instruction *);
+    void stage(RawInstruction *);
     void flush();
 
-    Instruction *staged();
+    RawInstruction *staged();
 
     void tick();
 

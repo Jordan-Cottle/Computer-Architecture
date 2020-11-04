@@ -15,7 +15,8 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 
 void Fetch::tick()
 {
-    Instruction *instruction = this->staged();
+    // TODO Input is raw instruction
+    Instruction *instruction = (Instruction *)this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)
