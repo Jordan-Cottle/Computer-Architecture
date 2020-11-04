@@ -6,13 +6,36 @@
 
 #include "instruction.h"
 
-Instruction::Instruction(std::string operation, std::vector<int> arguments)
+constexpr int OPCODE = 0x7F;
+
+RawInstruction::RawInstruction(uint32_t data)
+{
+    this->data = data;
+}
+
+uint32_t RawInstruction::opcode()
+{
+    return this->data & OPCODE;
+}
+
+std::string RawInstruction::__str__()
+{
+    std::string s = "";
+    for (int i = 0; i < 32; i++)
+    {
+        s = str((this->data & (1 << i)) >> i) + s;
+    }
+
+    return s;
+}
+
+Instruction::Instruction(std::string operation, std::vector<int> arguments) : RawInstruction(0)
 {
     this->operation = operation;
     this->arguments = arguments;
 }
 
-Instruction::Instruction(Instruction *instruction)
+Instruction::Instruction(Instruction *instruction) : RawInstruction(instruction->data)
 {
     this->operation = instruction->operation;
     this->arguments = instruction->arguments;

@@ -16,6 +16,11 @@ std::string str(int num)
     return std::to_string(num);
 }
 
+std::string str(uint32_t num)
+{
+    return std::to_string(num);
+}
+
 std::string str(ulong num)
 {
     return std::to_string(num);
