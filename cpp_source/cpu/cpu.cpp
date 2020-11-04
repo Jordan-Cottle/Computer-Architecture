@@ -3,6 +3,8 @@
     Created: 10/05/2020
 */
 
+#include <fstream>
+
 #include "cpu.h"
 #include "fetch.h"
 
@@ -61,6 +63,28 @@ void Cpu::loadProgram(Program *program)
 {
     this->program = program;
     this->programCounter.value = 0;
+
+    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0]));
+}
+
+void Cpu::loadProgram(std::string fileName)
+{
+    std::ifstream programFile("test_program.bin", std::ios::binary);
+
+    if (!programFile)
+    {
+        std::cout << "Cannot open file!\n";
+        return;
+    }
+
+    uint32_t instruction = 0;
+
+    int memAddress = 0;
+    while (programFile.read((char *)&instruction, sizeof(instruction)))
+    {
+        this->ram.write(memAddress, instruction);
+        memAddress += sizeof(instruction);
+    }
 
     masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0]));
 }
