@@ -17,10 +17,9 @@ build: cpp_source  # cpp_source directory needs to exist
 	import os
 	os.chdir("programs")
 	
-	import shutil
 	from link import main
 	main("$(basename $@).s", binary=True)
-	shutil.move("$@", "..")
+	os.replace("$@", "../$@")
 
 clean:
 	import os
