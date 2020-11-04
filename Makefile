@@ -4,6 +4,7 @@ PROGRAMS := test_program test_program2
 
 SHELL = /usr/bin/python3
 .ONESHELL:
+.PHONY=build,clean,run
 
 run: build $(addsuffix .bin, ${PROGRAMS})
 	import os
