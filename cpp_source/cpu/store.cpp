@@ -16,7 +16,7 @@ StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 
 void StorePipeline::tick()
 {
-    Instruction *instruction = this->staged();
+    Instruction *instruction = (Instruction *)this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)

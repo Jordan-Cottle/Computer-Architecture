@@ -10,13 +10,13 @@
 using namespace Simulation;
 
 Pipeline::Pipeline(std::string type) : SimulationDevice(type),
-                                       memory(Register<Instruction *>(1))
+                                       memory(Register<RawInstruction *>(1))
 {
     this->next = NULL;
 }
 
 Pipeline::Pipeline(std::string type, Pipeline *next) : SimulationDevice(type),
-                                                       memory(Register<Instruction *>(1))
+                                                       memory(Register<RawInstruction *>(1))
 {
     this->next = next;
 }
@@ -26,7 +26,7 @@ bool Pipeline::free()
     return this->memory.read(0) == NULL;
 }
 
-void Pipeline::stage(Instruction *instruction)
+void Pipeline::stage(RawInstruction *instruction)
 {
     if (!this->free())
     {
@@ -42,7 +42,7 @@ void Pipeline::flush()
     this->memory.clear(0);
 }
 
-Instruction *Pipeline::staged()
+RawInstruction *Pipeline::staged()
 {
     return this->memory.read(0);
 }

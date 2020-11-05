@@ -19,6 +19,7 @@ struct printable
 std::string str(printable *obj);
 std::string str(printable &obj);
 std::string str(int num);
+std::string str(uint32_t num);
 std::string str(ulong num);
 std::string str(float num);
 

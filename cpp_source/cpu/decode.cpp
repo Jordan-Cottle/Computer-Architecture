@@ -53,7 +53,8 @@ Instruction *Decode::decode(Instruction *instruction)
 
 void Decode::tick()
 {
-    Instruction *instruction = this->staged();
+    // TODO Input is RawInstruction
+    Instruction *instruction = (Instruction *)this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)

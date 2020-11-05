@@ -4,6 +4,7 @@ PROGRAMS := test_program test_program2
 
 SHELL = /usr/bin/python3
 .ONESHELL:
+.PHONY=build,clean,run
 
 run: build $(addsuffix .bin, ${PROGRAMS})
 	import os
@@ -17,10 +18,9 @@ build: cpp_source  # cpp_source directory needs to exist
 	import os
 	os.chdir("programs")
 	
-	import shutil
 	from link import main
 	main("$(basename $@).s", binary=True)
-	shutil.move("$@", "..")
+	os.replace("$@", "../$@")
 
 clean:
 	import os

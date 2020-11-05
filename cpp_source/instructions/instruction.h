@@ -13,7 +13,20 @@
 
 struct Cpu;
 
-struct Instruction : printable
+struct RawInstruction : printable
+{
+    uint32_t data;
+
+    RawInstruction(uint32_t data);
+
+    std::string keyword();
+
+    uint32_t opcode();
+
+    std::string __str__();
+};
+
+struct Instruction : RawInstruction
 {
     std::string operation;
 

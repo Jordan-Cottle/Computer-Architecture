@@ -41,7 +41,7 @@ struct TestPipeline : Pipeline
 
     void tick()
     {
-        Instruction *staged = this->staged();
+        RawInstruction *staged = this->staged();
 
         std::cout << this->type << " T " << simulationClock.cycle << ": ";
         if (staged == NULL)
@@ -388,10 +388,10 @@ void binaryReadTest()
 
     std::vector<uint32_t> expected = {
         0b00000000000000000010000011000011,
-        0b00000000000000000000000000000011,
+        0b00000000000000000000000000011011,
         0b00000000001100000000000100010111,
-        0b00000000000000000000000000000011,
-        0b00000000000000000000000000000011,
+        0b00000000000000000000000000011011,
+        0b00000000000000000000000000011011,
         0b00000000001100001010000001001011,
         0b11111111110000001000000010010011,
         0b00000000000100010100000000001111,
@@ -400,7 +400,8 @@ void binaryReadTest()
     for (uint32_t i = 0; i < expected.size(); i++)
     {
         uint32_t instruction = cpu.ram.read<uint32_t>(i * 4);
-        std::cout << instruction << "\n";
+        RawInstruction rInstruction = RawInstruction(instruction);
+        std::cout << rInstruction << "\n";
         assert(instruction == expected[i]);
     }
 }

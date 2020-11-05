@@ -69,12 +69,11 @@ void Cpu::loadProgram(Program *program)
 
 void Cpu::loadProgram(std::string fileName)
 {
-    std::ifstream programFile("test_program.bin", std::ios::binary);
+    std::ifstream programFile(fileName, std::ios::binary);
 
     if (!programFile)
     {
-        std::cout << "Cannot open file!\n";
-        return;
+        throw std::runtime_error("Cannot open " + fileName);
     }
 
     uint32_t instruction = 0;
