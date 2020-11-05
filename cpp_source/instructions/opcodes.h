@@ -16,6 +16,13 @@ constexpr uint32_t O_MASK = 0x7f;
 constexpr uint32_t F3_MASK = 0x7000;
 constexpr uint32_t F7_MASK = 0xfe000000;
 
+constexpr uint32_t RD_MASK = 0xF80;
+constexpr uint32_t R1_MASK = 0xF8000;
+constexpr uint32_t R2_MASK = 0x1F00000;
+constexpr uint32_t IMM_I_MASK = 0xFF00000;
+constexpr uint32_t IMM_S_MASK = 0xFE00F80;
+constexpr uint32_t IMM_U_MASK = 0xFFFFF000;
+
 std::unordered_map<std::string, uint32_t> OPCODES = {
     {"lb", 0b00000000000000000000000000000011},
     {"fmadd.s", 0b00000000000000000000000000000111},
