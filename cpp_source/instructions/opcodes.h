@@ -331,4 +331,24 @@ std::string identify(uint32_t instruction)
     throw std::runtime_error("No keyword could be identified for " + str(instruction));
 }
 
+uint32_t getRd(uint32_t data)
+{
+    return (data & RD_MASK) >> 7;
+}
+
+uint32_t getR1(uint32_t data)
+{
+    return (data & R1_MASK) >> 15;
+}
+
+uint32_t getR2(uint32_t data)
+{
+    return (data & R2_MASK) >> 20;
+}
+
+uint32_t getImmediateI(uint32_t data)
+{
+    return (data & IMM_I_MASK) >> 20;
+}
+
 #endif // __OPCODES__

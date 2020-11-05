@@ -12,16 +12,16 @@ ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : Deco
 {
     this->immediate = (instruction->data & (1 << 5)) == 0;
 
-    this->destinationIndex = (instruction->data & RD_MASK) >> 7;
-    this->leftIndex = (instruction->data & R1_MASK) >> 15;
+    this->destinationIndex = getRd(instruction->data);
+    this->leftIndex = getR1(instruction->data);
 
     if (!this->immediate)
     {
-        this->rightIndex = (instruction->data & R2_MASK) >> 20;
+        this->rightIndex = getR2(instruction->data);
     }
     else
     {
-        this->rightIndex == (instruction->data & IMM_I_MASK) >> 20;
+        this->rightIndex = getImmediateI(instruction->data);
     }
 }
 
