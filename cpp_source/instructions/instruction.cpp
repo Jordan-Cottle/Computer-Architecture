@@ -6,16 +6,21 @@
 
 #include "instruction.h"
 
-constexpr int OPCODE = 0x7F;
+#include "opcodes.h"
 
 RawInstruction::RawInstruction(uint32_t data)
 {
     this->data = data;
 }
 
+std::string RawInstruction::keyword()
+{
+    return identify(this->data);
+}
+
 uint32_t RawInstruction::opcode()
 {
-    return this->data & OPCODE;
+    return this->data & O_MASK;
 }
 
 std::string RawInstruction::__str__()
@@ -26,7 +31,7 @@ std::string RawInstruction::__str__()
         s = str((this->data & (1 << i)) >> i) + s;
     }
 
-    return s;
+    return this->keyword() + "\t" + s;
 }
 
 Instruction::Instruction(std::string operation, std::vector<int> arguments) : RawInstruction(0)
