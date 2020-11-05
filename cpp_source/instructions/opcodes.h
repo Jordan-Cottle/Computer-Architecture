@@ -6,10 +6,15 @@
 #include <unordered_map>
 #include <unordered_set>
 
+// Mask of all possible "identity" bits
 constexpr uint32_t I_MASK = 0xfd00707f;
+
+// Mask for just opcode bits
 constexpr uint32_t O_MASK = 0x7f;
+
+// Masks for funct3 and funct7 fields
 constexpr uint32_t F3_MASK = 0x7000;
-constexpr uint32_t F7_MASK = 0xfd000000;
+constexpr uint32_t F7_MASK = 0xfe000000;
 
 std::unordered_map<std::string, uint32_t> OPCODES = {
     {"lb", 0b00000000000000000000000000000011},
@@ -277,16 +282,16 @@ std::string identify(uint32_t instruction)
     uint32_t opcode = instruction & O_MASK;
     if (FUNCT3_OPS.count(opcode))
     { // opcode includes a Funct3 field
-        for (auto value : INSTRUCTIONS)
+        for (auto pair : INSTRUCTIONS)
         {
-            if ((value.first & O_MASK) != opcode)
+            if ((pair.first & O_MASK) != opcode)
             { // Only check matching opcodes
                 continue;
             }
 
-            if ((value.first & F3_MASK) == (instruction & F3_MASK))
+            if ((pair.first & F3_MASK) == (instruction & F3_MASK))
             { // funct3 fields match
-                options.push_back(value.first);
+                options.push_back(pair.first);
             }
         }
 
@@ -307,8 +312,16 @@ std::string identify(uint32_t instruction)
         }
     }
 
-    // No func3 of funct7 needed
-    return INSTRUCTIONS[instruction & I_MASK];
+    // No func3 or funct7 needed
+    for (auto pair : INSTRUCTIONS)
+    {
+        if ((pair.first & O_MASK) == (instruction & O_MASK))
+        {
+            return pair.second;
+        }
+    }
+
+    throw std::runtime_error("No keyword could be identified for " + str(instruction));
 }
 
 #endif // __OPCODES__
