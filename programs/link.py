@@ -308,6 +308,9 @@ class Instruction(InstructionTemplate):
 
             print(offset, instruction.immediate)
 
+        assert (
+            "?" not in instruction.bits
+        ), f"Not all bits of {instruction} were determined"
         return instruction
 
     def set_bits(self, section, data):
