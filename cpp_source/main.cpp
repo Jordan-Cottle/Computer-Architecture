@@ -14,8 +14,6 @@
 #include "fetch.h"
 #include "decode.h"
 
-#include "program.h"
-
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
 
@@ -27,6 +25,8 @@
 #include "control_instructions.h"
 
 #include "sim_memory.h"
+
+#include "opcodes.h"
 
 #include "simulation.h"
 using namespace Simulation;
@@ -56,74 +56,25 @@ struct TestPipeline : Pipeline
     }
 };
 
-#define ASM_I 1
-#define END 2
-Program program = Program({
-                              new Instruction("flw", {0, ASM_I}),
-                              new Instruction("stall", {}),
-                              new Instruction("fadd.s", {3, 0, 2}),
-                              new Instruction("stall", {}),
-                              new Instruction("stall", {}),
-                              new Instruction("fsw", {3, ASM_I}),
-                              new Instruction("addi", {ASM_I, ASM_I, -4}),
-                              new Branch("bne", {ASM_I, END}, "Loop"),
-                              new Instruction("halt", {}),
-                          },
-                          {{"Loop", 0}});
-
 TestPipeline testPipeline;
-
-void memory_test()
-{
-    Register<Event *> memory = Register<Event *>(2, "EventStorage");
-
-    Event *e = new Event(0, NULL);
-    Event *f = new Event(0, NULL);
-
-    memory.write(0, e);
-    memory.write(1, f);
-
-    std::cout << memory << "\n\n";
-    memory.clear(1);
-    std::cout << memory << "\n\n";
-    memory.clear();
-    std::cout << memory << "\n\n";
-
-    delete e;
-    delete f;
-}
 
 void fetchTest()
 {
-
     Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
-    cpu.addPipeline(new TestPipeline());
+    cpu.addPipeline(&testPipeline);
 
-    cpu.loadProgram(new Program({new Instruction("ADD", {0, 1, 2}),
-                                 new Instruction("SUB", {1, 2, 1}),
-                                 new Instruction("MULT", {2, 3, 4}),
-                                 new Instruction("DIV", {3, 6, 3}),
-                                 new Branch("BRANCH", {}, "Test")},
-                                {{"Test", 0}}));
-    std::cout << cpu.program << "\n";
+    cpu.loadProgram("test_program.bin");
 
-    // Set up initial fetch event (so masterEventQueue isn't empty)
-    masterEventQueue.push(new Event(0, (Fetch *)cpu.pipelines[0]));
+    masterEventQueue.tick(0);
+    assert(fetchUnit.staged() != NULL);
+    RawInstruction *instruction = fetchUnit.staged();
 
-    while (simulationClock.cycle <= 10)
-    {
-        std::cout << simulationClock << "\n";
-        masterEventQueue.tick(simulationClock.cycle);
+    fetchUnit.tick();
+    assert(testPipeline.staged() != NULL);
+    assert(testPipeline.staged() == instruction);
 
-        std::cout << "Ticking devices:\n";
-
-        cpu.tick();
-        std::cout << fetchUnit << "\n";
-        simulationClock.tick();
-    }
-
-    delete cpu.program;
+    testPipeline.tick();
 }
 
 void programTest()
@@ -384,6 +335,6 @@ void binaryReadTest()
 
 int main()
 {
-    binaryReadTest();
+    fetchTest();
     return 0;
 }
