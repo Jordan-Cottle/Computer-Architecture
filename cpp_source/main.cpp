@@ -77,19 +77,6 @@ void fetchTest()
     testPipeline.tick();
 }
 
-void programTest()
-{
-    program.labels["Test"] = 5;
-    std::cout << program << "\n\n";
-
-    for (auto label : {"Loop", "Test"})
-    {
-        int line = program.index(label);
-        std::cout << label << ": " << line << "\n";
-        std::cout << "Instruction at '" << label << "': " << program.line(line) << "\n";
-    }
-}
-
 constexpr float PI = 3.141592654f;
 constexpr float E = 2.718281828f;
 
