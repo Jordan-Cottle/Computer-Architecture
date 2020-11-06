@@ -479,4 +479,4 @@ def main(file, binary=False):
 
 if __name__ == "__main__":
     for file in sys.argv[1:]:
-        main(sys.argv[1:])
+        main(file)
