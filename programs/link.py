@@ -103,6 +103,7 @@ R4_FIELDS = "rd rs1 rs2 rs3 rm"
 I_FIELDS = "rd rs1 imm12"
 SHIFT_FIELDS = "rd rs1 shamt"
 S_FIELDS = "imm12hi rs1 rs2 imm12lo"
+S2_FIELDS = "imm12hi rs2 rs1 imm12lo"
 B_FIELDS = "bimm12hi rs1 rs2 bimm12lo"
 U_FIELDS = "rd imm20"
 UJ_FIELDS = "rd jimm20"
@@ -119,6 +120,7 @@ INSTRUCTION_TYPES = {
     I_FIELDS: I_TYPE,
     SHIFT_FIELDS: I_TYPE,
     S_FIELDS: S_TYPE,
+    S2_FIELDS: S_TYPE,
     B_FIELDS: B_TYPE,
     U_FIELDS: U_TYPE,
     UJ_FIELDS: UJ_TYPE,
@@ -131,6 +133,7 @@ for instruction_type in INSTRUCTION_TYPES.values():
 class InstructionTemplate:
     def __init__(self, fields, bits=None):
         self.keyword, fields = fields.split(" ", 1)
+        self.fields = fields.split()
         self.format = INSTRUCTION_TYPES[fields]
         self.bits = list(bits)
 
@@ -237,6 +240,7 @@ class Instruction(InstructionTemplate):
     def __init__(self, template):
         self.keyword = template.keyword
         self.format = template.format
+        self.fields = template.fields
         self.bits = template.bits
 
     @classmethod
@@ -247,6 +251,9 @@ class Instruction(InstructionTemplate):
         instruction = cls(template)
 
         immediate_instruction = False
+
+        args_copy = list(args)
+        arg_fields = [field for field in instruction.fields if "imm" not in field]
         for section in instruction.format.sections.values():
             if "?" not in instruction.get_bits(section):
                 continue
@@ -259,23 +266,23 @@ class Instruction(InstructionTemplate):
                 immediate_instruction = True
                 continue
             else:
-                for arg in args:
-                    match = re.search("[xf](\d+)", arg)
-                    if match:
-                        if not re.search(r"\d+\(", arg):
-                            args.remove(arg)
+                arg_num = arg_fields.index(section.name)
+                arg = args[arg_num]
+                match = re.search("[xf](\d+)", arg)
+                if match:
+                    if not re.search(r"\d+\(", arg):
+                        args_copy.remove(arg)
 
-                        binary = bin(int(match.group(1)))[2:]
+                    binary = bin(int(match.group(1)))[2:]
 
-                        while len(binary) < section.length:
-                            binary = "0" + binary
+                    while len(binary) < section.length:
+                        binary = "0" + binary
 
-                        instruction.set_bits(section, binary)
-                        break
-                else:
-                    print("Did you miss something??", section, args)
+                    instruction.set_bits(section, binary)
 
         if immediate_instruction:
+            assert len(args_copy) == 1, "Last arg should contain the immediate value"
+            arg = args_copy[0]
             match = re.search(r"(-?\d+)\(", arg)
             if match:  # Memory offset
                 value = int(match.group(1))
