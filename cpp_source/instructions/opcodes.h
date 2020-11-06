@@ -360,6 +360,11 @@ uint32_t slice(uint32_t data, uint8_t start, uint8_t end)
     return bits;
 }
 
+uint32_t getOpcode(uint32_t data)
+{
+    return data & O_MASK;
+}
+
 uint32_t getRd(uint32_t data)
 {
     return (data & RD_MASK) >> 7;
