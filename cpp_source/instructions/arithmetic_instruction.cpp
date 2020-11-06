@@ -10,7 +10,7 @@
 
 ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
-    this->immediate = getBit(instruction->data, 5) == 0;
+    this->immediate = !this->isFp && getBit(instruction->data, 5) == 0;
 
     this->destinationIndex = getRd(instruction->data);
     this->leftIndex = getR1(instruction->data);
