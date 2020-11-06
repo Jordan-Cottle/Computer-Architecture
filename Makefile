@@ -1,6 +1,6 @@
 EXE := main.exe
 SOURCE_ROOT := cpp_source
-PROGRAMS := test_program test_program2
+PROGRAMS := test_program test_program2 fpTest
 
 SHELL = /usr/bin/python3
 .ONESHELL:

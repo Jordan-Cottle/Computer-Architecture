@@ -57,10 +57,10 @@ struct TestPipeline : Pipeline
 };
 
 TestPipeline testPipeline;
+Fetch fetchUnit = Fetch(&cpu);
 
 void fetchTest()
 {
-    Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
     cpu.addPipeline(&testPipeline);
 
@@ -82,40 +82,43 @@ constexpr float E = 2.718281828f;
 
 void fpTest()
 {
-    cpu.ram.write(0, PI);
-    cpu.fpRegister.write(1, E);
+    cpu.ram.write(120, PI);
+    cpu.fpRegister.write(2, E);
 
-    cpu.intRegister.write(0, 0); // Read/write from ram[0]
+    cpu.intRegister.write(1, 120); // Read/write from ram[120]
 
-    Instruction *l = new Instruction("flw", {0, 0});
-    Load load = Load(l, &cpu.intRegister);
+    cpu.addPipeline(&fetchUnit);
 
-    assert(cpu.fpRegister.read(0) == 0);
+    cpu.loadProgram("fpTest.bin");
+
+    RawInstruction instruction = RawInstruction(cpu.ram.read<uint32_t>(0));
+    Load load = Load(&instruction);
+
+    assert(cpu.fpRegister.read(1) == 0);
     load.execute(&cpu);
-    assert(cpu.fpRegister.read(0) == PI);
+    assert(cpu.fpRegister.read(1) == PI);
 
-    Instruction *a = new Instruction("addi", {0, 0, 4});
-    Add add = Add(a, a->arguments[2]);
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(4));
+    Add add = Add(&instruction);
 
-    assert(cpu.intRegister.read(0) == 0);
+    assert(cpu.intRegister.read(1) == 120);
     add.execute(&cpu);
-    assert(cpu.intRegister.read(0) == 4);
+    assert(cpu.intRegister.read(1) == 124);
 
-    Instruction *fa = new Instruction("fadd.s", {1, 0, 1});
-    Add fadd = Add(fa);
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(8));
+    add = Add(&instruction);
 
-    assert(cpu.fpRegister.read(1) == E);
-    fadd.execute(&cpu);
-    assert(cpu.fpRegister.read(1) == PI + E);
+    assert(cpu.fpRegister.read(1) == PI);
+    assert(cpu.fpRegister.read(2) == E);
+    add.execute(&cpu);
+    assert(cpu.fpRegister.read(3) - (PI + E) < 0.000001);
 
-    Instruction *s = new Instruction("fsw", {1, 0});
-    Store store = Store(s, &cpu.intRegister);
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(12));
+    Store store = Store(&instruction);
 
-    assert(cpu.ram.read<float>(4) == 0);
+    assert(cpu.ram.read<float>(120) == PI);
     store.execute(&cpu);
-    assert(cpu.ram.read<float>(4) == PI + E);
-
-    std::cout << cpu.ram << "\n";
+    assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
 }
 
 void decodeTest()
@@ -337,6 +340,6 @@ void testOpcodes()
 
 int main()
 {
-    fetchTest();
+    fpTest();
     return 0;
 }
