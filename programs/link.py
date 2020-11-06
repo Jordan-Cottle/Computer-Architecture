@@ -356,6 +356,23 @@ for i, line in enumerate(data):
         template = InstructionTemplate(fields, bits)
         INSTRUCTIONS[template.keyword] = template
 
+
+imm_bits = ["?"] * 32
+for instruction in INSTRUCTIONS.values():
+    if any("imm" in section.name for section in instruction.format.sections.values()):
+        for i, bit in enumerate(instruction.binary):
+            if bit == "?":
+                continue
+
+            if imm_bits[i] == "?":
+                imm_bits[i] = bit
+            elif imm_bits[i] in "10":
+                if imm_bits[i] != bit:
+                    imm_bits[i] = "X"
+
+print("".join(imm_bits))
+
+
 instruction = InstructionTemplate(f"beq {B_FIELDS}", "?????????????????000?????0001111")
 instruction.immediate = "CBA987654321"
 
