@@ -16,7 +16,13 @@ MemoryInstruction::MemoryInstruction(RawInstruction *instruction) : DecodedInstr
 Store::Store(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
     this->targetRegisterIndex = getR2(instruction->data);
-    this->memoryOffset = getImmediateS(instruction->data);
+
+    int offset = getImmediateS(instruction->data);
+
+    // Convert 12th bit to negative
+    offset += -4096 * ((int)getBit(offset, 11) >> 11);
+
+    this->memoryOffset = offset;
 }
 
 // Execute/Store
