@@ -147,44 +147,28 @@ void decodeTest()
     testPipeline.tick();
 }
 
-/*
 void executeTest()
 {
     Execute execute = Execute(&cpu);
     cpu.addPipeline(&execute);
     cpu.addPipeline(&testPipeline);
 
-    Instruction *instruction = new Instruction("addi", {0, 0});
-    Add *add = new Add(instruction, 4);
+    cpu.loadProgram("fpTest.bin");
 
+    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(4));
+
+    Add *add = new Add(instruction);
+
+    assert(cpu.intRegister.read(1) == 0);
     execute.stage(add);
     execute.tick();
     testPipeline.tick();
 
     std::cout << cpu.intRegister << "\n";
-    assert(cpu.intRegister.read(0) == 4);
-
-    instruction = new Instruction("fsw", {0, 0});
-    Store *store = new Store(instruction, &cpu.intRegister);
-
-    assert(testPipeline.staged() == NULL);
-    execute.stage(store);
-    execute.tick();
-    assert(testPipeline.staged() != NULL);
-
-    testPipeline.tick();
-
-    Branch *branchInstruction = new Branch("branch", {}, "Test");
-    BranchInstruction *branch = new BranchInstruction(branchInstruction, 42);
-
-    execute.stage(branch);
-    execute.tick();
-    testPipeline.tick();
-
-    std::cout << cpu.programCounter << "\n";
-    assert(cpu.programCounter.value == 42);
+    assert(cpu.intRegister.read(1) == 4);
 }
 
+/*
 void storeTest()
 {
 
@@ -351,6 +335,6 @@ void testOpcodes()
 
 int main()
 {
-    decodeTest();
+    executeTest();
     return 0;
 }
