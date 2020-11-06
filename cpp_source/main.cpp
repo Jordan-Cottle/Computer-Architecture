@@ -6,7 +6,6 @@
 #include "event.h"
 
 #include "instruction.h"
-#include "instruction_queue.h"
 
 #include "device.h"
 
@@ -73,29 +72,6 @@ Program program = Program({
                           {{"Loop", 0}});
 
 TestPipeline testPipeline;
-
-void instructionQueueTest()
-{
-    std::vector<Instruction *> instructions = std::vector<Instruction *>();
-    for (int i = 0; i < 10; i++)
-    {
-        instructions.push_back(new Instruction("ADD", {i, i, i + 1}));
-    }
-
-    InstructionQueue instructionQueue = InstructionQueue(instructions);
-
-    std::cout << instructionQueue << "\n";
-
-    for (int i = 0; i < 3; i++)
-    {
-        Instruction *next = instructionQueue.next();
-
-        std::cout << "Processing: " << next << "\n";
-        delete next;
-    }
-
-    std::cout << instructionQueue << "\n";
-}
 
 void memory_test()
 {
