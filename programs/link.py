@@ -276,9 +276,7 @@ class Instruction(InstructionTemplate):
                     print("Did you miss something??", section, args)
 
         if immediate_instruction:
-            assert len(args) == 1, "Last arg should contain the immediate value"
-            arg = args[0]
-            match = re.search(r"(\d+)\(", arg)
+            match = re.search(r"(-?\d+)\(", arg)
             if match:  # Memory offset
                 value = int(match.group(1))
             else:
