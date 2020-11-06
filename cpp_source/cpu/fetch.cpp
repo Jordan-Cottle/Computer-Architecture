@@ -39,13 +39,18 @@ void Fetch::tick()
         std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
     }
 
-    this->next->stage(instruction);
-
     // Stop fetching if halt is encountered
     if (instruction->data != 0) // 0 is an invalid code in risc-v
     {
+        this->next->stage(instruction);
         Event *fetch = new Event("Fetch", simulationClock.cycle + 1, this);
         masterEventQueue.push(fetch);
+    }
+    else
+    {
+        // Give downstream pipelines time to complete
+        Event *complete = new Event("Complete", simulationClock.cycle + this->cpu->pipelines.size(), this->cpu);
+        masterEventQueue.push(complete);
     }
 }
 

@@ -35,6 +35,7 @@ struct Cpu : SimulationDevice
     Cpu *addPipeline(Pipeline *pipeline);
 
     void tick();
+    void process(Event *event);
 
     void loadProgram(Program *program);
     void loadProgram(std::string fileName);

@@ -44,6 +44,17 @@ Cpu *Cpu::addPipeline(Pipeline *pipeline)
     return this;
 }
 
+void Cpu::process(Event *event)
+{
+    if (event->type == "Complete")
+    {
+        event->handled = true;
+        this->complete = true;
+    }
+
+    SimulationDevice::process(event);
+}
+
 void Cpu::tick()
 {
     std::cout << simulationClock << "\n";
