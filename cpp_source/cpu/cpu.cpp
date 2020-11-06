@@ -70,14 +70,6 @@ void Cpu::tick()
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 }
 
-void Cpu::loadProgram(Program *program)
-{
-    this->program = program;
-    this->programCounter.value = 0;
-
-    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0]));
-}
-
 void Cpu::loadProgram(std::string fileName)
 {
     std::ifstream programFile(fileName, std::ios::binary);

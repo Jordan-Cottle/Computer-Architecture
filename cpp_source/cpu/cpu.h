@@ -10,7 +10,6 @@
 #include "instruction.h"
 #include "sim_memory.h"
 
-#include "program.h"
 #include "program_counter.h"
 
 struct Cpu : SimulationDevice
@@ -25,7 +24,6 @@ struct Cpu : SimulationDevice
     Register<float> fpRegister;
 
     // TODO put these somewhere else
-    Program *program;
     Memory ram;
 
     std::vector<Pipeline *> pipelines;
@@ -37,7 +35,6 @@ struct Cpu : SimulationDevice
     void tick();
     void process(Event *event);
 
-    void loadProgram(Program *program);
     void loadProgram(std::string fileName);
 
     void flush();
