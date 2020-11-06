@@ -3,8 +3,11 @@
 #define __OPCODES__
 
 #include <string>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "misc.h"
 
 // Mask of all possible "identity" bits
 constexpr uint32_t I_MASK = 0xfd00707f;
@@ -19,8 +22,8 @@ constexpr uint32_t F7_MASK = 0xfe000000;
 constexpr uint32_t RD_MASK = 0xF80;
 constexpr uint32_t R1_MASK = 0xF8000;
 constexpr uint32_t R2_MASK = 0x1F00000;
-constexpr uint32_t IMM_I_MASK = 0xFF00000;
-constexpr uint32_t IMM_S_MASK = 0xFE00F80;
+constexpr uint32_t IMM_I_MASK = 0xFFF00000;
+constexpr uint32_t IMM_S_MASK = 0xFE000F80;
 constexpr uint32_t IMM_U_MASK = 0xFFFFF000;
 
 std::unordered_map<std::string, uint32_t> OPCODES = {
@@ -331,6 +334,32 @@ std::string identify(uint32_t instruction)
     throw std::runtime_error("No keyword could be identified for " + str(instruction));
 }
 
+uint32_t singleBitMask(uint8_t index)
+{
+    return 0xFFFFFFFF ^ (1 << index);
+}
+
+uint32_t getBit(uint32_t data, uint8_t index)
+{
+    return (data & (1 << index));
+}
+
+uint32_t setBit(uint32_t data, uint8_t index, bool value)
+{
+    return (data & ~(1 << index)) | (value << index);
+}
+
+uint32_t slice(uint32_t data, uint8_t start, uint8_t end)
+{
+    uint32_t bits = 0;
+    for (int i = start; i >= end; i--)
+    {
+        bits |= getBit(data, i);
+    }
+
+    return bits;
+}
+
 uint32_t getRd(uint32_t data)
 {
     return (data & RD_MASK) >> 7;
@@ -349,6 +378,37 @@ uint32_t getR2(uint32_t data)
 uint32_t getImmediateI(uint32_t data)
 {
     return (data & IMM_I_MASK) >> 20;
+}
+
+uint32_t getImmediateS(uint32_t data)
+{
+    // Mask and align lsb with overall lsb
+    data = (data & IMM_S_MASK) >> 7;
+
+    // Keep properly aligned lsb
+    uint32_t bits = slice(data, 4, 0);
+
+    // Align offset 11:5 with 4:0
+    bits = slice(data >> 13, 11, 5) | bits;
+
+    return bits;
+}
+
+uint32_t getImmediateSB(uint32_t data)
+{
+    // Start with bringing all bits together
+    uint32_t bits = getImmediateS(data);
+
+    // Unscramble the misaligned bits
+    // B and C are the hex values for each bit's proper index
+    uint32_t B = getBit(bits, 0);
+    uint32_t C = getBit(bits, 11) >> 11;
+
+    bits &= singleBitMask(0);    // Clear 0 index
+    bits = setBit(bits, 0xB, B); // Set B into index 11
+    bits = setBit(bits, 0xC, C); // Set C into index 12
+
+    return bits;
 }
 
 #endif // __OPCODES__
