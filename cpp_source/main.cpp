@@ -121,6 +121,7 @@ void fpTest()
     assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
 }
 
+/*
 void decodeTest()
 {
 
@@ -278,6 +279,7 @@ void cpuTest()
 
     std::cout << cpu.ram << "\n";
 }
+*/
 
 void memoryTest()
 {
