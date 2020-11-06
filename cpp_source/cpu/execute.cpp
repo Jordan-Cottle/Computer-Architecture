@@ -17,7 +17,7 @@ Execute::Execute(Cpu *cpu) : Pipeline("Execute")
 
 void Execute::tick()
 {
-    Instruction *instruction = (Instruction *)this->staged();
+    DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)
@@ -28,17 +28,15 @@ void Execute::tick()
 
     std::cout << "Execute processing instruction: " << instruction << "\n";
     Store *store = dynamic_cast<Store *>(instruction);
-    if (store != NULL || instruction->operation == "halt")
+    if (store != NULL)
     {
         this->next->stage(instruction);
     }
     else
     {
-        DecodedInstruction *decoded = dynamic_cast<DecodedInstruction *>(instruction);
+        instruction->execute(this->cpu);
 
-        decoded->execute(this->cpu);
-
-        // Decoded instructions are not pointers to the ones in the program
-        delete decoded;
+        // Decoded instruction use complete. No further reference to it will be created
+        delete instruction;
     }
 }

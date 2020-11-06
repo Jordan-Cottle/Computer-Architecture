@@ -8,6 +8,7 @@
 
 #include "instruction.h"
 
+// R and I type instructions for math operations
 struct ArithmeticInstruction : DecodedInstruction
 {
     int destinationIndex;
@@ -15,19 +16,15 @@ struct ArithmeticInstruction : DecodedInstruction
     int leftIndex;
     int rightIndex;
     bool immediate;
-    int immediateValue;
 
-    ArithmeticInstruction(Instruction *instruction);
-
-    ArithmeticInstruction(Instruction *instruction, int immediateValue);
+    ArithmeticInstruction(RawInstruction *instruction);
 
     virtual void execute(Cpu *cpu) = 0;
 };
 
 struct Add : ArithmeticInstruction
 {
-    Add(Instruction *instruction);
-    Add(Instruction *instruction, int immediateValue);
+    Add(RawInstruction *instruction);
 
     void execute(Cpu *cpu);
 

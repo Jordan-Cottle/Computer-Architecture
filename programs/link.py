@@ -103,6 +103,7 @@ R4_FIELDS = "rd rs1 rs2 rs3 rm"
 I_FIELDS = "rd rs1 imm12"
 SHIFT_FIELDS = "rd rs1 shamt"
 S_FIELDS = "imm12hi rs1 rs2 imm12lo"
+S2_FIELDS = "imm12hi rs2 rs1 imm12lo"
 B_FIELDS = "bimm12hi rs1 rs2 bimm12lo"
 U_FIELDS = "rd imm20"
 UJ_FIELDS = "rd jimm20"
@@ -119,6 +120,7 @@ INSTRUCTION_TYPES = {
     I_FIELDS: I_TYPE,
     SHIFT_FIELDS: I_TYPE,
     S_FIELDS: S_TYPE,
+    S2_FIELDS: S_TYPE,
     B_FIELDS: B_TYPE,
     U_FIELDS: U_TYPE,
     UJ_FIELDS: UJ_TYPE,
@@ -131,6 +133,7 @@ for instruction_type in INSTRUCTION_TYPES.values():
 class InstructionTemplate:
     def __init__(self, fields, bits=None):
         self.keyword, fields = fields.split(" ", 1)
+        self.fields = fields.split()
         self.format = INSTRUCTION_TYPES[fields]
         self.bits = list(bits)
 
@@ -237,6 +240,7 @@ class Instruction(InstructionTemplate):
     def __init__(self, template):
         self.keyword = template.keyword
         self.format = template.format
+        self.fields = template.fields
         self.bits = template.bits
 
     @classmethod
@@ -247,6 +251,9 @@ class Instruction(InstructionTemplate):
         instruction = cls(template)
 
         immediate_instruction = False
+
+        args_copy = list(args)
+        arg_fields = [field for field in instruction.fields if "imm" not in field]
         for section in instruction.format.sections.values():
             if "?" not in instruction.get_bits(section):
                 continue
@@ -259,26 +266,24 @@ class Instruction(InstructionTemplate):
                 immediate_instruction = True
                 continue
             else:
-                for arg in args:
-                    match = re.search("[xf](\d+)", arg)
-                    if match:
-                        if not re.search(r"\d+\(", arg):
-                            args.remove(arg)
+                arg_num = arg_fields.index(section.name)
+                arg = args[arg_num]
+                match = re.search("[xf](\d+)", arg)
+                if match:
+                    if not re.search(r"\d+\(", arg):
+                        args_copy.remove(arg)
 
-                        binary = bin(int(match.group(1)))[2:]
+                    binary = bin(int(match.group(1)))[2:]
 
-                        while len(binary) < section.length:
-                            binary = "0" + binary
+                    while len(binary) < section.length:
+                        binary = "0" + binary
 
-                        instruction.set_bits(section, binary)
-                        break
-                else:
-                    print("Did you miss something??", section, args)
+                    instruction.set_bits(section, binary)
 
         if immediate_instruction:
-            assert len(args) == 1, "Last arg should contain the immediate value"
-            arg = args[0]
-            match = re.search(r"(\d+)\(", arg)
+            assert len(args_copy) == 1, "Last arg should contain the immediate value"
+            arg = args_copy[0]
+            match = re.search(r"(-?\d+)\(", arg)
             if match:  # Memory offset
                 value = int(match.group(1))
             else:
@@ -356,6 +361,25 @@ for i, line in enumerate(data):
         template = InstructionTemplate(fields, bits)
         INSTRUCTIONS[template.keyword] = template
 
+
+imm_bits = ["?"] * 32
+for instruction in INSTRUCTIONS.values():
+    if "i" not in instruction.keyword or "f" in instruction.keyword:
+        continue
+
+    for i, bit in enumerate(instruction.binary):
+        if bit == "?":
+            continue
+
+        if imm_bits[i] == "?":
+            imm_bits[i] = bit
+        elif imm_bits[i] in "10":
+            if imm_bits[i] != bit:
+                imm_bits[i] = "X"
+
+print("".join(imm_bits))
+
+
 instruction = InstructionTemplate(f"beq {B_FIELDS}", "?????????????????000?????0001111")
 instruction.immediate = "CBA987654321"
 
@@ -376,6 +400,18 @@ assert instruction["imm[19:12]"] == "JIHGFEDC", instruction["imm[19:12]"]
 assert instruction["imm[11]"] == "B", instruction["imm[11]"]
 assert instruction["imm[10:1]"] == "A987654321", instruction["imm[10:1]"]
 assert instruction.binary == "KA987654321BJIHGFEDC?????1000011"
+
+instruction = Instruction.parse("fadd.s f3 f1 f2", labels={})
+expected = f"00000000001000001{ROUNDING_MODE}000111010011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("addi x1 x1 4", labels={})
+expected = f"00000000010000001000000010010011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("fsw f3 -4(x1)", labels={})
+expected = f"11111110001100001010111000100111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
 
 def read_file(file_name):
@@ -432,6 +468,7 @@ def write_program(file_name, program, binary=False):
             bin_string = instruction.binary
 
             if binary:
+                print(instruction)
                 sim_file.write(to_bytes(bin_string))
             else:
                 print(bin_string, file=sim_file)
@@ -448,4 +485,4 @@ def main(file, binary=False):
 
 if __name__ == "__main__":
     for file in sys.argv[1:]:
-        main(sys.argv[1:])
+        main(file)

@@ -6,9 +6,11 @@
 #include "control_instructions.h"
 #include "cpu.h"
 
-BranchInstruction::BranchInstruction(Branch *branch, int destination) : DecodedInstruction(branch)
+#include "opcodes.h"
+
+BranchInstruction::BranchInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
-    this->destination = destination;
+    this->destination = getImmediateSB(instruction->data);
 }
 
 bool BranchInstruction::take(Cpu *cpu)
@@ -42,10 +44,10 @@ std::string BranchInstruction::__str__()
     return DecodedInstruction::__str__() + " (PC -> " + str(this->destination) + ")";
 }
 
-Bne::Bne(Branch *branch, int destination) : BranchInstruction(branch, destination)
+Bne::Bne(RawInstruction *instruction) : BranchInstruction(instruction)
 {
-    this->leftIndex = branch->arguments[0];
-    this->rightIndex = branch->arguments[1];
+    this->leftIndex = getR1(instruction->data);
+    this->rightIndex = getR2(instruction->data);
 }
 
 bool Bne::take(Cpu *cpu)

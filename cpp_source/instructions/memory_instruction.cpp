@@ -6,40 +6,50 @@
 #include "memory_instruction.h"
 
 #include "cpu.h"
+#include "opcodes.h"
 
-MemoryInstruction::MemoryInstruction(Instruction *instruction, Register<int> *cpuRegister) : DecodedInstruction(instruction)
+MemoryInstruction::MemoryInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
-    this->registerIndex = arguments[0];
-    this->memoryLocation = cpuRegister->read(arguments[1]);
+    this->baseMemoryLocationRegisterIndex = getR1(instruction->data);
 }
 
-Store::Store(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction(instruction, cpuRegister)
+Store::Store(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
+    this->targetRegisterIndex = getR2(instruction->data);
+
+    int offset = getImmediateS(instruction->data);
+
+    // Convert 12th bit to negative
+    offset += -4096 * ((int)getBit(offset, 11) >> 11);
+
+    this->memoryOffset = offset;
 }
 
 // Execute/Store
 void Store::execute(Cpu *cpu)
 {
+    uint32_t memAddress = cpu->intRegister.read(this->baseMemoryLocationRegisterIndex) + this->memoryOffset;
+
     if (this->isFp)
     {
-        float data = cpu->fpRegister.read(this->registerIndex);
+        float data = cpu->fpRegister.read(this->targetRegisterIndex);
 
-        std::cout << "Storing: " << data << "\n";
-        cpu->ram.write(this->memoryLocation, data);
+        std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
+        cpu->ram.write(memAddress, data);
     }
     else
     {
-        int data = cpu->intRegister.read(this->registerIndex);
+        int data = cpu->intRegister.read(this->targetRegisterIndex);
 
-        std::cout << "Storing: " << data << "\n";
-        cpu->ram.write(this->memoryLocation, data);
+        std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
+        cpu->ram.write(memAddress, data);
     }
 }
 
 std::string Store::__str__()
 {
     std::string prefix;
-    if (this->operation[0] == 'f')
+    if (this->isFp)
     {
         prefix = "F";
     }
@@ -48,33 +58,36 @@ std::string Store::__str__()
         prefix = "R";
     }
 
-    return MemoryInstruction::__str__() + " (" + prefix + "M" + str(this->memoryLocation) + " <- " + prefix + str(this->registerIndex) + ")";
+    return MemoryInstruction::__str__() + " " + str(this->memoryOffset) + "(x" + str(this->baseMemoryLocationRegisterIndex) + ") <- " + prefix + str(this->targetRegisterIndex);
 }
 
-Load::Load(Instruction *instruction, Register<int> *cpuRegister) : MemoryInstruction(instruction, cpuRegister)
+Load::Load(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
+    this->targetRegisterIndex = getRd(instruction->data);
+    this->memoryOffset = getImmediateI(instruction->data);
 }
 
 void Load::execute(Cpu *cpu)
 {
+    uint32_t memAddress = cpu->intRegister.read(this->baseMemoryLocationRegisterIndex) + this->memoryOffset;
     if (this->isFp)
     {
-        float data = cpu->ram.read<float>(this->memoryLocation);
+        float data = cpu->ram.read<float>(memAddress);
 
-        cpu->fpRegister.write(this->registerIndex, data);
+        cpu->fpRegister.write(this->targetRegisterIndex, data);
     }
     else
     {
-        int data = cpu->ram.read<int>(this->memoryLocation);
+        int data = cpu->ram.read<int>(memAddress);
 
-        cpu->intRegister.write(this->registerIndex, data);
+        cpu->intRegister.write(this->targetRegisterIndex, data);
     }
 }
 
 std::string Load::__str__()
 {
     std::string prefix;
-    if (this->operation[0] == 'f')
+    if (this->isFp)
     {
         prefix = "F";
     }
@@ -83,5 +96,5 @@ std::string Load::__str__()
         prefix = "R";
     }
 
-    return MemoryInstruction::__str__() + " (" + prefix + str(this->registerIndex) + " <- " + prefix + "M" + str(this->memoryLocation) + ")";
+    return MemoryInstruction::__str__() + " " + prefix + str(this->targetRegisterIndex) + " <- " + str(this->memoryOffset) + "(x" + str(this->baseMemoryLocationRegisterIndex) + ")";
 }

@@ -16,7 +16,7 @@ struct Decode : Pipeline
 
     Decode(Cpu *cpu);
 
-    Instruction *decode(Instruction *instruction);
+    DecodedInstruction *decode(RawInstruction *instruction);
 
     void tick();
 };

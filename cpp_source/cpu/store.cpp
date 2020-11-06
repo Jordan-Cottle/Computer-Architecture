@@ -16,7 +16,7 @@ StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 
 void StorePipeline::tick()
 {
-    Instruction *instruction = (Instruction *)this->staged();
+    Store *instruction = (Store *)this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)
@@ -26,21 +26,9 @@ void StorePipeline::tick()
     }
 
     std::cout << "Store processing instruction: " << instruction << "\n";
-    if (instruction->operation == "halt")
-    {
-        this->cpu->complete = true;
-        return;
-    }
 
-    Store *store = dynamic_cast<Store *>(instruction);
+    instruction->execute(this->cpu);
 
-    if (store == NULL)
-    {
-        throw std::runtime_error("Store pipeline stage only accepts store instructions");
-    }
-
-    store->execute(this->cpu);
-
-    // Decoded instructions are not the main copy of the instruction
-    delete store;
+    // No further reference to instruction will be created
+    delete instruction;
 }

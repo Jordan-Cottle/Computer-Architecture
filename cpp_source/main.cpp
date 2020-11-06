@@ -6,7 +6,6 @@
 #include "event.h"
 
 #include "instruction.h"
-#include "instruction_queue.h"
 
 #include "device.h"
 
@@ -14,8 +13,6 @@
 #include "pipeline.h"
 #include "fetch.h"
 #include "decode.h"
-
-#include "program.h"
 
 #include "memory_instruction.h"
 #include "arithmetic_instruction.h"
@@ -28,6 +25,8 @@
 #include "control_instructions.h"
 
 #include "sim_memory.h"
+
+#include "opcodes.h"
 
 #include "simulation.h"
 using namespace Simulation;
@@ -57,110 +56,25 @@ struct TestPipeline : Pipeline
     }
 };
 
-#define ASM_I 1
-#define END 2
-Program program = Program({
-                              new Instruction("flw", {0, ASM_I}),
-                              new Instruction("stall", {}),
-                              new Instruction("fadd.s", {3, 0, 2}),
-                              new Instruction("stall", {}),
-                              new Instruction("stall", {}),
-                              new Instruction("fsw", {3, ASM_I}),
-                              new Instruction("addi", {ASM_I, ASM_I, -4}),
-                              new Branch("bne", {ASM_I, END}, "Loop"),
-                              new Instruction("halt", {}),
-                          },
-                          {{"Loop", 0}});
-
 TestPipeline testPipeline;
-
-void instructionQueueTest()
-{
-    std::vector<Instruction *> instructions = std::vector<Instruction *>();
-    for (int i = 0; i < 10; i++)
-    {
-        instructions.push_back(new Instruction("ADD", {i, i, i + 1}));
-    }
-
-    InstructionQueue instructionQueue = InstructionQueue(instructions);
-
-    std::cout << instructionQueue << "\n";
-
-    for (int i = 0; i < 3; i++)
-    {
-        Instruction *next = instructionQueue.next();
-
-        std::cout << "Processing: " << next << "\n";
-        delete next;
-    }
-
-    std::cout << instructionQueue << "\n";
-}
-
-void memory_test()
-{
-    Register<Event *> memory = Register<Event *>(2, "EventStorage");
-
-    Event *e = new Event(0, NULL);
-    Event *f = new Event(0, NULL);
-
-    memory.write(0, e);
-    memory.write(1, f);
-
-    std::cout << memory << "\n\n";
-    memory.clear(1);
-    std::cout << memory << "\n\n";
-    memory.clear();
-    std::cout << memory << "\n\n";
-
-    delete e;
-    delete f;
-}
+Fetch fetchUnit = Fetch(&cpu);
 
 void fetchTest()
 {
-
-    Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
-    cpu.addPipeline(new TestPipeline());
+    cpu.addPipeline(&testPipeline);
 
-    cpu.loadProgram(new Program({new Instruction("ADD", {0, 1, 2}),
-                                 new Instruction("SUB", {1, 2, 1}),
-                                 new Instruction("MULT", {2, 3, 4}),
-                                 new Instruction("DIV", {3, 6, 3}),
-                                 new Branch("BRANCH", {}, "Test")},
-                                {{"Test", 0}}));
-    std::cout << cpu.program << "\n";
+    cpu.loadProgram("test_program.bin");
 
-    // Set up initial fetch event (so masterEventQueue isn't empty)
-    masterEventQueue.push(new Event(0, (Fetch *)cpu.pipelines[0]));
+    masterEventQueue.tick(0);
+    assert(fetchUnit.staged() != NULL);
+    RawInstruction *instruction = fetchUnit.staged();
 
-    while (simulationClock.cycle <= 10)
-    {
-        std::cout << simulationClock << "\n";
-        masterEventQueue.tick(simulationClock.cycle);
+    fetchUnit.tick();
+    assert(testPipeline.staged() != NULL);
+    assert(testPipeline.staged() == instruction);
 
-        std::cout << "Ticking devices:\n";
-
-        cpu.tick();
-        std::cout << fetchUnit << "\n";
-        simulationClock.tick();
-    }
-
-    delete cpu.program;
-}
-
-void programTest()
-{
-    program.labels["Test"] = 5;
-    std::cout << program << "\n\n";
-
-    for (auto label : {"Loop", "Test"})
-    {
-        int line = program.index(label);
-        std::cout << label << ": " << line << "\n";
-        std::cout << "Instruction at '" << label << "': " << program.line(line) << "\n";
-    }
+    testPipeline.tick();
 }
 
 constexpr float PI = 3.141592654f;
@@ -168,42 +82,46 @@ constexpr float E = 2.718281828f;
 
 void fpTest()
 {
-    cpu.ram.write(0, PI);
-    cpu.fpRegister.write(1, E);
+    cpu.ram.write(120, PI);
+    cpu.fpRegister.write(2, E);
 
-    cpu.intRegister.write(0, 0); // Read/write from ram[0]
+    cpu.intRegister.write(1, 120); // Read/write from ram[120]
 
-    Instruction *l = new Instruction("flw", {0, 0});
-    Load load = Load(l, &cpu.intRegister);
+    cpu.addPipeline(&fetchUnit);
 
-    assert(cpu.fpRegister.read(0) == 0);
+    cpu.loadProgram("fpTest.bin");
+
+    RawInstruction instruction = RawInstruction(cpu.ram.read<uint32_t>(0));
+    Load load = Load(&instruction);
+
+    assert(cpu.fpRegister.read(1) == 0);
     load.execute(&cpu);
-    assert(cpu.fpRegister.read(0) == PI);
+    assert(cpu.fpRegister.read(1) == PI);
 
-    Instruction *a = new Instruction("addi", {0, 0, 4});
-    Add add = Add(a, a->arguments[2]);
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(4));
+    Add add = Add(&instruction);
 
-    assert(cpu.intRegister.read(0) == 0);
+    assert(cpu.intRegister.read(1) == 120);
     add.execute(&cpu);
-    assert(cpu.intRegister.read(0) == 4);
+    assert(cpu.intRegister.read(1) == 124);
 
-    Instruction *fa = new Instruction("fadd.s", {1, 0, 1});
-    Add fadd = Add(fa);
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(8));
+    add = Add(&instruction);
 
-    assert(cpu.fpRegister.read(1) == E);
-    fadd.execute(&cpu);
-    assert(cpu.fpRegister.read(1) == PI + E);
+    assert(cpu.fpRegister.read(1) == PI);
+    assert(cpu.fpRegister.read(2) == E);
+    add.execute(&cpu);
+    assert(cpu.fpRegister.read(3) - (PI + E) < 0.000001);
 
-    Instruction *s = new Instruction("fsw", {1, 0});
-    Store store = Store(s, &cpu.intRegister);
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(12));
+    Store store = Store(&instruction);
 
-    assert(cpu.ram.read<float>(4) == 0);
+    assert(cpu.ram.read<float>(120) == PI);
     store.execute(&cpu);
-    assert(cpu.ram.read<float>(4) == PI + E);
-
-    std::cout << cpu.ram << "\n";
+    assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
 }
 
+/*
 void decodeTest()
 {
 
@@ -361,6 +279,7 @@ void cpuTest()
 
     std::cout << cpu.ram << "\n";
 }
+*/
 
 void memoryTest()
 {
@@ -406,8 +325,23 @@ void binaryReadTest()
     }
 }
 
+void testOpcodes()
+{
+    assert(getImmediateS(0xfe000f80) == 0xFFF);
+
+    for (int i = 0; i < 32; i++)
+    {
+        assert(setBit(0, i, 1) == 1u << i);
+    }
+
+    assert(getImmediateSB(0xfe000f80) == (0xFFF << 1));
+
+    assert(getImmediateU(0xABCDEF12) == 0xABCDE000);
+    assert(getImmediateUB(0xABCDEF12) == 0x001DE2BC);
+}
+
 int main()
 {
-    binaryReadTest();
+    fpTest();
     return 0;
 }

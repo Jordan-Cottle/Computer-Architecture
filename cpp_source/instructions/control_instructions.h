@@ -11,7 +11,7 @@
 struct BranchInstruction : DecodedInstruction
 {
     int destination;
-    BranchInstruction(Branch *branch, int destination);
+    BranchInstruction(RawInstruction *instruction);
 
     virtual bool take(Cpu *cpu);
 
@@ -24,7 +24,7 @@ struct Bne : BranchInstruction
 {
     int leftIndex;
     int rightIndex;
-    Bne(Branch *branch, int destination);
+    Bne(RawInstruction *branch);
 
     bool take(Cpu *cpu);
 

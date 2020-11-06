@@ -31,44 +31,15 @@ std::string RawInstruction::__str__()
         s = str((this->data & (1 << i)) >> i) + s;
     }
 
-    return this->keyword() + "\t" + s;
-}
-
-Instruction::Instruction(std::string operation, std::vector<int> arguments) : RawInstruction(0)
-{
-    this->operation = operation;
-    this->arguments = arguments;
-}
-
-Instruction::Instruction(Instruction *instruction) : RawInstruction(instruction->data)
-{
-    this->operation = instruction->operation;
-    this->arguments = instruction->arguments;
-}
-
-std::string Instruction::__str__()
-{
-    std::string s = this->operation;
-
-    for (auto arg : this->arguments)
-    {
-        s += " " + str(arg);
-    }
-
     return s;
 }
 
-Branch::Branch(std::string operation, std::vector<int> arguments, std::string label) : Instruction(operation, arguments)
+std::string DecodedInstruction::__str__()
 {
-    this->label = label;
+    return this->keyword() + "\t" + DecodedInstruction::__str__();
 }
 
-std::string Branch::__str__()
+DecodedInstruction::DecodedInstruction(RawInstruction *instruction) : RawInstruction(instruction->data)
 {
-    return Instruction::__str__() + " " + this->label;
-}
-
-DecodedInstruction::DecodedInstruction(Instruction *instruction) : Instruction(instruction)
-{
-    this->isFp = instruction->operation[0] == 'f';
+    this->isFp = instruction->keyword()[0] == 'f';
 }

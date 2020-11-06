@@ -26,36 +26,15 @@ struct RawInstruction : printable
     std::string __str__();
 };
 
-struct Instruction : RawInstruction
-{
-    std::string operation;
-
-    // Arguments can be register/memory indexes or immediate values
-    std::vector<int> arguments;
-
-    Instruction(std::string operation, std::vector<int> arguments);
-
-    Instruction(Instruction *instruction);
-
-    std::string __str__();
-};
-
-struct Branch : Instruction
-{
-    std::string label;
-
-    Branch(std::string operation, std::vector<int> arguments, std::string label);
-
-    std::string __str__();
-};
-
-struct DecodedInstruction : Instruction
+struct DecodedInstruction : RawInstruction
 {
     bool isFp;
 
-    DecodedInstruction(Instruction *instruction);
+    DecodedInstruction(RawInstruction *instruction);
 
     virtual void execute(Cpu *cpu) = 0;
+
+    std::string __str__();
 };
 
 #endif
