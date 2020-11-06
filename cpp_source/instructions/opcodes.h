@@ -411,4 +411,27 @@ uint32_t getImmediateSB(uint32_t data)
     return bits;
 }
 
+uint32_t getImmediateU(uint32_t data)
+{
+    return data & IMM_U_MASK;
+}
+
+uint32_t getImmediateUB(uint32_t data)
+{
+    // 19:12 already in place
+    uint32_t bits = data & 0xFF000;
+
+    // Get value of single bits
+    uint32_t lower_single = getBit(data, 20);
+    uint32_t upper_single = getBit(data, 31);
+
+    // shift 10:1 down into lsb slots
+    bits |= (data & 0x7FE00000) >> 20;
+
+    bits = setBit(bits, 20, upper_single);
+    bits = setBit(bits, 11, lower_single);
+
+    return bits;
+}
+
 #endif // __OPCODES__
