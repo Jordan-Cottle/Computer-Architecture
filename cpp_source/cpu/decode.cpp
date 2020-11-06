@@ -17,17 +17,17 @@ Decode::Decode(Cpu *cpu) : Pipeline("Decode")
     this->cpu = cpu;
 }
 
-Instruction *Decode::decode(Instruction *instruction)
+DecodedInstruction *Decode::decode(RawInstruction *instruction)
 {
-    std::string op = instruction->operation;
+    std::string op = instruction->keyword();
 
     if (op == "fsw")
     {
-        return new Store(instruction, &cpu->intRegister);
+        return new Store(instruction);
     }
     else if (op == "flw")
     {
-        return new Load(instruction, &cpu->intRegister);
+        return new Load(instruction);
     }
     else if (op == "fadd.s")
     {
@@ -35,17 +35,11 @@ Instruction *Decode::decode(Instruction *instruction)
     }
     else if (op == "addi")
     {
-        return new Add(instruction, instruction->arguments[2]);
+        return new Add(instruction);
     }
     else if (op == "bne")
     {
-        Branch *branch = dynamic_cast<Branch *>(instruction);
-        int destination = this->cpu->program->index(branch->label);
-        return new Bne(branch, destination);
-    }
-    else if (op == "halt")
-    {
-        return instruction;
+        return new Bne(instruction);
     }
 
     throw std::runtime_error("Unrecognized instruction " + str(instruction));
@@ -53,8 +47,7 @@ Instruction *Decode::decode(Instruction *instruction)
 
 void Decode::tick()
 {
-    // TODO Input is RawInstruction
-    Instruction *instruction = (Instruction *)this->staged();
+    RawInstruction *instruction = this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)
@@ -64,7 +57,7 @@ void Decode::tick()
     else
     {
         std::cout << "Decode processing instruction: " << instruction << "\n";
-        Instruction *decodedInstruction = this->decode(instruction);
+        DecodedInstruction *decodedInstruction = this->decode(instruction);
 
         this->next->stage(decodedInstruction);
     }
