@@ -333,6 +333,21 @@ void binaryReadTest()
     }
 }
 
+void testOpcodes()
+{
+    assert(getImmediateS(0xfe000f80) == 0xFFF);
+
+    for (int i = 0; i < 32; i++)
+    {
+        assert(setBit(0, i, 1) == 1u << i);
+    }
+
+    assert(getImmediateSB(0xfe000f80) == (0xFFF << 1));
+
+    assert(getImmediateU(0xABCDEF12) == 0xABCDE000);
+    assert(getImmediateUB(0xABCDEF12) == 0x001DE2BC);
+}
+
 int main()
 {
     fetchTest();
