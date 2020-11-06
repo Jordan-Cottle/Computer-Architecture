@@ -10,7 +10,7 @@
 #include "misc.h"
 
 // Mask of all possible "identity" bits
-constexpr uint32_t I_MASK = 0xfd00707f;
+constexpr uint32_t I_MASK = 0xfa10707f;
 
 // Mask for just opcode bits
 constexpr uint32_t O_MASK = 0x7f;
