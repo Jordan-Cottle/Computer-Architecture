@@ -58,6 +58,7 @@ void Decode::tick()
     {
         std::cout << "Decode processing instruction: " << instruction << "\n";
         DecodedInstruction *decodedInstruction = this->decode(instruction);
+        delete instruction; // All data has been saved to decodedInstruction
 
         this->next->stage(decodedInstruction);
     }
