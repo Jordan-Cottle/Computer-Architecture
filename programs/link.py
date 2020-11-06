@@ -463,6 +463,7 @@ def write_program(file_name, program, binary=False):
             bin_string = instruction.binary
 
             if binary:
+                print(instruction)
                 sim_file.write(to_bytes(bin_string))
             else:
                 print(bin_string, file=sim_file)
