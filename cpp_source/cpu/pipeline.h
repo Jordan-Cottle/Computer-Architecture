@@ -11,25 +11,9 @@
 #include "sim_register.h"
 #include "instruction.h"
 
-struct Pipeline;
-
-struct PipelineInsertEvent : Event
-{
-    Instruction *instruction;
-
-    PipelineInsertEvent(ulong time, Pipeline *device, Instruction *instruction);
-
-    std::string __str__();
-};
-
-struct PipelineFlushEvent : Event
-{
-    PipelineFlushEvent(ulong time, Pipeline *device);
-};
-
 struct Pipeline : SimulationDevice
 {
-    Register<Instruction *> memory;
+    Register<RawInstruction *> memory;
     Pipeline *next;
 
     Pipeline(std::string type);
@@ -37,13 +21,12 @@ struct Pipeline : SimulationDevice
 
     bool free();
 
-    void stage(Instruction *);
+    void stage(RawInstruction *);
     void flush();
 
-    Instruction *staged();
+    RawInstruction *staged();
 
     void tick();
-    void process(Event *event);
 
     std::string __str__();
 };

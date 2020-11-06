@@ -3,6 +3,8 @@
     Created: 10/05/2020
 */
 
+#include <fstream>
+
 #include "cpu.h"
 #include "fetch.h"
 
@@ -10,17 +12,19 @@
 
 using namespace Simulation;
 
-#define REGISTER_COUNT 4
-#define MEMORY_COUNT 1024
-#define INSTRUCTION_MEMORY_COUNT 8
+constexpr int REGISTER_COUNT = 4;
+constexpr int MEMORY_COUNT = 32;
+constexpr int MEMORY_DELAY = 20;
+constexpr int INSTRUCTION_MEMORY_COUNT = 8;
+constexpr int SIM_CYCLES_PER_CPU = 10;
+constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
-             fpRegister(Register<double>(REGISTER_COUNT)),
-             intMemory(Register<int>(MEMORY_COUNT)),
-             fpMemory(Register<double>(MEMORY_COUNT))
+             fpRegister(Register<float>(REGISTER_COUNT)),
+             ram(Memory(MEMORY_COUNT * 4, MEMORY_DELAY))
 {
-    this->programCounter = 0;
+    this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
     this->jumpedFrom = -1;
 
@@ -40,19 +44,51 @@ Cpu *Cpu::addPipeline(Pipeline *pipeline)
     return this;
 }
 
+void Cpu::process(Event *event)
+{
+    if (event->type == "Complete")
+    {
+        event->handled = true;
+        this->complete = true;
+    }
+
+    SimulationDevice::process(event);
+}
+
 void Cpu::tick()
 {
     std::cout << simulationClock << "\n";
+    // Work pipelines backwards
+    // This allows allows each stage to set the instruction into the next stage with worrying
+    // about the instruction being boosted all the way through the pipeline in a single cycle
+    int i = SIM_CYCLES_PER_CPU;
     for (auto pipeline : this->pipelines)
     {
-        pipeline->tick();
+        masterEventQueue.push(new Event("Tick", simulationClock.cycle + --i, pipeline));
     }
+
+    masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 }
 
-void Cpu::loadProgram(Program *program)
+void Cpu::loadProgram(std::string fileName)
 {
-    this->program = program;
-    this->programCounter = 0;
+    std::ifstream programFile(fileName, std::ios::binary);
+
+    if (!programFile)
+    {
+        throw std::runtime_error("Cannot open " + fileName);
+    }
+
+    uint32_t instruction = 0;
+
+    int memAddress = 0;
+    while (programFile.read((char *)&instruction, sizeof(instruction)))
+    {
+        this->ram.write(memAddress, instruction);
+        memAddress += sizeof(instruction);
+    }
+
+    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0]));
 }
 
 void Cpu::flush()
@@ -74,7 +110,7 @@ void Cpu::flush()
     {
         Fetch *fetchUnit = dynamic_cast<Fetch *>(this->getPipeline("Fetch"));
 
-        FetchEvent *fetchEvent = new FetchEvent(simulationClock.cycle + 1, fetchUnit);
+        Event *fetchEvent = new Event("Fetch", simulationClock.cycle + 1, fetchUnit);
 
         masterEventQueue.push(fetchEvent);
     }
@@ -97,13 +133,13 @@ std::string Cpu::__str__()
 {
     std::string s = "Cpu{\n";
 
+    s += "\t" + str(this->programCounter) + "\n";
+
     s += "\tRegisters: {\n";
     s += "\t\tInteger " + addIndent(str(this->intRegister), 2) + "\n";
     s += "\t\tFloat " + addIndent(str(this->fpRegister), 2) + "\n";
 
-    s += "\t}\n\tMemory: {\n";
-    s += "\t\tInteger " + addIndent(str(this->intMemory), 2) + "\n";
-    s += "\t\tFloat " + addIndent(str(this->fpMemory), 2) + "\n";
+    s += "\t}\n\t" + addIndent(str(this->ram));
 
     s += "\t}\n\tPipelines: {\n";
     for (auto pipeline : this->pipelines)

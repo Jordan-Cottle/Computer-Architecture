@@ -8,24 +8,23 @@
 
 #include "pipeline.h"
 #include "instruction.h"
+#include "sim_memory.h"
 
-#include "program.h"
+#include "program_counter.h"
 
 struct Cpu : SimulationDevice
 {
-    int programCounter;
+    ProgramCounter programCounter;
     bool branchSpeculated;
     int jumpedFrom;
 
     bool complete;
 
     Register<int> intRegister;
-    Register<double> fpRegister;
+    Register<float> fpRegister;
 
     // TODO put these somewhere else
-    Program *program;
-    Register<int> intMemory;
-    Register<double> fpMemory;
+    Memory ram;
 
     std::vector<Pipeline *> pipelines;
 
@@ -34,8 +33,9 @@ struct Cpu : SimulationDevice
     Cpu *addPipeline(Pipeline *pipeline);
 
     void tick();
+    void process(Event *event);
 
-    void loadProgram(Program *program);
+    void loadProgram(std::string fileName);
 
     void flush();
 

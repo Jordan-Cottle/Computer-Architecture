@@ -6,30 +6,26 @@
 #include "arithmetic_instruction.h"
 
 #include "cpu.h"
+#include "opcodes.h"
 
-ArithmeticInstruction::ArithmeticInstruction(Instruction *instruction) : DecodedInstruction(instruction)
+ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
-    this->immediate = false;
+    this->immediate = !this->isFp && getBit(instruction->data, 5) == 0;
 
-    this->destinationIndex = instruction->arguments[0];
-    this->leftIndex = instruction->arguments[1];
-    this->rightIndex = instruction->arguments[2];
+    this->destinationIndex = getRd(instruction->data);
+    this->leftIndex = getR1(instruction->data);
+
+    if (!this->immediate)
+    {
+        this->rightIndex = getR2(instruction->data);
+    }
+    else
+    {
+        this->rightIndex = getImmediateI(instruction->data);
+    }
 }
 
-ArithmeticInstruction::ArithmeticInstruction(Instruction *instruction, int immediateValue) : DecodedInstruction(instruction)
-{
-    this->immediate = true;
-
-    this->destinationIndex = instruction->arguments[0];
-    this->leftIndex = instruction->arguments[1];
-
-    this->immediateValue = immediateValue;
-}
-
-Add::Add(Instruction *instruction) : ArithmeticInstruction(instruction)
-{
-}
-Add::Add(Instruction *instruction, int immediateValue) : ArithmeticInstruction(instruction, immediateValue)
+Add::Add(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 {
 }
 
@@ -37,9 +33,9 @@ void Add::execute(Cpu *cpu)
 {
     if (this->isFp)
     {
-        double left = cpu->fpRegister.read(this->leftIndex);
+        float left = cpu->fpRegister.read(this->leftIndex);
 
-        double right = cpu->fpRegister.read(this->rightIndex);
+        float right = cpu->fpRegister.read(this->rightIndex);
 
         cpu->fpRegister.write(this->destinationIndex, right + left);
     }
@@ -47,7 +43,7 @@ void Add::execute(Cpu *cpu)
     {
         int left = cpu->intRegister.read(this->leftIndex);
 
-        int right = this->immediate ? this->immediateValue : cpu->intRegister.read(this->rightIndex);
+        int right = this->immediate ? this->rightIndex : cpu->intRegister.read(this->rightIndex);
 
         cpu->intRegister.write(this->destinationIndex, left + right);
     }
@@ -56,7 +52,7 @@ void Add::execute(Cpu *cpu)
 std::string Add::__str__()
 {
     std::string prefix;
-    if (this->operation[0] == 'f')
+    if (this->immediate)
     {
         prefix = "F";
     }
@@ -68,7 +64,7 @@ std::string Add::__str__()
     std::string s = DecodedInstruction::__str__() + " (" + prefix + str(this->destinationIndex) + " <- " + prefix + str(this->leftIndex) + " + ";
     if (this->immediate)
     {
-        s += "#" + str(this->immediateValue);
+        s += "#" + str(this->rightIndex);
     }
     else
     {

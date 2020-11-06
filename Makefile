@@ -1,11 +1,29 @@
 EXE := main.exe
+SOURCE_ROOT := cpp_source
+PROGRAMS := test_program test_program2 fpTest
 
-run: build
-	./${EXE}
+SHELL = /usr/bin/python3
+.ONESHELL:
+.PHONY=build,clean,run
+
+run: build $(addsuffix .bin, ${PROGRAMS})
+	import os
+	os.system("./${EXE}")
 
 build: cpp_source  # cpp_source directory needs to exist
-	python3 compile.py ${EXE}
+	from compile import main
+	main("${SOURCE_ROOT}", "${EXE}")
+
+%.bin: programs/%.s
+	import os
+	os.chdir("programs")
+	
+	from link import main
+	main("$(basename $@).s", binary=True)
+	os.replace("$@", "../$@")
 
 clean:
-	rm -rf obj
-	rm ${EXE}
+	import os
+	os.system("rm -rf obj")
+	os.system("rm ${EXE}")
+	os.system("rm *.bin")

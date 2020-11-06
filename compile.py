@@ -76,20 +76,15 @@ def touch_files():
         os.utime(file, (finished, finished))
 
 
-def main():
+def main(project_dir, output_name):
     objects = []
-    for cpp_file in find_files(f"{CPP_DIR}", ".cpp"):
+    for cpp_file in find_files(f"{project_dir}", ".cpp"):
         object_file = compile_cpp(cpp_file)
         objects.append(object_file)
-
-    try:
-        output_name = sys.argv[1]
-    except IndexError:
-        output_name = "main"
 
     touch_files()
     build(output_name, find_files(OBJ_DIR, ".o"))
 
 
 if __name__ == "__main__":
-    main()
+    main(CPP_DIR, "main.exe")

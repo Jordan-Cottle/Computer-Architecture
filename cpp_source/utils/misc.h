@@ -19,8 +19,9 @@ struct printable
 std::string str(printable *obj);
 std::string str(printable &obj);
 std::string str(int num);
+std::string str(uint32_t num);
 std::string str(ulong num);
-std::string str(double num);
+std::string str(float num);
 
 std::ostream &operator<<(std::ostream &output, printable &p);
 std::ostream &operator<<(std::ostream &output, printable *p);

@@ -17,35 +17,29 @@ Decode::Decode(Cpu *cpu) : Pipeline("Decode")
     this->cpu = cpu;
 }
 
-Instruction *Decode::decode(Instruction *instruction)
+DecodedInstruction *Decode::decode(RawInstruction *instruction)
 {
-    std::string op = instruction->operation;
+    std::string op = instruction->keyword();
 
-    if (op == "fsd")
+    if (op == "fsw")
     {
-        return new Store(instruction, &cpu->intRegister);
+        return new Store(instruction);
     }
-    else if (op == "fld")
+    else if (op == "flw")
     {
-        return new Load(instruction, &cpu->intRegister);
+        return new Load(instruction);
     }
-    else if (op == "fadd.d")
+    else if (op == "fadd.s")
     {
         return new Add(instruction);
     }
     else if (op == "addi")
     {
-        return new Add(instruction, instruction->arguments[2]);
+        return new Add(instruction);
     }
     else if (op == "bne")
     {
-        Branch *branch = dynamic_cast<Branch *>(instruction);
-        int destination = this->cpu->program->index(branch->label);
-        return new Bne(branch, destination);
-    }
-    else if (op == "halt")
-    {
-        return instruction;
+        return new Bne(instruction);
     }
 
     throw std::runtime_error("Unrecognized instruction " + str(instruction));
@@ -53,7 +47,7 @@ Instruction *Decode::decode(Instruction *instruction)
 
 void Decode::tick()
 {
-    Instruction *instruction = this->staged();
+    RawInstruction *instruction = this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)
@@ -63,10 +57,9 @@ void Decode::tick()
     else
     {
         std::cout << "Decode processing instruction: " << instruction << "\n";
-        Instruction *decodedInstruction = this->decode(instruction);
+        DecodedInstruction *decodedInstruction = this->decode(instruction);
+        delete instruction; // All data has been saved to decodedInstruction
 
-        PipelineInsertEvent *new_event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, decodedInstruction);
-
-        masterEventQueue.push(new_event);
+        this->next->stage(decodedInstruction);
     }
 }

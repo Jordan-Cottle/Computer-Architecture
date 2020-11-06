@@ -5,12 +5,10 @@
 
 #include "fetch.h"
 
+#include "opcodes.h"
+
 #include "simulation.h"
 using namespace Simulation;
-
-FetchEvent::FetchEvent(ulong time, Fetch *device) : Event("FetchEvent", time, device)
-{
-}
 
 Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 {
@@ -19,7 +17,7 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 
 void Fetch::tick()
 {
-    Instruction *instruction = this->staged();
+    RawInstruction *instruction = this->staged();
     Pipeline::tick();
 
     if (instruction == NULL)
@@ -27,44 +25,42 @@ void Fetch::tick()
         std::cout << "No instruction fetched\n";
         return;
     }
+
     std::cout << "Fetch processing instruction: " << instruction << "\n";
 
-    Branch *branch = dynamic_cast<Branch *>(instruction);
+    // TODO move branch predicting logic into a branch prediction unit
+    if (getOpcode(instruction->data) == 0b1100011)
+    { // Branch detected, attempt a prediction
 
-    if (branch != NULL)
-    {
-        this->cpu->branchSpeculated = true; // Predict True for all branches
-        this->cpu->jumpedFrom = this->cpu->programCounter;
-        this->cpu->programCounter = this->cpu->program->index(branch->label);
+        this->cpu->branchSpeculated = true;
+        this->cpu->jumpedFrom = this->cpu->programCounter.value;
+        this->cpu->programCounter.jump(getImmediateSB(instruction->data));
 
         std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
     }
 
-    if (instruction->operation != "stall") // Don't pass on stall instructions
-    {
-        PipelineInsertEvent *event = new PipelineInsertEvent(simulationClock.cycle + 1, this->next, instruction);
-
-        masterEventQueue.push(event);
-    }
-
     // Stop fetching if halt is encountered
-    if (instruction->operation != "halt")
+    if (instruction->data != 0) // 0 is an invalid code in risc-v
     {
-        FetchEvent *fetch = new FetchEvent(simulationClock.cycle + 1, this);
+        this->next->stage(instruction);
+        Event *fetch = new Event("Fetch", simulationClock.cycle + 1, this);
         masterEventQueue.push(fetch);
+    }
+    else
+    {
+        // Give downstream pipelines time to complete
+        Event *complete = new Event("Complete", simulationClock.cycle + this->cpu->pipelines.size(), this->cpu);
+        masterEventQueue.push(complete);
     }
 }
 
 void Fetch::process(Event *event)
 {
-    if (event->type == "FetchEvent")
+    if (event->type == "Fetch")
     {
         event->handled = true;
-        this->stage(this->cpu->program->line(this->cpu->programCounter++));
-    }
-    else if (event->type == "PipelineInsertEvent")
-    {
-        throw UnrecognizedEvent("Fetch units do not accept PipelineInsertEvents");
+        this->stage(new RawInstruction(this->cpu->ram.read<uint32_t>(this->cpu->programCounter.value)));
+        ++this->cpu->programCounter;
     }
 
     Pipeline::process(event);

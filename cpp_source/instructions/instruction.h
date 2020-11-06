@@ -13,36 +13,28 @@
 
 struct Cpu;
 
-struct Instruction : printable
+struct RawInstruction : printable
 {
-    std::string operation;
+    uint32_t data;
 
-    // Arguments can be register/memory indexes or immediate values
-    std::vector<int> arguments;
+    RawInstruction(uint32_t data);
 
-    Instruction(std::string operation, std::vector<int> arguments);
+    std::string keyword();
 
-    Instruction(Instruction *instruction);
+    uint32_t opcode();
 
     std::string __str__();
 };
 
-struct Branch : Instruction
-{
-    std::string label;
-
-    Branch(std::string operation, std::vector<int> arguments, std::string label);
-
-    std::string __str__();
-};
-
-struct DecodedInstruction : Instruction
+struct DecodedInstruction : RawInstruction
 {
     bool isFp;
 
-    DecodedInstruction(Instruction *instruction);
+    DecodedInstruction(RawInstruction *instruction);
 
     virtual void execute(Cpu *cpu) = 0;
+
+    std::string __str__();
 };
 
 #endif

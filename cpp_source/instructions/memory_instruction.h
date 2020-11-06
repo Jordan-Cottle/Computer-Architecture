@@ -13,17 +13,18 @@ struct Cpu;
 struct MemoryInstruction : DecodedInstruction
 {
 
-    int registerIndex;
-    int memoryLocation;
+    int targetRegisterIndex;
+    int baseMemoryLocationRegisterIndex;
+    int memoryOffset;
 
-    MemoryInstruction(Instruction *instruction, Register<int> *cpuRegister);
+    MemoryInstruction(RawInstruction *instruction);
 
     virtual void execute(Cpu *cpu) = 0;
 };
 
 struct Store : MemoryInstruction
 {
-    Store(Instruction *instruction, Register<int> *cpuRegister);
+    Store(RawInstruction *instruction);
 
     // Execute/Store
     void execute(Cpu *cpu);
@@ -33,7 +34,7 @@ struct Store : MemoryInstruction
 
 struct Load : MemoryInstruction
 {
-    Load(Instruction *instruction, Register<int> *cpuRegister);
+    Load(RawInstruction *instruction);
 
     void execute(Cpu *cpu);
 

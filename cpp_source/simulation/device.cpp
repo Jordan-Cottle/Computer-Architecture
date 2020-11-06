@@ -8,6 +8,7 @@
 
 SimulationDevice::SimulationDevice(std::string name)
 {
+    this->type = name;
     this->clocksProcessed = 0;
     this->eventsProcessed = 0;
 }
@@ -19,6 +20,12 @@ void SimulationDevice::tick()
 
 void SimulationDevice::process(Event *event)
 {
+    if (event->type == "Tick")
+    {
+        this->tick();
+        event->handled = true;
+    }
+
     if (!event->handled)
     {
         throw UnrecognizedEvent(event->type);
