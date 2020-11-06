@@ -168,39 +168,29 @@ void executeTest()
     assert(cpu.intRegister.read(1) == 4);
 }
 
-/*
 void storeTest()
 {
 
-    cpu.intRegister.write(0, 0); // Store in memory address 0
-    cpu.intRegister.write(1, 4); // Store in memory address 1
+    cpu.intRegister.write(1, 20); // Store in memory address 20
 
-    cpu.fpRegister.write(0, PI); // Pi
-    cpu.fpRegister.write(1, E);  // E
+    cpu.fpRegister.write(3, PI); // Pi
     std::cout << "Float " << cpu.fpRegister << "\n";
 
     StorePipeline store = StorePipeline(&cpu);
     cpu.addPipeline(&store);
 
-    Instruction *instruction = new Instruction("fsw", {0, 0});
-    instruction = new Store(instruction, &cpu.intRegister);
+    cpu.loadProgram("fpTest.bin");
 
-    assert(cpu.ram.read<float>(0) == 0);
-    store.stage(instruction);
+    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(12));
+    Store *storeInstruction = new Store(instruction);
+
+    assert(cpu.ram.read<float>(16) == 0);
+    store.stage(storeInstruction);
     store.tick();
-    assert(cpu.ram.read<float>(0) == PI);
-
-    instruction = new Instruction("fsw", {1, 1});
-    instruction = new Store(instruction, &cpu.intRegister);
-
-    assert(cpu.ram.read<float>(4) == 0);
-    store.stage(instruction);
-    store.tick();
-    assert(cpu.ram.read<float>(4) == E);
-
-    std::cout << cpu.ram << "\n";
+    assert(cpu.ram.read<float>(16) == PI);
 }
 
+/*
 void cpuTest()
 {
 
@@ -335,6 +325,6 @@ void testOpcodes()
 
 int main()
 {
-    executeTest();
+    storeTest();
     return 0;
 }
