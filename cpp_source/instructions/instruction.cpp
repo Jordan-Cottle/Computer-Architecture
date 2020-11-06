@@ -36,7 +36,7 @@ std::string RawInstruction::__str__()
 
 std::string DecodedInstruction::__str__()
 {
-    return this->keyword() + "\t" + DecodedInstruction::__str__();
+    return this->keyword();
 }
 
 DecodedInstruction::DecodedInstruction(RawInstruction *instruction) : RawInstruction(instruction->data)

@@ -121,24 +121,33 @@ void fpTest()
     assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
 }
 
-/*
 void decodeTest()
 {
-
-    Instruction *instruction = new Instruction("fsw", {0, 0});
 
     Decode decode = Decode(&cpu);
 
     cpu.addPipeline(&decode);
     cpu.addPipeline(&testPipeline);
 
-    cpu.intRegister.write(0, 2);
+    cpu.loadProgram("fpTest.bin");
+
+    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(0));
 
     decode.stage(instruction);
     decode.tick();
+
+    // Check that instruction made it to next stage
+    assert(testPipeline.staged() != NULL);
+
+    // Check instruction was properly decoded into a Load
+    Load *load = dynamic_cast<Load *>(testPipeline.staged());
+    assert(load != NULL);
+    assert(load->isFp);
+    assert(load->keyword() == "flw");
     testPipeline.tick();
 }
 
+/*
 void executeTest()
 {
     Execute execute = Execute(&cpu);
@@ -342,6 +351,6 @@ void testOpcodes()
 
 int main()
 {
-    fpTest();
+    decodeTest();
     return 0;
 }
