@@ -396,6 +396,18 @@ assert instruction["imm[11]"] == "B", instruction["imm[11]"]
 assert instruction["imm[10:1]"] == "A987654321", instruction["imm[10:1]"]
 assert instruction.binary == "KA987654321BJIHGFEDC?????1000011"
 
+instruction = Instruction.parse("fadd.s f3 f1 f2", labels={})
+expected = f"00000000001000001{ROUNDING_MODE}000111010011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("addi x1 x1 4", labels={})
+expected = f"00000000010000001000000010010011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("fsw f3 -4(x1)", labels={})
+expected = f"11111110001100001010111000100111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
 
 def read_file(file_name):
     with open(file_name, "r") as assembly_file:
