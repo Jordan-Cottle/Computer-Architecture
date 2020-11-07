@@ -37,12 +37,16 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Add(instruction);
     }
+    else if (op == "add")
+    {
+        return new Add(instruction);
+    }
     else if (op == "bne")
     {
         return new Bne(instruction);
     }
 
-    throw std::runtime_error("Unrecognized instruction " + str(instruction));
+    throw std::runtime_error("Unrecognized instruction " + op + " " + str(instruction));
 }
 
 void Decode::tick()
