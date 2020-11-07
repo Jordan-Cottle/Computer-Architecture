@@ -20,10 +20,15 @@ struct ControlInstruction : DecodedInstruction
     std::string __str__();
 };
 
-struct Bne : ControlInstruction
+struct BranchInstruction : ControlInstruction
 {
     int leftIndex;
     int rightIndex;
+    BranchInstruction(RawInstruction *instruction);
+};
+
+struct Bne : BranchInstruction
+{
     Bne(RawInstruction *instruction);
 
     bool take(Cpu *cpu);

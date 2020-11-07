@@ -44,10 +44,14 @@ std::string ControlInstruction::__str__()
     return DecodedInstruction::__str__() + " (PC -> " + str(this->destination) + ")";
 }
 
-Bne::Bne(RawInstruction *instruction) : ControlInstruction(instruction)
+BranchInstruction::BranchInstruction(RawInstruction *instruction) : ControlInstruction(instruction)
 {
     this->leftIndex = getR1(instruction->data);
     this->rightIndex = getR2(instruction->data);
+}
+
+Bne::Bne(RawInstruction *instruction) : BranchInstruction(instruction)
+{
 }
 
 bool Bne::take(Cpu *cpu)
