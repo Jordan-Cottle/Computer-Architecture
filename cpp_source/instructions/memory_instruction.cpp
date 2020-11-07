@@ -63,6 +63,9 @@ Load::Load(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
     this->targetRegisterIndex = getRd(instruction->data);
     this->memoryOffset = getImmediateI(instruction->data);
+
+    // Handle 12 bit 2's compliment
+    this->memoryOffset = twos_compliment(this->memoryOffset, 12);
 }
 
 void Load::execute(Cpu *cpu)
