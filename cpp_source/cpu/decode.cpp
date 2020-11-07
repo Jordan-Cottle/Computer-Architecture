@@ -53,6 +53,10 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Bne(instruction);
     }
+    else if (op == "blt")
+    {
+        return new Blt(instruction);
+    }
     else if (op == "jal")
     {
         return new Jump(instruction);

@@ -36,6 +36,15 @@ struct Bne : BranchInstruction
     std::string __str__();
 };
 
+struct Blt : BranchInstruction
+{
+    Blt(RawInstruction *instruction);
+
+    bool take(Cpu *cpu);
+
+    std::string __str__();
+};
+
 struct Jump : ControlInstruction
 {
     int registerIndex;

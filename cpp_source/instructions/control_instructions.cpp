@@ -64,6 +64,20 @@ std::string Bne::__str__()
     return ControlInstruction::__str__() + " if R" + str(this->leftIndex) + " != R" + str(this->rightIndex);
 }
 
+Blt::Blt(RawInstruction *instruction) : BranchInstruction(instruction)
+{
+}
+
+bool Blt::take(Cpu *cpu)
+{
+    return cpu->intRegister.read(this->leftIndex) < cpu->intRegister.read(this->rightIndex);
+}
+
+std::string Blt::__str__()
+{
+    return ControlInstruction::__str__() + " if R" + str(this->leftIndex) + " < R" + str(this->rightIndex);
+}
+
 Jump::Jump(RawInstruction *instruction) : ControlInstruction(instruction)
 {
     this->destination = getImmediateUB(instruction->data);
