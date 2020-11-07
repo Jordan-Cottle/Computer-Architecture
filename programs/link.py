@@ -126,6 +126,74 @@ INSTRUCTION_TYPES = {
     UJ_FIELDS: UJ_TYPE,
 }
 
+ABI_NAMES = {
+    "zero": "x0",
+    "ra": "x1",
+    "s0": "x2",
+    "fp": "x2",
+    "s1": "x3",
+    "s2": "x4",
+    "s3": "x5",
+    "s4": "x6",
+    "s5": "x7",
+    "s6": "x8",
+    "s7": "x9",
+    "s8": "x10",
+    "s9": "x11",
+    "s10": "x12",
+    "s11": "x13",
+    "sp": "x14",
+    "tp": "x15",
+    "v0": "x16",
+    "v1": "x17",
+    "a0": "x18",
+    "a1": "x19",
+    "a2": "x20",
+    "a3": "x21",
+    "a4": "x22",
+    "a5": "x23",
+    "a6": "x24",
+    "a7": "x25",
+    "t0": "x26",
+    "t1": "x27",
+    "t2": "x28",
+    "t3": "x29",
+    "t4": "x30",
+    "gp": "x31",
+    "fs0": "f0",
+    "fs1": "f1",
+    "fs2": "f2",
+    "fs3": "f3",
+    "fs4": "f4",
+    "fs5": "f5",
+    "fs6": "f6",
+    "fs7": "f7",
+    "fs8": "f8",
+    "fs9": "f9",
+    "fs10": "f10",
+    "fs11": "f11",
+    "fs12": "f12",
+    "fs13": "f13",
+    "fs14": "f14",
+    "fs15": "f15",
+    "fv0": "f16",
+    "fv1": "f17",
+    "fa0": "f18",
+    "fa1": "f19",
+    "fa2": "f20",
+    "fa3": "f21",
+    "fa4": "f22",
+    "fa5": "f23",
+    "fa6": "f24",
+    "fa7": "f25",
+    "ft0": "f26",
+    "ft1": "f27",
+    "ft2": "f28",
+    "ft3": "f29",
+    "ft4": "f30",
+    "ft5": "f31",
+}
+
 for instruction_type in INSTRUCTION_TYPES.values():
     print(instruction_type)
 
@@ -236,6 +304,81 @@ def twos_compliment(num, bits):
 ROUNDING_MODE = "000"
 
 
+def resolve_abi_name(token):
+    # TODO: make this way better
+    for abi_name, reg_value in ABI_NAMES.items():
+        token = token.replace(abi_name, reg_value)
+
+    return token
+
+
+def split_bits(num):
+    if num < 0:
+        bits = twos_compliment(num, 32)
+    else:
+        bits = bin(num)[2:]
+        while len(bits) < 32:
+            bits = "0" + bits
+
+    return bits[:20], bits[20:]
+
+
+MACROS = {
+    "nop": "addi x0, x0, 0",  # No operation
+    "mv": "addi {0}, {1}, 0",  # Copy register
+    "not": "xori {0}, {1}, -1",  # One’s complement
+    "neg": "sub {0}, x0, {1}",  # Two’s complement
+    "negw": "subw {0}, x0, {1}",  # Two’s complement word
+    "sext.w": "addiw {0}, {1}, 0",  # Sign extend word
+    "seqz": "sltiu {0}, {1}, 1",  # Set if = zero
+    "snez": "sltu {0}, x0, {1}",  # Set if != zero
+    "sltz": "slt {0}, {1}, x0",  # Set if < zero
+    "sgtz": "slt {0}, x0, {1}",  # Set if > zero
+    "fmv.s": "fsgnj.s {0}, {1}, {1}",  # Copy single-precision register
+    "fabs.s": "fsgnjx.s {0}, {1}, {1}",  # Single-precision absolute value
+    "fneg.s": "fsgnjn.s {0}, {1}, {1}",  # Single-precision negate
+    "fmv.d": "fsgnj.d {0}, {1}, {1}",  # Copy double-precision register
+    "fabs.d": "fsgnjx.d {0}, {1}, {1}",  # Double-precision absolute value
+    "fneg.d": "fsgnjn.d {0}, {1}, {1}",  # Double-precision negate
+    "beqz": "beq {0}, x0, {1}",  # Branch if = zero
+    "bnez": "bne {0}, x0, {1}",  # Branch if != zero
+    "blez": "bge x0, {0}, {1}",  # Branch if ≤ zero
+    "bgez": "bge {0}, x0, {1}",  # Branch if ≥ zero
+    "bltz": "blt {0}, x0, {1}",  # Branch if < zero
+    "bgtz": "blt x0, {0}, {1}",  # Branch if > zero
+    "bgt": "blt {1}, {0}, {2}",  # Branch if >
+    "ble": "bge {1}, {0}, {2}",  # Branch if ≤
+    "bgtu": "bltu {1}, {0}, {2}",  # Branch if >, unsigned
+    "bleu": "bgeu {1}, {0}, {2}",  # Branch if ≤, unsigned
+    "j": "jal x0, {0}",  # Jump
+    "jal": "jal x1, {0}",  # Jump and link
+    "jr": "jalr x0, {0}, 0",  # Jump register
+    "jalr": "jalr x1, {0}, 0",  # Jump and link register
+    "ret": "jalr x0, x1, 0",  # Return from subroutine
+}
+
+
+ASSEMBLER_RELOCATIONS = {
+    r"%hi": lambda num: int(split_bits(num)[0], 2) << 12,
+    r"%lo": lambda num: int(split_bits(num)[1], 2),
+}
+
+
+def relocate_bits(token):
+    match = re.match(r"(%\w+)\((\d+)", token)
+    locator = match.group(1)
+    num = int(match.group(2))
+
+    return ASSEMBLER_RELOCATIONS[locator](num)
+
+
+def parse_token(token):
+    if r"%" in token:
+        return str(relocate_bits(token))
+
+    return resolve_abi_name(token.strip(", "))
+
+
 class Instruction(InstructionTemplate):
     def __init__(self, template):
         self.keyword = template.keyword
@@ -246,6 +389,13 @@ class Instruction(InstructionTemplate):
     @classmethod
     def parse(cls, line, labels):
         keyword, *args = line.split()
+        args = [parse_token(arg) for arg in args]
+
+        if keyword in MACROS:
+            keyword, *args = MACROS[keyword].format(*args).split()
+
+        print(keyword, args)
+
         template = INSTRUCTIONS[keyword]
 
         instruction = cls(template)
@@ -321,7 +471,7 @@ class Instruction(InstructionTemplate):
     def set_bits(self, section, data):
         assert (
             len(data) == section.length
-        ), "New data must be exactly the same length as the section is is to be put it"
+        ), "New data must be exactly the same length as the section it is to be put it"
 
         updated = self.bits[::-1]
         updated[section.slice] = data[::-1]
@@ -427,9 +577,16 @@ def read_file(file_name):
 def assemble_program(data):
     labels = {}
     mem_address = 0
-    for line in list(data):
-        # print(line)
 
+    # Trim comments
+    for i, line in enumerate(data):
+        if "#" in line:
+            data[i] = line[: line.index("#")]
+
+    # Filter out empty lines
+    data = [line for line in data if line]
+
+    for line in list(data):
         match = re.match(r"(.+):", line)
         if match:
             labels[match.group(1)] = mem_address
