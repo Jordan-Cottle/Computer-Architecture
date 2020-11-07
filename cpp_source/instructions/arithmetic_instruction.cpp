@@ -23,8 +23,8 @@ ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : Deco
     {
         this->rightIndex = getImmediateI(instruction->data);
 
-        // Set 12'th bit to negative
-        this->rightIndex += -4096 * ((int)getBit(this->rightIndex, 11) >> 11);
+        // Handle 12bit 2's compliment
+        this->rightIndex = twos_compliment(this->rightIndex, 11);
     }
 }
 

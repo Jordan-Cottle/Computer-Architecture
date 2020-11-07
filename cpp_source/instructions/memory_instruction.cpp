@@ -17,12 +17,10 @@ Store::Store(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
     this->targetRegisterIndex = getR2(instruction->data);
 
-    int offset = getImmediateS(instruction->data);
+    this->memoryOffset = getImmediateS(instruction->data);
 
-    // Convert 12th bit to negative
-    offset += -4096 * ((int)getBit(offset, 11) >> 11);
-
-    this->memoryOffset = offset;
+    // Handle 12 bit 2's compliment
+    this->memoryOffset = twos_compliment(this->memoryOffset, 12);
 }
 
 // Execute/Store
