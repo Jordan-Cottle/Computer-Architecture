@@ -336,6 +336,8 @@ void runProgram(std::string name)
         ->addPipeline(new StorePipeline(&cpu));
 
     cpu.loadProgram(name);
+
+    cpu.intRegister.write(14, 0x2FF); // Set stack pointer at bottom of stack
     std::cout << cpu.ram << "\n";
 
     // Set up initial cpu tick to kick things off
