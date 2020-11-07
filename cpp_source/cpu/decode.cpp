@@ -69,6 +69,10 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Jump(instruction);
     }
+    else if (op == "jalr")
+    {
+        return new Jalr(instruction);
+    }
 
     throw std::runtime_error("Unrecognized instruction " + op + " " + str(instruction));
 }

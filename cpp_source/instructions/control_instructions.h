@@ -53,4 +53,13 @@ struct Jump : ControlInstruction
     void execute(Cpu *cpu);
 };
 
+struct Jalr : ControlInstruction
+{
+    int registerIndex;
+    int sourceIndex;
+    Jalr(RawInstruction *instruction);
+
+    void execute(Cpu *cpu);
+};
+
 #endif

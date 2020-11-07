@@ -37,6 +37,7 @@ void ControlInstruction::execute(Cpu *cpu)
     }
 
     // Fetch unit has already made a correct prediction, nothing to do
+    // TODO actual PC should be tracked separate from fetch unit's predictions
 }
 
 std::string ControlInstruction::__str__()
@@ -86,6 +87,22 @@ Jump::Jump(RawInstruction *instruction) : ControlInstruction(instruction)
 
 void Jump::execute(Cpu *cpu)
 {
+    cpu->intRegister.write(this->registerIndex, cpu->programCounter.value);
+
+    ControlInstruction::execute(cpu);
+}
+
+Jalr::Jalr(RawInstruction *instruction) : ControlInstruction(instruction)
+{
+    this->registerIndex = getRd(instruction->data);
+    this->sourceIndex = getR1(instruction->data);
+    this->destination = twos_compliment(getImmediateI(instruction->data), 12);
+}
+
+void Jalr::execute(Cpu *cpu)
+{
+    this->destination += cpu->intRegister.read(this->sourceIndex);
+
     cpu->intRegister.write(this->registerIndex, cpu->programCounter.value);
 
     ControlInstruction::execute(cpu);
