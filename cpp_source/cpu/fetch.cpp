@@ -43,8 +43,6 @@ void Fetch::tick()
     if (instruction->data != 0) // 0 is an invalid code in risc-v
     {
         this->next->stage(instruction);
-        Event *fetch = new Event("Fetch", simulationClock.cycle + 1, this);
-        masterEventQueue.push(fetch);
     }
     else
     {

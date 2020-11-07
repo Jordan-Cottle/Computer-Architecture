@@ -67,6 +67,7 @@ void Cpu::tick()
         masterEventQueue.push(new Event("Tick", simulationClock.cycle + --i, pipeline));
     }
 
+    masterEventQueue.push(new Event("Fetch", simulationClock.cycle + i, this->pipelines[0], 11));
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 }
 
@@ -87,8 +88,6 @@ void Cpu::loadProgram(std::string fileName)
         this->ram.write(memAddress, instruction);
         memAddress += sizeof(instruction);
     }
-
-    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0]));
 }
 
 void Cpu::flush()
