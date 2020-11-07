@@ -17,7 +17,7 @@ constexpr int MEMORY_COUNT = 32;
 constexpr int MEMORY_DELAY = 20;
 constexpr int INSTRUCTION_MEMORY_COUNT = 8;
 constexpr int SIM_CYCLES_PER_CPU = 10;
-constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
+constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 4;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
@@ -67,6 +67,7 @@ void Cpu::tick()
         masterEventQueue.push(new Event("Tick", simulationClock.cycle + --i, pipeline));
     }
 
+    masterEventQueue.push(new Event("Fetch", simulationClock.cycle + i, this->pipelines[0], 11));
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 }
 
@@ -87,8 +88,6 @@ void Cpu::loadProgram(std::string fileName)
         this->ram.write(memAddress, instruction);
         memAddress += sizeof(instruction);
     }
-
-    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0]));
 }
 
 void Cpu::flush()

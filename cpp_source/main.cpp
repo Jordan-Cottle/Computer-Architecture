@@ -121,21 +121,29 @@ void fpTest()
     assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
 }
 
-/*
 void decodeTest()
 {
-
-    Instruction *instruction = new Instruction("fsw", {0, 0});
 
     Decode decode = Decode(&cpu);
 
     cpu.addPipeline(&decode);
     cpu.addPipeline(&testPipeline);
 
-    cpu.intRegister.write(0, 2);
+    cpu.loadProgram("fpTest.bin");
+
+    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(0));
 
     decode.stage(instruction);
     decode.tick();
+
+    // Check that instruction made it to next stage
+    assert(testPipeline.staged() != NULL);
+
+    // Check instruction was properly decoded into a Load
+    Load *load = dynamic_cast<Load *>(testPipeline.staged());
+    assert(load != NULL);
+    assert(load->isFp);
+    assert(load->keyword() == "flw");
     testPipeline.tick();
 }
 
@@ -145,77 +153,52 @@ void executeTest()
     cpu.addPipeline(&execute);
     cpu.addPipeline(&testPipeline);
 
-    Instruction *instruction = new Instruction("addi", {0, 0});
-    Add *add = new Add(instruction, 4);
+    cpu.loadProgram("fpTest.bin");
 
+    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(4));
+
+    Add *add = new Add(instruction);
+
+    assert(cpu.intRegister.read(1) == 0);
     execute.stage(add);
     execute.tick();
     testPipeline.tick();
 
     std::cout << cpu.intRegister << "\n";
-    assert(cpu.intRegister.read(0) == 4);
-
-    instruction = new Instruction("fsw", {0, 0});
-    Store *store = new Store(instruction, &cpu.intRegister);
-
-    assert(testPipeline.staged() == NULL);
-    execute.stage(store);
-    execute.tick();
-    assert(testPipeline.staged() != NULL);
-
-    testPipeline.tick();
-
-    Branch *branchInstruction = new Branch("branch", {}, "Test");
-    BranchInstruction *branch = new BranchInstruction(branchInstruction, 42);
-
-    execute.stage(branch);
-    execute.tick();
-    testPipeline.tick();
-
-    std::cout << cpu.programCounter << "\n";
-    assert(cpu.programCounter.value == 42);
+    assert(cpu.intRegister.read(1) == 4);
 }
 
 void storeTest()
 {
 
-    cpu.intRegister.write(0, 0); // Store in memory address 0
-    cpu.intRegister.write(1, 4); // Store in memory address 1
+    cpu.intRegister.write(1, 20); // Store in memory address 20
 
-    cpu.fpRegister.write(0, PI); // Pi
-    cpu.fpRegister.write(1, E);  // E
+    cpu.fpRegister.write(3, PI); // Pi
     std::cout << "Float " << cpu.fpRegister << "\n";
 
     StorePipeline store = StorePipeline(&cpu);
     cpu.addPipeline(&store);
 
-    Instruction *instruction = new Instruction("fsw", {0, 0});
-    instruction = new Store(instruction, &cpu.intRegister);
+    cpu.loadProgram("fpTest.bin");
 
-    assert(cpu.ram.read<float>(0) == 0);
-    store.stage(instruction);
+    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(12));
+    Store *storeInstruction = new Store(instruction);
+
+    assert(cpu.ram.read<float>(16) == 0);
+    store.stage(storeInstruction);
     store.tick();
-    assert(cpu.ram.read<float>(0) == PI);
-
-    instruction = new Instruction("fsw", {1, 1});
-    instruction = new Store(instruction, &cpu.intRegister);
-
-    assert(cpu.ram.read<float>(4) == 0);
-    store.stage(instruction);
-    store.tick();
-    assert(cpu.ram.read<float>(4) == E);
-
-    std::cout << cpu.ram << "\n";
+    assert(cpu.ram.read<float>(16) == PI);
 }
 
 void cpuTest()
 {
-
+    constexpr int ASM_I = 1;
+    constexpr int ASM_END = 2;
     const float INITIAL = 1.0;
     const float OFFSET = 0.5;
 
     const int ARRAY_SIZE = 10;
-    const int ARRAY_START = 20; // Don't make it bigger than Cpu.memorySize - ARRAY_SIZE
+    const int ARRAY_START = 64;
 
     const float VALUE_ADDED = 1.0;
 
@@ -223,7 +206,7 @@ void cpuTest()
     cpu.intRegister.write(ASM_I, ARRAY_START + (ARRAY_SIZE - 1) * sizeof(INITIAL)); // -1 for 0 indexed arrays
 
     // Since we're counting down and using != as the branch we need the end to be one less than first index
-    cpu.intRegister.write(END, ARRAY_START - 4);
+    cpu.intRegister.write(ASM_END, ARRAY_START - 4);
 
     // Constant float to add to fp array
     cpu.fpRegister.write(2, VALUE_ADDED);
@@ -239,9 +222,7 @@ void cpuTest()
         ->addPipeline(new Execute(&cpu))
         ->addPipeline(new StorePipeline(&cpu));
 
-    cpu.loadProgram(&program);
-
-    std::cout << cpu.program << "\n";
+    cpu.loadProgram("test_program.bin");
 
     // Set up initial cpu tick to kick things off
     masterEventQueue.push(new Event("Tick", 0, &cpu));
@@ -263,9 +244,6 @@ void cpuTest()
     }
     std::cout << "Program complete!\n";
 
-    // Uncomment this to see the ram printed out (it's big)
-    std::cout << cpu.ram << "\n";
-
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         float expected = (INITIAL + i * OFFSET) + VALUE_ADDED;
@@ -276,10 +254,8 @@ void cpuTest()
     }
 
     std::cout << "Memory state verified!\n";
-
     std::cout << cpu.ram << "\n";
 }
-*/
 
 void memoryTest()
 {
@@ -342,6 +318,6 @@ void testOpcodes()
 
 int main()
 {
-    fpTest();
+    cpuTest();
     return 0;
 }
