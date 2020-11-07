@@ -22,6 +22,9 @@ ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : Deco
     else
     {
         this->rightIndex = getImmediateI(instruction->data);
+
+        // Set 12'th bit to negative
+        this->rightIndex += -4096 * ((int)getBit(this->rightIndex, 11) >> 11);
     }
 }
 
