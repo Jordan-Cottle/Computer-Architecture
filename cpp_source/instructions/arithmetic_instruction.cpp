@@ -10,7 +10,7 @@
 
 ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
-    this->immediate = !this->isFp && getBit(instruction->data, 5) == 0;
+    this->immediate = !this->isFp && getOpcode(instruction->data) == 0b0010011;
 
     this->destinationIndex = getRd(instruction->data);
     this->leftIndex = getR1(instruction->data);
@@ -79,7 +79,6 @@ std::string Add::__str__()
 
 Lui::Lui(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 {
-    this->immediate = true;
     this->leftIndex = getImmediateU(instruction->data);
 }
 
