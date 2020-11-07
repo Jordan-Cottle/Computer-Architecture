@@ -8,10 +8,10 @@
 
 #include "instruction.h"
 
-struct BranchInstruction : DecodedInstruction
+struct ControlInstruction : DecodedInstruction
 {
     int destination;
-    BranchInstruction(RawInstruction *instruction);
+    ControlInstruction(RawInstruction *instruction);
 
     virtual bool take(Cpu *cpu);
 
@@ -20,7 +20,7 @@ struct BranchInstruction : DecodedInstruction
     std::string __str__();
 };
 
-struct Bne : BranchInstruction
+struct Bne : ControlInstruction
 {
     int leftIndex;
     int rightIndex;
@@ -31,7 +31,7 @@ struct Bne : BranchInstruction
     std::string __str__();
 };
 
-struct Jump : BranchInstruction
+struct Jump : ControlInstruction
 {
     int registerIndex;
     Jump(RawInstruction *instruction);

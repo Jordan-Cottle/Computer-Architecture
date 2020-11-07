@@ -8,17 +8,17 @@
 
 #include "opcodes.h"
 
-BranchInstruction::BranchInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
+ControlInstruction::ControlInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
     this->destination = getImmediateSB(instruction->data);
 }
 
-bool BranchInstruction::take(Cpu *cpu)
+bool ControlInstruction::take(Cpu *cpu)
 {
     return true; // Default branch behavior is to always take
 }
 
-void BranchInstruction::execute(Cpu *cpu)
+void ControlInstruction::execute(Cpu *cpu)
 {
     bool take = this->take(cpu);
     if (this->take(cpu) != cpu->branchSpeculated)
@@ -39,12 +39,12 @@ void BranchInstruction::execute(Cpu *cpu)
     // Fetch unit has already made a correct prediction, nothing to do
 }
 
-std::string BranchInstruction::__str__()
+std::string ControlInstruction::__str__()
 {
     return DecodedInstruction::__str__() + " (PC -> " + str(this->destination) + ")";
 }
 
-Bne::Bne(RawInstruction *instruction) : BranchInstruction(instruction)
+Bne::Bne(RawInstruction *instruction) : ControlInstruction(instruction)
 {
     this->leftIndex = getR1(instruction->data);
     this->rightIndex = getR2(instruction->data);
@@ -57,10 +57,10 @@ bool Bne::take(Cpu *cpu)
 
 std::string Bne::__str__()
 {
-    return BranchInstruction::__str__() + " if R" + str(this->leftIndex) + " != R" + str(this->rightIndex);
+    return ControlInstruction::__str__() + " if R" + str(this->leftIndex) + " != R" + str(this->rightIndex);
 }
 
-Jump::Jump(RawInstruction *instruction) : BranchInstruction(instruction)
+Jump::Jump(RawInstruction *instruction) : ControlInstruction(instruction)
 {
     this->destination = getImmediateUB(instruction->data);
     this->registerIndex = getRd(instruction->data);
@@ -70,5 +70,5 @@ void Jump::execute(Cpu *cpu)
 {
     cpu->intRegister.write(this->registerIndex, cpu->programCounter.value);
 
-    BranchInstruction::execute(cpu);
+    ControlInstruction::execute(cpu);
 }
