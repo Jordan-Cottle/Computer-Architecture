@@ -440,6 +440,7 @@ class Instruction(InstructionTemplate):
                 try:
                     value = int(arg)
                 except ValueError:
+                    print(f"Resolving label: {arg} => {labels[arg]}")
                     value = labels[arg]
 
             target_length = len(instruction.immediate)
