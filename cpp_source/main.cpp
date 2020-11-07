@@ -316,8 +316,53 @@ void testOpcodes()
     assert(getImmediateUB(0xABCDEF12) == 0x001DE2BC);
 }
 
+void runProgram(std::string name)
+{
+    const int ARRAY_SIZE = 0x400;
+    const int ARRAY_A_START = 0x400;
+    const int ARRAY_B_START = 0x800;
+    const int ARRAY_C_START = 0xC00;
+
+    // Initialize arrays in fp memory
+    for (int i = 0; i < ARRAY_SIZE; i += sizeof(float))
+    {
+        cpu.ram.write(ARRAY_A_START + i, rand());
+        cpu.ram.write(ARRAY_B_START + i, rand());
+    }
+
+    cpu.addPipeline(new Fetch(&cpu))
+        ->addPipeline(new Decode(&cpu))
+        ->addPipeline(new Execute(&cpu))
+        ->addPipeline(new StorePipeline(&cpu));
+
+    cpu.loadProgram(name);
+    std::cout << cpu.ram << "\n";
+
+    // Set up initial cpu tick to kick things off
+    masterEventQueue.push(new Event("Tick", 0, &cpu));
+
+    while (!cpu.complete)
+    {
+        std::cout << "\n"
+                  << simulationClock << "\n";
+
+        std::cout << "\n~~~EventQueue~~~\n";
+        std::cout << masterEventQueue << "\n";
+
+        std::cout << "\n~~~Processing events~~~\n";
+        masterEventQueue.tick(simulationClock.cycle);
+
+        std::cout << "\n~~~Ticking cpu~~~\n";
+
+        simulationClock.tick();
+    }
+    std::cout << "Program complete!\n";
+
+    std::cout << cpu.ram << "\n";
+}
+
 int main()
 {
-    cpuTest();
+    runProgram("CPU0.bin");
     return 0;
 }
