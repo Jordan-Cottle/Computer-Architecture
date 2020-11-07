@@ -25,6 +25,10 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Store(instruction);
     }
+    else if (op == "sw")
+    {
+        return new Store(instruction);
+    }
     else if (op == "flw")
     {
         return new Load(instruction);
