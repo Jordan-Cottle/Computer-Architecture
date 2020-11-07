@@ -190,15 +190,15 @@ void storeTest()
     assert(cpu.ram.read<float>(16) == PI);
 }
 
-/*
 void cpuTest()
 {
-
+    constexpr int ASM_I = 1;
+    constexpr int ASM_END = 2;
     const float INITIAL = 1.0;
     const float OFFSET = 0.5;
 
     const int ARRAY_SIZE = 10;
-    const int ARRAY_START = 20; // Don't make it bigger than Cpu.memorySize - ARRAY_SIZE
+    const int ARRAY_START = 64;
 
     const float VALUE_ADDED = 1.0;
 
@@ -206,7 +206,7 @@ void cpuTest()
     cpu.intRegister.write(ASM_I, ARRAY_START + (ARRAY_SIZE - 1) * sizeof(INITIAL)); // -1 for 0 indexed arrays
 
     // Since we're counting down and using != as the branch we need the end to be one less than first index
-    cpu.intRegister.write(END, ARRAY_START - 4);
+    cpu.intRegister.write(ASM_END, ARRAY_START - 4);
 
     // Constant float to add to fp array
     cpu.fpRegister.write(2, VALUE_ADDED);
@@ -222,9 +222,7 @@ void cpuTest()
         ->addPipeline(new Execute(&cpu))
         ->addPipeline(new StorePipeline(&cpu));
 
-    cpu.loadProgram(&program);
-
-    std::cout << cpu.program << "\n";
+    cpu.loadProgram("test_program.bin");
 
     // Set up initial cpu tick to kick things off
     masterEventQueue.push(new Event("Tick", 0, &cpu));
@@ -246,9 +244,6 @@ void cpuTest()
     }
     std::cout << "Program complete!\n";
 
-    // Uncomment this to see the ram printed out (it's big)
-    std::cout << cpu.ram << "\n";
-
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         float expected = (INITIAL + i * OFFSET) + VALUE_ADDED;
@@ -259,10 +254,8 @@ void cpuTest()
     }
 
     std::cout << "Memory state verified!\n";
-
     std::cout << cpu.ram << "\n";
 }
-*/
 
 void memoryTest()
 {
@@ -325,6 +318,6 @@ void testOpcodes()
 
 int main()
 {
-    storeTest();
+    cpuTest();
     return 0;
 }
