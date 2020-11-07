@@ -53,6 +53,10 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Add(instruction);
     }
+    else if (op == "slli")
+    {
+        return new Slli(instruction);
+    }
     else if (op == "bne")
     {
         return new Bne(instruction);

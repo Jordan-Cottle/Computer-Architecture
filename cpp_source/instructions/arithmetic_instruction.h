@@ -38,4 +38,11 @@ struct Lui : ArithmeticInstruction
     void execute(Cpu *cpu);
 };
 
+struct Slli : ArithmeticInstruction
+{
+    Slli(RawInstruction *instruction);
+
+    void execute(Cpu *cpu);
+};
+
 #endif
