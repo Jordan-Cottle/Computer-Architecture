@@ -312,6 +312,17 @@ def resolve_abi_name(token):
     return token
 
 
+def split_bits(num):
+    if num < 0:
+        bits = twos_compliment(num, 32)
+    else:
+        bits = bin(num)[2:]
+        while len(bits) < 32:
+            bits = "0" + bits
+
+    return bits[:20], bits[20:]
+
+
 MACROS = {
     "nop": "addi x0, x0, 0",  # No operation
     "mv": "addi {0}, {1}, 0",  # Copy register
@@ -347,6 +358,27 @@ MACROS = {
 }
 
 
+ASSEMBLER_RELOCATIONS = {
+    r"%hi": lambda num: int(split_bits(num)[0], 2) << 12,
+    r"%lo": lambda num: int(split_bits(num)[1], 2),
+}
+
+
+def relocate_bits(token):
+    match = re.match(r"(%\w+)\((\d+)", token)
+    locator = match.group(1)
+    num = int(match.group(2))
+
+    return ASSEMBLER_RELOCATIONS[locator](num)
+
+
+def parse_token(token):
+    if r"%" in token:
+        return str(relocate_bits(token))
+
+    return resolve_abi_name(token.strip(", "))
+
+
 class Instruction(InstructionTemplate):
     def __init__(self, template):
         self.keyword = template.keyword
@@ -357,7 +389,7 @@ class Instruction(InstructionTemplate):
     @classmethod
     def parse(cls, line, labels):
         keyword, *args = line.split()
-        args = [resolve_abi_name(arg.strip(", ")) for arg in args]
+        args = [parse_token(arg) for arg in args]
 
         if keyword in MACROS:
             keyword, *args = MACROS[keyword].format(*args).split()
