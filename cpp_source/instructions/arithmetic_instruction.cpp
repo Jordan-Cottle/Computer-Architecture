@@ -24,7 +24,7 @@ ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : Deco
         this->rightIndex = getImmediateI(instruction->data);
 
         // Handle 12bit 2's compliment
-        this->rightIndex = twos_compliment(this->rightIndex, 11);
+        this->rightIndex = twos_compliment(this->rightIndex, 12);
     }
 }
 
