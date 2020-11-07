@@ -96,23 +96,6 @@ void Cpu::flush()
     for (auto pipeline : this->pipelines)
     {
         pipeline->flush();
-        masterEventQueue.flush(simulationClock.cycle + 1, pipeline);
-
-        // Don't flush anything past the execute stage
-        if (pipeline->type == "Execute")
-        {
-            break;
-        }
-    }
-
-    // Fetch event was deleted, put it back
-    if (!this->complete)
-    {
-        Fetch *fetchUnit = dynamic_cast<Fetch *>(this->getPipeline("Fetch"));
-
-        Event *fetchEvent = new Event("Fetch", simulationClock.cycle + 1, fetchUnit);
-
-        masterEventQueue.push(fetchEvent);
     }
 }
 
