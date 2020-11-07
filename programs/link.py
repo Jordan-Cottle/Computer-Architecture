@@ -126,6 +126,74 @@ INSTRUCTION_TYPES = {
     UJ_FIELDS: UJ_TYPE,
 }
 
+ABI_NAMES = {
+    "zero": "x0",
+    "ra": "x1",
+    "s0": "x2",
+    "fp": "x2",
+    "s1": "x3",
+    "s2": "x4",
+    "s3": "x5",
+    "s4": "x6",
+    "s5": "x7",
+    "s6": "x8",
+    "s7": "x9",
+    "s8": "x10",
+    "s9": "x11",
+    "s10": "x12",
+    "s11": "x13",
+    "sp": "x14",
+    "tp": "x15",
+    "v0": "x16",
+    "v1": "x17",
+    "a0": "x18",
+    "a1": "x19",
+    "a2": "x20",
+    "a3": "x21",
+    "a4": "x22",
+    "a5": "x23",
+    "a6": "x24",
+    "a7": "x25",
+    "t0": "x26",
+    "t1": "x27",
+    "t2": "x28",
+    "t3": "x29",
+    "t4": "x30",
+    "gp": "x31",
+    "fs0": "f0",
+    "fs1": "f1",
+    "fs2": "f2",
+    "fs3": "f3",
+    "fs4": "f4",
+    "fs5": "f5",
+    "fs6": "f6",
+    "fs7": "f7",
+    "fs8": "f8",
+    "fs9": "f9",
+    "fs10": "f10",
+    "fs11": "f11",
+    "fs12": "f12",
+    "fs13": "f13",
+    "fs14": "f14",
+    "fs15": "f15",
+    "fv0": "f16",
+    "fv1": "f17",
+    "fa0": "f18",
+    "fa1": "f19",
+    "fa2": "f20",
+    "fa3": "f21",
+    "fa4": "f22",
+    "fa5": "f23",
+    "fa6": "f24",
+    "fa7": "f25",
+    "ft0": "f26",
+    "ft1": "f27",
+    "ft2": "f28",
+    "ft3": "f29",
+    "ft4": "f30",
+    "ft5": "f31",
+}
+
 for instruction_type in INSTRUCTION_TYPES.values():
     print(instruction_type)
 
@@ -236,6 +304,14 @@ def twos_compliment(num, bits):
 ROUNDING_MODE = "000"
 
 
+def resolve_abi_name(token):
+    # TODO: make this way better
+    for abi_name, reg_value in ABI_NAMES.items():
+        token = token.replace(abi_name, reg_value)
+
+    return token
+
+
 class Instruction(InstructionTemplate):
     def __init__(self, template):
         self.keyword = template.keyword
@@ -246,6 +322,7 @@ class Instruction(InstructionTemplate):
     @classmethod
     def parse(cls, line, labels):
         keyword, *args = line.split()
+        args = [resolve_abi_name(arg.strip(", ")) for arg in args]
         template = INSTRUCTIONS[keyword]
 
         instruction = cls(template)
