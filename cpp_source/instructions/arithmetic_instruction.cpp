@@ -76,3 +76,14 @@ std::string Add::__str__()
 
     return s + ")";
 }
+
+Lui::Lui(RawInstruction *instruction) : ArithmeticInstruction(instruction)
+{
+    this->immediate = true;
+    this->leftIndex = getImmediateU(instruction->data);
+}
+
+void Lui::execute(Cpu *cpu)
+{
+    cpu->intRegister.write(this->destinationIndex, this->leftIndex);
+}
