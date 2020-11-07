@@ -33,6 +33,10 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Load(instruction);
     }
+    else if (op == "lw")
+    {
+        return new Load(instruction);
+    }
     else if (op == "fadd.s")
     {
         return new Add(instruction);
