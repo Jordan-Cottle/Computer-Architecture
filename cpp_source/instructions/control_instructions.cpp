@@ -59,3 +59,16 @@ std::string Bne::__str__()
 {
     return BranchInstruction::__str__() + " if R" + str(this->leftIndex) + " != R" + str(this->rightIndex);
 }
+
+Jump::Jump(RawInstruction *instruction) : BranchInstruction(instruction)
+{
+    this->destination = getImmediateUB(instruction->data);
+    this->registerIndex = getRd(instruction->data);
+}
+
+void Jump::execute(Cpu *cpu)
+{
+    cpu->intRegister.write(this->registerIndex, cpu->programCounter.value);
+
+    BranchInstruction::execute(cpu);
+}

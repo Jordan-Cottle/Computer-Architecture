@@ -24,11 +24,19 @@ struct Bne : BranchInstruction
 {
     int leftIndex;
     int rightIndex;
-    Bne(RawInstruction *branch);
+    Bne(RawInstruction *instruction);
 
     bool take(Cpu *cpu);
 
     std::string __str__();
+};
+
+struct Jump : BranchInstruction
+{
+    int registerIndex;
+    Jump(RawInstruction *instruction);
+
+    void execute(Cpu *cpu);
 };
 
 #endif
