@@ -17,7 +17,7 @@ constexpr int MEMORY_COUNT = 32;
 constexpr int MEMORY_DELAY = 20;
 constexpr int INSTRUCTION_MEMORY_COUNT = 8;
 constexpr int SIM_CYCLES_PER_CPU = 10;
-constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 1;
+constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 4;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT)),
