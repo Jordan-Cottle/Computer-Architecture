@@ -28,8 +28,9 @@ void Fetch::tick()
 
     std::cout << "Fetch processing instruction: " << instruction << "\n";
 
+    uint32_t opcode = getOpcode(instruction->data);
     // TODO move branch predicting logic into a branch prediction unit
-    if (getOpcode(instruction->data) == 0b1100011)
+    if (opcode == 0b1100011 || opcode == 0b1100111 || opcode == 0b1101111)
     { // Branch detected, attempt a prediction
 
         this->cpu->branchSpeculated = true;
