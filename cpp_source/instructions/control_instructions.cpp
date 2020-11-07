@@ -87,7 +87,7 @@ Jump::Jump(RawInstruction *instruction) : ControlInstruction(instruction)
 
 void Jump::execute(Cpu *cpu)
 {
-    cpu->intRegister.write(this->registerIndex, cpu->programCounter.value);
+    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom);
 
     ControlInstruction::execute(cpu);
 }
@@ -103,7 +103,7 @@ void Jalr::execute(Cpu *cpu)
 {
     this->destination += cpu->intRegister.read(this->sourceIndex);
 
-    cpu->intRegister.write(this->registerIndex, cpu->programCounter.value);
+    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom);
 
     ControlInstruction::execute(cpu);
 }
