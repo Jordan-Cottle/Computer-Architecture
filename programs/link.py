@@ -543,9 +543,16 @@ def read_file(file_name):
 def assemble_program(data):
     labels = {}
     mem_address = 0
-    for line in list(data):
-        # print(line)
 
+    # Trim comments
+    for i, line in enumerate(data):
+        if "#" in line:
+            data[i] = line[: line.index("#")]
+
+    # Filter out empty lines
+    data = [line for line in data if line]
+
+    for line in list(data):
         match = re.match(r"(.+):", line)
         if match:
             labels[match.group(1)] = mem_address
