@@ -362,6 +362,8 @@ class Instruction(InstructionTemplate):
         if keyword in MACROS:
             keyword, *args = MACROS[keyword].format(*args).split()
 
+        print(keyword, args)
+
         template = INSTRUCTIONS[keyword]
 
         instruction = cls(template)
@@ -437,7 +439,7 @@ class Instruction(InstructionTemplate):
     def set_bits(self, section, data):
         assert (
             len(data) == section.length
-        ), "New data must be exactly the same length as the section is is to be put it"
+        ), "New data must be exactly the same length as the section it is to be put it"
 
         updated = self.bits[::-1]
         updated[section.slice] = data[::-1]
