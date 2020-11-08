@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 
 import os
-import re
-import sys
 import time
 
 from file_utils import (
@@ -60,8 +58,8 @@ def compile_cpp(path):
     return cpp_file.object_name
 
 
-def build(name, objects):
-    execute(f"{GCC} -o {name} {' '.join(objects)}")
+def build(name, objects, source_name):
+    execute(f"{GCC} -o {name} {source_name} {' '.join(objects)}")
 
 
 def touch_files():
@@ -76,14 +74,18 @@ def touch_files():
         os.utime(file, (finished, finished))
 
 
-def main(project_dir, output_name):
+def main(project_dir, output_name, source_name=None):
     objects = []
     for cpp_file in find_files(f"{project_dir}", ".cpp"):
         object_file = compile_cpp(cpp_file)
         objects.append(object_file)
 
     touch_files()
-    build(output_name, find_files(OBJ_DIR, ".o"))
+    if source_name is None:
+        source_name = os.path.splitext(output_name)[0]
+        source_name = f"{source_name}.cpp"
+
+    build(output_name, find_files(OBJ_DIR, ".o"), source_name)
 
 
 if __name__ == "__main__":
