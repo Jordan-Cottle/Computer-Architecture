@@ -355,23 +355,13 @@ void runProgram(std::string name)
     cpu.loadProgram(name);
 
     cpu.intRegister.write(14, 0x2FF); // Set stack pointer at bottom of stack
-    std::cout << cpu.ram << "\n";
 
     // Set up initial cpu tick to kick things off
     masterEventQueue.push(new Event("Tick", 0, &cpu));
 
     while (!cpu.complete)
     {
-        std::cout << "\n"
-                  << simulationClock << "\n";
-
-        std::cout << "\n~~~EventQueue~~~\n";
-        std::cout << masterEventQueue << "\n";
-
-        std::cout << "\n~~~Processing events~~~\n";
         masterEventQueue.tick(simulationClock.cycle);
-
-        std::cout << "\n~~~Ticking cpu~~~\n";
 
         simulationClock.tick();
     }
@@ -397,7 +387,7 @@ void run_tests()
 
 int main()
 {
-    run_tests();
-    // runProgram("CPU0.bin");
+    // run_tests();
+    runProgram("CPU0.bin");
     return 0;
 }
