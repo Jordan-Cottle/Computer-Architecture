@@ -14,15 +14,15 @@
 template <typename T>
 struct Register : printable
 {
-    std::string name;
+    std::string type;
     std::vector<T> addresses;
     int size;
-    Register(int size, std::string name = "Register")
+    Register(int size, std::string type = "Register")
     {
         this->addresses = std::vector<T>(size);
         this->size = size;
 
-        this->name = name;
+        this->type = type;
     }
 
     void clear()
@@ -43,17 +43,26 @@ struct Register : printable
 
     T read(int index)
     {
+        if (this->type == "Integer" && index == 0)
+        {
+            // x0 always returns 0
+            return 0;
+        }
         return this->addresses.at(index);
     }
 
     void write(int index, T item)
     {
+        if (this->type == "Integer" && index == 0)
+        {
+            return; // Cannot write to x0
+        }
         this->addresses[index] = item;
     }
 
     std::string __str__()
     {
-        std::string s = this->name + ": {";
+        std::string s = this->type + ": {";
 
         int mem_address = 0;
         for (auto item : this->addresses)
