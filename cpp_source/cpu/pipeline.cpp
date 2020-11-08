@@ -40,6 +40,7 @@ void Pipeline::stage(RawInstruction *instruction)
 void Pipeline::flush()
 {
     this->memory.clear(0);
+    this->busy = false;
 }
 
 RawInstruction *Pipeline::staged()
@@ -53,7 +54,6 @@ void Pipeline::process(Event *event)
     {
         event->handled = true;
         this->flush();
-        this->busy = false;
     }
 
     SimulationDevice::process(event);
