@@ -332,16 +332,19 @@ void testOpcodes()
 
 void runProgram(std::string name)
 {
-    const int ARRAY_SIZE = 0x400;
     const int ARRAY_A_START = 0x400;
     const int ARRAY_B_START = 0x800;
     const int ARRAY_C_START = 0xC00;
+    const int ARRAY_SIZE = (ARRAY_B_START - ARRAY_A_START) / sizeof(float);
+
+    std::cout << "Array length: " << ARRAY_SIZE << "\n";
 
     // Initialize arrays in fp memory
-    for (int i = 0; i < ARRAY_SIZE; i += sizeof(float))
+    for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        cpu.ram.write(ARRAY_A_START + i, rand());
-        cpu.ram.write(ARRAY_B_START + i, rand());
+        int memOffset = i * sizeof(float);
+        cpu.ram.write(ARRAY_A_START + memOffset, i * 0.5f);
+        cpu.ram.write(ARRAY_B_START + memOffset, i * 0.5f);
     }
 
     cpu.addPipeline(new Fetch(&cpu))
