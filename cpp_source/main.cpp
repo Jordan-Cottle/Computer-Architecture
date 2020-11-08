@@ -343,8 +343,10 @@ void runProgram(std::string name)
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
-        cpu.ram.write(ARRAY_A_START + memOffset, i * 0.5f);
-        cpu.ram.write(ARRAY_B_START + memOffset, i * 0.5f);
+        float a = rand();
+        float b = rand();
+        cpu.ram.write(ARRAY_A_START + memOffset, a);
+        cpu.ram.write(ARRAY_B_START + memOffset, b);
     }
 
     cpu.addPipeline(new Fetch(&cpu))
