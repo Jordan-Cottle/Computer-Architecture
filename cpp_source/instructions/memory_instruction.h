@@ -19,6 +19,7 @@ struct MemoryInstruction : DecodedInstruction
 
     MemoryInstruction(RawInstruction *instruction);
 
+    uint32_t memoryAddress(Cpu *cpu);
     virtual void execute(Cpu *cpu) = 0;
 };
 

@@ -13,6 +13,11 @@ MemoryInstruction::MemoryInstruction(RawInstruction *instruction) : DecodedInstr
     this->baseMemoryLocationRegisterIndex = getR1(instruction->data);
 }
 
+uint32_t MemoryInstruction::memoryAddress(Cpu *cpu)
+{
+    return cpu->intRegister.read(this->baseMemoryLocationRegisterIndex) + this->memoryOffset;
+}
+
 Store::Store(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
     this->targetRegisterIndex = getR2(instruction->data);
@@ -25,7 +30,7 @@ Store::Store(RawInstruction *instruction) : MemoryInstruction(instruction)
 // Execute/Store
 void Store::execute(Cpu *cpu)
 {
-    uint32_t memAddress = cpu->intRegister.read(this->baseMemoryLocationRegisterIndex) + this->memoryOffset;
+    uint32_t memAddress = this->memoryAddress(cpu);
 
     if (this->isFp)
     {
@@ -74,7 +79,7 @@ Load::Load(RawInstruction *instruction) : MemoryInstruction(instruction)
 
 void Load::execute(Cpu *cpu)
 {
-    uint32_t memAddress = cpu->intRegister.read(this->baseMemoryLocationRegisterIndex) + this->memoryOffset;
+    uint32_t memAddress = this->memoryAddress(cpu);
     if (this->isFp)
     {
         float data = cpu->ram.read<float>(memAddress);
