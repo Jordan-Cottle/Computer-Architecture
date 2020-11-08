@@ -339,6 +339,11 @@ void runProgram(std::string name)
 
     std::cout << "Array length: " << ARRAY_SIZE << "\n";
 
+    // Arrays for implementing/testing CPU0.s
+    float ARRAY_A[ARRAY_SIZE];
+    float ARRAY_B[ARRAY_SIZE];
+    float ARRAY_C[ARRAY_SIZE];
+
     // Initialize arrays in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
@@ -347,6 +352,10 @@ void runProgram(std::string name)
         float b = rand();
         cpu.ram.write(ARRAY_A_START + memOffset, a);
         cpu.ram.write(ARRAY_B_START + memOffset, b);
+
+        // Initialize arrays for implementing/testing CPU0.s
+        ARRAY_A[i] = a;
+        ARRAY_B[i] = b;
     }
 
     cpu.addPipeline(new Fetch(&cpu))
@@ -369,7 +378,21 @@ void runProgram(std::string name)
     }
     std::cout << "Program complete!\n";
 
-    std::cout << cpu.ram << "\n";
+    for (int i = 0; i < ARRAY_SIZE; i++)
+    {
+        int memOffset = i * sizeof(float);
+        float a = cpu.ram.read<float>(ARRAY_A_START + memOffset);
+        float b = cpu.ram.read<float>(ARRAY_B_START + memOffset);
+        float c = cpu.ram.read<float>(ARRAY_C_START + memOffset);
+
+        std::cout << str(a) << " + " << str(b) << " = " << str(c) << "\n";
+
+        // CPU0.s functionality
+        ARRAY_C[i] = ARRAY_A[i] + ARRAY_B[i];
+
+        // Ensure simulation and implementation match
+        assert(ARRAY_C[i] == c);
+    }
 }
 
 void run_tests()
