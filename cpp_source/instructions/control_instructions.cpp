@@ -114,6 +114,14 @@ void Jalr::execute(Cpu *cpu)
 {
     this->destination += cpu->intRegister.read(this->sourceIndex);
 
+    if (this->destination == 0)
+    {
+        // Is this how we're supposed to end the program??
+        std::cout << "Return to PC 0 detected, program complete\n";
+        cpu->complete = true;
+        return;
+    }
+
     cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom);
 
     ControlInstruction::execute(cpu);
