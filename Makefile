@@ -1,12 +1,12 @@
 EXE := main
-TESTS:= fetch_test fp_test decode_test
+TESTS:= fetch_test fp_test decode_test execute_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1
 PROGRAM_DIR := programs
 
 SHELL = /usr/bin/python3
 .ONESHELL:
-.PHONY=build,clean,run,test
+.PHONY=build,clean,run,tests
 
 run: ${EXE}.exe $(addsuffix .bin, ${PROGRAMS})
 	import os
@@ -17,7 +17,7 @@ tests: ${TESTS}
 
 %_test: %_test.exe
 	import os
-	assert os.system(f"./$@.exe") == 0, "$@ test failed!"
+	assert os.system(f"./$<") == 0, "$@ has failed!"
 
 %.bin: ${PROGRAM_DIR}/%.s
 	import os

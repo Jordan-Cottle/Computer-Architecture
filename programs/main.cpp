@@ -30,27 +30,6 @@
 #include "simulation.h"
 using namespace Simulation;
 
-void executeTest()
-{
-    Execute execute = Execute(&cpu);
-    cpu.addPipeline(&execute);
-    cpu.addPipeline(&testPipeline);
-
-    cpu.loadProgram("fpTest.bin");
-
-    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(4));
-
-    Add *add = new Add(instruction);
-
-    cpu.intRegister.write(1, 0);
-    assert(cpu.intRegister.read(1) == 0);
-    execute.stage(add);
-    execute.tick();
-    testPipeline.tick();
-
-    assert(cpu.intRegister.read(1) == 8);
-}
-
 void storeTest()
 {
 
