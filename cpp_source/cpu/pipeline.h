@@ -15,6 +15,7 @@ struct Pipeline : SimulationDevice
 {
     Register<RawInstruction *> memory;
     Pipeline *next;
+    bool busy = false;
 
     Pipeline(std::string type);
     Pipeline(std::string type, Pipeline *next);

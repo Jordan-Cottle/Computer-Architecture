@@ -53,6 +53,7 @@ void Pipeline::process(Event *event)
     {
         event->handled = true;
         this->flush();
+        this->busy = false;
     }
 
     SimulationDevice::process(event);

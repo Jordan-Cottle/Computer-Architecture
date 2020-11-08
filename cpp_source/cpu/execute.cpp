@@ -17,14 +17,20 @@ Execute::Execute(Cpu *cpu) : Pipeline("Execute")
 
 void Execute::tick()
 {
-    DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
     Pipeline::tick();
 
-    if (instruction == NULL)
+    if (this->free())
     {
         std::cout << "No instruction to execute\n";
         return;
     }
+    if (this->next->busy)
+    {
+        std::cout << "Execute waiting because next stage is busy\n";
+        return;
+    }
+
+    DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
 
     std::cout << "Execute processing instruction: " << instruction << "\n";
     Store *store = dynamic_cast<Store *>(instruction);
@@ -34,6 +40,7 @@ void Execute::tick()
     }
     else
     {
+        this->busy = true;
         instruction->execute(this->cpu);
 
         // Decoded instruction use complete. No further reference to it will be created

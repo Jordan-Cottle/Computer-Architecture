@@ -19,15 +19,17 @@ StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 
 void StorePipeline::tick()
 {
-    Store *instruction = (Store *)this->staged();
     Pipeline::tick();
 
-    if (instruction == NULL)
+    if (this->free())
     {
         std::cout << "No instruction to store\n";
         return;
     }
 
+    Store *instruction = (Store *)this->staged();
+
+    this->busy = true;
     std::cout << "Store processing instruction: " << instruction << "\n";
 
     instruction->execute(this->cpu);
