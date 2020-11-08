@@ -69,16 +69,6 @@ void Cpu::tick()
         i += 2; // Leave space between pipeline priorities for other events to go
     }
 
-    if (!this->pipelines[0]->busy())
-    {
-        // Fetch event should be higher priority then Fetch Tick but less than Decode Tick
-        masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0], MEDIUM + 1));
-    }
-    else
-    {
-        std::cout << "Cpu not fetching due to busy Fetch unit\n";
-    }
-
     // Make sure any other events scheduled for this time are handled before main cpu tick
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, LOW));
 

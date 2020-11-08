@@ -19,11 +19,6 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 void Fetch::tick()
 {
     Pipeline::tick();
-    if (this->free())
-    {
-        std::cout << "No instruction fetched\n";
-        return;
-    }
 
     if (this->next->busy())
     {
@@ -34,6 +29,12 @@ void Fetch::tick()
     {
         std::cout << "Fetch continuing to work on its task\n";
         return;
+    }
+    if (this->free())
+    {
+        std::cout << "Fetching new instruction\n";
+        this->stage(new RawInstruction(this->cpu->ram.read<uint32_t>(this->cpu->programCounter.value)));
+        ++this->cpu->programCounter;
     }
     this->_busy = true;
 
@@ -88,16 +89,4 @@ void Fetch::tick()
 
     Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
     masterEventQueue.push(workCompleted);
-}
-
-void Fetch::process(Event *event)
-{
-    if (event->type == "Fetch")
-    {
-        event->handled = true;
-        this->stage(new RawInstruction(this->cpu->ram.read<uint32_t>(this->cpu->programCounter.value)));
-        ++this->cpu->programCounter;
-    }
-
-    Pipeline::process(event);
 }
