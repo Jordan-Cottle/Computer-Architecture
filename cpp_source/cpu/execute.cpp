@@ -39,21 +39,23 @@ void Execute::tick()
     DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
 
     std::cout << "Execute processing instruction: " << instruction << "\n";
+
     Store *store = dynamic_cast<Store *>(instruction);
+    Event *workCompleted;
     if (store != NULL)
     {
         this->next->stage(instruction);
+        workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
     }
     else
     {
-        this->busy = true;
         instruction->execute(this->cpu);
 
         // Decoded instruction use complete. No further reference to it will be created
         delete instruction;
+        workCompleted = new Event("WorkCompleted", simulationClock.cycle + 10, this, HIGH);
     }
 
     this->cpu->instructionsProcessed++;
-    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
     masterEventQueue.push(workCompleted);
 }
