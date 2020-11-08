@@ -15,17 +15,19 @@ struct Memory : SimulationDevice
 {
     std::vector<uint8_t> data;
     int accessTime;
+    std::vector<uint32_t> partitions;
 
-    Memory(int size, int accessTime);
+    Memory(uint32_t size, int accessTime);
+    Memory(uint32_t size, int accessTime, std::vector<uint32_t> partitions);
 
     template <typename T>
-    T read(int address)
+    T read(uint32_t address)
     {
         return *(T *)&this->data[address];
     }
 
     template <typename T>
-    void write(int address, T value)
+    void write(uint32_t address, T value)
     {
         uint8_t *start = (uint8_t *)&value;
 

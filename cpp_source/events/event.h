@@ -4,6 +4,13 @@
 #include "enumerated_object.h"
 #include "device.h"
 
+enum PRIORITY
+{
+    LOW = 0,
+    MEDIUM = 100,
+    HIGH = 200,
+};
+
 struct Event : EnumeratedObject
 {
     bool handled = false;
@@ -11,8 +18,6 @@ struct Event : EnumeratedObject
     SimulationDevice *device;
     int priority;
 
-    Event(ulong time, SimulationDevice *device);
-    Event(ulong time, SimulationDevice *device, int priority);
     Event(std::string type, ulong time, SimulationDevice *device);
     Event(std::string type, ulong time, SimulationDevice *device, int priority);
 

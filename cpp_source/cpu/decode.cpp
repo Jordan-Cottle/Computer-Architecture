@@ -79,19 +79,33 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
 
 void Decode::tick()
 {
-    RawInstruction *instruction = this->staged();
     Pipeline::tick();
 
-    if (instruction == NULL)
+    if (this->free())
     {
         std::cout << "No instruction to decode\n";
+        return;
     }
-    else
+    if (this->next->busy())
     {
-        std::cout << "Decode processing instruction: " << instruction << "\n";
-        DecodedInstruction *decodedInstruction = this->decode(instruction);
-        delete instruction; // All data has been saved to decodedInstruction
-
-        this->next->stage(decodedInstruction);
+        std::cout << "Decode waiting because next stage is busy\n";
+        return;
     }
+    if (this->busy())
+    {
+        std::cout << "Decode continuing to work on its task\n";
+        return;
+    }
+    this->_busy = true;
+
+    RawInstruction *instruction = this->staged();
+
+    std::cout << "Decode processing instruction: " << instruction << "\n";
+
+    DecodedInstruction *decodedInstruction = this->decode(instruction);
+    delete instruction; // All data has been saved to decodedInstruction
+
+    this->next->stage(decodedInstruction);
+    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+    masterEventQueue.push(workCompleted);
 }

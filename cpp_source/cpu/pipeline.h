@@ -15,6 +15,7 @@ struct Pipeline : SimulationDevice
 {
     Register<RawInstruction *> memory;
     Pipeline *next;
+    bool _busy = false;
 
     Pipeline(std::string type);
     Pipeline(std::string type, Pipeline *next);
@@ -23,10 +24,11 @@ struct Pipeline : SimulationDevice
 
     void stage(RawInstruction *);
     void flush();
+    bool busy();
 
     RawInstruction *staged();
 
-    void tick();
+    void process(Event *event);
 
     std::string __str__();
 };

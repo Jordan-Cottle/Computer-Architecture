@@ -40,6 +40,17 @@ void Pipeline::stage(RawInstruction *instruction)
 void Pipeline::flush()
 {
     this->memory.clear(0);
+    this->_busy = false;
+}
+
+bool Pipeline::busy()
+{
+    if (this->next != NULL && this->next->busy())
+    {
+        return true;
+    }
+
+    return this->_busy;
 }
 
 RawInstruction *Pipeline::staged()
@@ -47,10 +58,15 @@ RawInstruction *Pipeline::staged()
     return this->memory.read(0);
 }
 
-void Pipeline::tick()
+void Pipeline::process(Event *event)
 {
-    this->flush();
-    SimulationDevice::tick();
+    if (event->type == "WorkCompleted")
+    {
+        event->handled = true;
+        this->flush();
+    }
+
+    SimulationDevice::process(event);
 }
 
 std::string Pipeline::__str__()

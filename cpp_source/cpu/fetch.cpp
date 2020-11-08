@@ -18,14 +18,27 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 
 void Fetch::tick()
 {
-    RawInstruction *instruction = this->staged();
     Pipeline::tick();
 
-    if (instruction == NULL)
+    if (this->next->busy())
     {
-        std::cout << "No instruction fetched\n";
+        std::cout << "Fetch waiting because next stage is busy\n";
         return;
     }
+    if (this->busy())
+    {
+        std::cout << "Fetch continuing to work on its task\n";
+        return;
+    }
+    if (this->free())
+    {
+        std::cout << "Fetching new instruction\n";
+        this->stage(new RawInstruction(this->cpu->ram.read<uint32_t>(this->cpu->programCounter.value)));
+        ++this->cpu->programCounter;
+    }
+    this->_busy = true;
+
+    RawInstruction *instruction = this->staged();
 
     std::cout << "Fetch processing instruction: " << instruction << "\n";
 
@@ -73,16 +86,7 @@ void Fetch::tick()
         Event *complete = new Event("Complete", simulationClock.cycle + this->cpu->pipelines.size(), this->cpu);
         masterEventQueue.push(complete);
     }
-}
 
-void Fetch::process(Event *event)
-{
-    if (event->type == "Fetch")
-    {
-        event->handled = true;
-        this->stage(new RawInstruction(this->cpu->ram.read<uint32_t>(this->cpu->programCounter.value)));
-        ++this->cpu->programCounter;
-    }
-
-    Pipeline::process(event);
+    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+    masterEventQueue.push(workCompleted);
 }

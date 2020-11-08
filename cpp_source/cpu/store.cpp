@@ -9,6 +9,9 @@
 
 #include "cpu.h"
 
+#include "simulation.h"
+using namespace Simulation;
+
 StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 {
     this->cpu = cpu;
@@ -16,14 +19,21 @@ StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 
 void StorePipeline::tick()
 {
-    Store *instruction = (Store *)this->staged();
     Pipeline::tick();
 
-    if (instruction == NULL)
+    if (this->free())
     {
         std::cout << "No instruction to store\n";
         return;
     }
+    if (this->busy())
+    {
+        std::cout << "Store continuing to work on its task\n";
+        return;
+    }
+    this->_busy = true;
+
+    Store *instruction = (Store *)this->staged();
 
     std::cout << "Store processing instruction: " << instruction << "\n";
 
@@ -31,4 +41,6 @@ void StorePipeline::tick()
 
     // No further reference to instruction will be created
     delete instruction;
+    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+    masterEventQueue.push(workCompleted);
 }

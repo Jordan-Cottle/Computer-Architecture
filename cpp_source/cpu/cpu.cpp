@@ -21,7 +21,7 @@ constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 4;
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT, "Integer")),
              fpRegister(Register<float>(REGISTER_COUNT, "Float")),
-             ram(Memory(MEMORY_SIZE, MEMORY_DELAY))
+             ram(Memory(MEMORY_SIZE, MEMORY_DELAY, {0x200, 0x1400 - 0x200}))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
@@ -61,14 +61,16 @@ void Cpu::tick()
     // Work pipelines backwards
     // This allows allows each stage to set the instruction into the next stage with worrying
     // about the instruction being boosted all the way through the pipeline in a single cycle
-    int i = SIM_CYCLES_PER_CPU;
+    int i = 0;
     for (auto pipeline : this->pipelines)
     {
-        masterEventQueue.push(new Event("Tick", simulationClock.cycle + --i, pipeline));
+        masterEventQueue.push(new Event("Tick", simulationClock.cycle, pipeline, MEDIUM + i));
+
+        i += 2; // Leave space between pipeline priorities for other events to go
     }
 
-    masterEventQueue.push(new Event("Fetch", simulationClock.cycle + i, this->pipelines[0], 11));
-    masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
+    // Make sure any other events scheduled for this time are handled before main cpu tick
+    masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, LOW));
 
     SimulationDevice::tick();
 }
