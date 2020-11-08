@@ -36,6 +36,11 @@ void Store::execute(Cpu *cpu)
     }
     else
     {
+        if (this->targetRegisterIndex == 0)
+        {
+            throw std::runtime_error("Stores to register 0 have no effect!");
+        }
+
         int data = cpu->intRegister.read(this->targetRegisterIndex);
 
         std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
