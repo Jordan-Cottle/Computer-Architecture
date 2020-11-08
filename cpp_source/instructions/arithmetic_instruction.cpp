@@ -55,7 +55,7 @@ void Add::execute(Cpu *cpu)
 std::string Add::__str__()
 {
     std::string prefix;
-    if (this->immediate)
+    if (this->isFp)
     {
         prefix = "F";
     }
