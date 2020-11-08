@@ -15,6 +15,7 @@ struct StorePipeline : Pipeline
     StorePipeline(Cpu *cpu);
 
     void tick();
+    void process(Event *event);
 };
 
 #endif

@@ -33,14 +33,39 @@ void StorePipeline::tick()
     }
     this->_busy = true;
 
-    Store *instruction = (Store *)this->staged();
+    Event *event = new Event("MemoryRequest", simulationClock.cycle, this, HIGH);
+    masterEventQueue.push(event);
+}
 
-    std::cout << "Store processing instruction: " << instruction << "\n";
+void StorePipeline::process(Event *event)
+{
+    if (event->type == "WorkCompleted")
+    {
+        event->handled = true;
+        Store *instruction = (Store *)this->staged();
+        std::cout << "Store processing instruction: " << instruction << "\n";
+        instruction->execute(this->cpu);
 
-    instruction->execute(this->cpu);
+        // No further reference to instruction will be created
+        delete instruction;
+    }
+    else if (event->type == "MemoryRequest")
+    {
+        event->handled = true;
+        Store *store = (Store *)this->staged();
+        bool accepted = this->cpu->ram.request(store->memoryAddress(this->cpu), this);
+        if (!accepted)
+        {
+            Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
+            masterEventQueue.push(event);
+        }
+    }
+    else if (event->type == "MemoryReady")
+    {
+        event->handled = true;
+        Event *event = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+        masterEventQueue.push(event);
+    }
 
-    // No further reference to instruction will be created
-    delete instruction;
-    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
-    masterEventQueue.push(workCompleted);
+    Pipeline::process(event);
 }
