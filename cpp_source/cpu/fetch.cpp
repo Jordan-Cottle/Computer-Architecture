@@ -6,6 +6,7 @@
 #include "fetch.h"
 
 #include "opcodes.h"
+#include "control_instructions.h"
 
 #include "simulation.h"
 using namespace Simulation;
@@ -28,8 +29,9 @@ void Fetch::tick()
 
     std::cout << "Fetch processing instruction: " << instruction << "\n";
 
+    uint32_t opcode = getOpcode(instruction->data);
     // TODO move branch predicting logic into a branch prediction unit
-    if (getOpcode(instruction->data) == 0b1100011)
+    if (opcode == 0b1100011)
     { // Branch detected, attempt a prediction
 
         this->cpu->branchSpeculated = true;
@@ -37,6 +39,27 @@ void Fetch::tick()
         this->cpu->programCounter.jump(getImmediateSB(instruction->data));
 
         std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
+    }
+    else if (opcode == 0b1101111)
+    {
+        this->cpu->branchSpeculated = true;
+        this->cpu->jumpedFrom = this->cpu->programCounter.value;
+
+        Jump jump = Jump(instruction);
+        std::cout << "Jump to " << jump.destination << " detected\n";
+
+        this->cpu->programCounter.jump(jump.destination);
+    }
+    else if (opcode == 0b1100111)
+    {
+        this->cpu->branchSpeculated = true;
+        this->cpu->jumpedFrom = this->cpu->programCounter.value;
+
+        Jalr jalr = Jalr(instruction);
+
+        int destination = jalr.destination + cpu->intRegister.read(jalr.sourceIndex);
+        this->cpu->programCounter.jump(destination);
+        std::cout << "Jalr to " << this->cpu->programCounter << " detected\n";
     }
 
     // Stop fetching if halt is encountered

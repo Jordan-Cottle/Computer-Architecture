@@ -54,4 +54,8 @@ uint32_t getImmediateU(uint32_t data);
 
 uint32_t getImmediateUB(uint32_t data);
 
+int twos_compliment(uint32_t data, uint8_t bit_length);
+
+uint32_t sign_extend(uint32_t data, uint8_t sign_bit_index);
+
 #endif // __OPCODES__

@@ -25,7 +25,15 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Store(instruction);
     }
+    else if (op == "sw")
+    {
+        return new Store(instruction);
+    }
     else if (op == "flw")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lw")
     {
         return new Load(instruction);
     }
@@ -37,13 +45,33 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Add(instruction);
     }
+    else if (op == "lui")
+    {
+        return new Lui(instruction);
+    }
     else if (op == "add")
     {
         return new Add(instruction);
     }
+    else if (op == "slli")
+    {
+        return new Slli(instruction);
+    }
     else if (op == "bne")
     {
         return new Bne(instruction);
+    }
+    else if (op == "blt")
+    {
+        return new Blt(instruction);
+    }
+    else if (op == "jal")
+    {
+        return new Jump(instruction);
+    }
+    else if (op == "jalr")
+    {
+        return new Jalr(instruction);
     }
 
     throw std::runtime_error("Unrecognized instruction " + op + " " + str(instruction));

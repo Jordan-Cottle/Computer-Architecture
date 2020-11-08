@@ -13,15 +13,15 @@
 using namespace Simulation;
 
 constexpr int REGISTER_COUNT = 32;
-constexpr int MEMORY_COUNT = 32;
+constexpr int MEMORY_SIZE = 0x1400;
 constexpr int MEMORY_DELAY = 20;
 constexpr int SIM_CYCLES_PER_CPU = 10;
 constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 4;
 
 Cpu::Cpu() : SimulationDevice("Cpu"),
-             intRegister(Register<int>(REGISTER_COUNT)),
-             fpRegister(Register<float>(REGISTER_COUNT)),
-             ram(Memory(MEMORY_COUNT * 4, MEMORY_DELAY))
+             intRegister(Register<int>(REGISTER_COUNT, "Integer")),
+             fpRegister(Register<float>(REGISTER_COUNT, "Float")),
+             ram(Memory(MEMORY_SIZE, MEMORY_DELAY))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
@@ -56,7 +56,7 @@ void Cpu::process(Event *event)
 
 void Cpu::tick()
 {
-    std::cout << simulationClock << "\n";
+    std::cout << "Cpu cycle " << this->clocksProcessed << ": " << this->programCounter << "\n";
     // Work pipelines backwards
     // This allows allows each stage to set the instruction into the next stage with worrying
     // about the instruction being boosted all the way through the pipeline in a single cycle
@@ -68,6 +68,8 @@ void Cpu::tick()
 
     masterEventQueue.push(new Event("Fetch", simulationClock.cycle + i, this->pipelines[0], 11));
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
+
+    SimulationDevice::tick();
 }
 
 void Cpu::loadProgram(std::string fileName)
@@ -94,23 +96,6 @@ void Cpu::flush()
     for (auto pipeline : this->pipelines)
     {
         pipeline->flush();
-        masterEventQueue.flush(simulationClock.cycle + 1, pipeline);
-
-        // Don't flush anything past the execute stage
-        if (pipeline->type == "Execute")
-        {
-            break;
-        }
-    }
-
-    // Fetch event was deleted, put it back
-    if (!this->complete)
-    {
-        Fetch *fetchUnit = dynamic_cast<Fetch *>(this->getPipeline("Fetch"));
-
-        Event *fetchEvent = new Event("Fetch", simulationClock.cycle + 1, fetchUnit);
-
-        masterEventQueue.push(fetchEvent);
     }
 }
 

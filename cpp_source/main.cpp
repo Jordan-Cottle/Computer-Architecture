@@ -57,16 +57,16 @@ struct TestPipeline : Pipeline
 };
 
 TestPipeline testPipeline;
-Fetch fetchUnit = Fetch(&cpu);
 
 void fetchTest()
 {
+    Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
     cpu.addPipeline(&testPipeline);
 
     cpu.loadProgram("test_program.bin");
 
-    masterEventQueue.tick(0);
+    fetchUnit.process(new Event("Fetch", 0, &fetchUnit));
     assert(fetchUnit.staged() != NULL);
     RawInstruction *instruction = fetchUnit.staged();
 
@@ -82,11 +82,14 @@ constexpr float E = 2.718281828f;
 
 void fpTest()
 {
-    cpu.ram.write(120, PI);
+    const int RAM_LOCATION = 124;
+    cpu.ram.write(RAM_LOCATION, PI);
     cpu.fpRegister.write(2, E);
 
-    cpu.intRegister.write(1, 120); // Read/write from ram[120]
+    // Read/write from ram[124] (offsets in program are set to +/- 4)
+    cpu.intRegister.write(1, RAM_LOCATION - 4);
 
+    Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
 
     cpu.loadProgram("fpTest.bin");
@@ -101,9 +104,9 @@ void fpTest()
     instruction = RawInstruction(cpu.ram.read<uint32_t>(4));
     Add add = Add(&instruction);
 
-    assert(cpu.intRegister.read(1) == 120);
+    assert(cpu.intRegister.read(1) == RAM_LOCATION - 4);
     add.execute(&cpu);
-    assert(cpu.intRegister.read(1) == 124);
+    assert(cpu.intRegister.read(1) == RAM_LOCATION + 4);
 
     instruction = RawInstruction(cpu.ram.read<uint32_t>(8));
     add = Add(&instruction);
@@ -116,9 +119,16 @@ void fpTest()
     instruction = RawInstruction(cpu.ram.read<uint32_t>(12));
     Store store = Store(&instruction);
 
-    assert(cpu.ram.read<float>(120) == PI);
+    assert(cpu.ram.read<float>(RAM_LOCATION) == PI);
     store.execute(&cpu);
-    assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
+    assert(cpu.ram.read<float>(RAM_LOCATION) == cpu.fpRegister.read(3));
+
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(16));
+    add = Add(&instruction);
+
+    assert(cpu.intRegister.read(1) == RAM_LOCATION + 4);
+    add.execute(&cpu);
+    assert(cpu.intRegister.read(1) == RAM_LOCATION);
 }
 
 void decodeTest()
@@ -159,22 +169,22 @@ void executeTest()
 
     Add *add = new Add(instruction);
 
+    cpu.intRegister.write(1, 0);
     assert(cpu.intRegister.read(1) == 0);
     execute.stage(add);
     execute.tick();
     testPipeline.tick();
 
-    std::cout << cpu.intRegister << "\n";
-    assert(cpu.intRegister.read(1) == 4);
+    assert(cpu.intRegister.read(1) == 8);
 }
 
 void storeTest()
 {
 
-    cpu.intRegister.write(1, 20); // Store in memory address 20
+    const int RAM_LOCATION = 100;
+    cpu.intRegister.write(1, RAM_LOCATION);
 
     cpu.fpRegister.write(3, PI); // Pi
-    std::cout << "Float " << cpu.fpRegister << "\n";
 
     StorePipeline store = StorePipeline(&cpu);
     cpu.addPipeline(&store);
@@ -184,10 +194,10 @@ void storeTest()
     RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(12));
     Store *storeInstruction = new Store(instruction);
 
-    assert(cpu.ram.read<float>(16) == 0);
+    assert(cpu.ram.read<float>(RAM_LOCATION - 4) == 0);
     store.stage(storeInstruction);
     store.tick();
-    assert(cpu.ram.read<float>(16) == PI);
+    assert(cpu.ram.read<float>(RAM_LOCATION - 4) == PI);
 }
 
 void cpuTest()
@@ -229,16 +239,16 @@ void cpuTest()
 
     while (!cpu.complete)
     {
-        std::cout << "\n"
-                  << simulationClock << "\n";
+        // std::cout << "\n"
+        //           << simulationClock << "\n";
 
-        std::cout << "\n~~~EventQueue~~~\n";
-        std::cout << masterEventQueue << "\n";
+        // std::cout << "\n~~~EventQueue~~~\n";
+        // std::cout << masterEventQueue << "\n";
 
-        std::cout << "\n~~~Processing events~~~\n";
+        // std::cout << "\n~~~Processing events~~~\n";
         masterEventQueue.tick(simulationClock.cycle);
 
-        std::cout << "\n~~~Ticking cpu~~~\n";
+        // std::cout << "\n~~~Ticking cpu~~~\n";
 
         simulationClock.tick();
     }
@@ -254,7 +264,7 @@ void cpuTest()
     }
 
     std::cout << "Memory state verified!\n";
-    std::cout << cpu.ram << "\n";
+    // std::cout << cpu.ram << "\n";
 }
 
 void memoryTest()
@@ -271,8 +281,6 @@ void memoryTest()
     float num = .1f;
     memory.write(4, num);
     assert(memory.read<float>(4) == num);
-
-    std::cout << memory << "\n";
 }
 
 void binaryReadTest()
@@ -282,21 +290,20 @@ void binaryReadTest()
     cpu.loadProgram("test_program.bin");
 
     std::vector<uint32_t> expected = {
-        0b00000000000000000010000011000011,
-        0b00000000000000000000000000011011,
-        0b00000000001100000000000100010111,
-        0b00000000000000000000000000011011,
-        0b00000000000000000000000000011011,
-        0b00000000001100001010000001001011,
+        0b00000000000000001010000000000111,
+        0b00000000000000000000000000110011,
+        0b00000000001000000000000111010011,
+        0b00000000000000000000000000110011,
+        0b00000000000000000000000000110011,
+        0b00000000001100001010000000100111,
         0b11111111110000001000000010010011,
-        0b00000000000100010100000000001111,
+        0b00000000001000001001000001100011,
     };
 
     for (uint32_t i = 0; i < expected.size(); i++)
     {
         uint32_t instruction = cpu.ram.read<uint32_t>(i * 4);
         RawInstruction rInstruction = RawInstruction(instruction);
-        std::cout << rInstruction << "\n";
         assert(instruction == expected[i]);
     }
 }
@@ -314,10 +321,73 @@ void testOpcodes()
 
     assert(getImmediateU(0xABCDEF12) == 0xABCDE000);
     assert(getImmediateUB(0xABCDEF12) == 0x001DE2BC);
+
+    assert(sign_extend(1024, 11) == 1024);
+    assert((int)sign_extend(1, 0) == -1);
+    assert(sign_extend(2048, 11) == 0xFFFFF800);
+    assert(sign_extend(2048, 11) + (2048 << 1) == 0x00000800);
+    assert((int)sign_extend(4, 2) == -4);
+    assert((int)sign_extend(-4, 2) == -4);
+}
+
+void runProgram(std::string name)
+{
+    const int ARRAY_A_START = 0x400;
+    const int ARRAY_B_START = 0x800;
+    const int ARRAY_C_START = 0xC00;
+    const int ARRAY_SIZE = (ARRAY_B_START - ARRAY_A_START) / sizeof(float);
+
+    std::cout << "Array length: " << ARRAY_SIZE << "\n";
+
+    // Initialize arrays in fp memory
+    for (int i = 0; i < ARRAY_SIZE; i++)
+    {
+        int memOffset = i * sizeof(float);
+        cpu.ram.write(ARRAY_A_START + memOffset, i * 0.5f);
+        cpu.ram.write(ARRAY_B_START + memOffset, i * 0.5f);
+    }
+
+    cpu.addPipeline(new Fetch(&cpu))
+        ->addPipeline(new Decode(&cpu))
+        ->addPipeline(new Execute(&cpu))
+        ->addPipeline(new StorePipeline(&cpu));
+
+    cpu.loadProgram(name);
+
+    cpu.intRegister.write(14, 0x2FF); // Set stack pointer at bottom of stack
+
+    // Set up initial cpu tick to kick things off
+    masterEventQueue.push(new Event("Tick", 0, &cpu));
+
+    while (!cpu.complete)
+    {
+        masterEventQueue.tick(simulationClock.cycle);
+
+        simulationClock.tick();
+    }
+    std::cout << "Program complete!\n";
+
+    std::cout << cpu.ram << "\n";
+}
+
+void run_tests()
+{
+    // These won't use the meq and so won't conflict with each other
+    std::cout << "Running tests\n";
+    fpTest();
+    testOpcodes();
+    memoryTest();
+    binaryReadTest();
+    fetchTest();
+    decodeTest();
+    executeTest();
+    storeTest();
+    std::cout << "Tests completed\n";
 }
 
 int main()
 {
-    cpuTest();
+    // run_tests();
+    runProgram("CPU0.bin");
     return 0;
 }

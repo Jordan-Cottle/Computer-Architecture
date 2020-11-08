@@ -77,15 +77,15 @@ The `DecodedInstruction` interface is an extension of the `Instruction` structur
 
 The `DecodedInstruction` structure is also responsible for detecting if an instruction is a `floating-point` or `integer` instruction type. It sets a flag that specific `DecodedInstruction` extensions can use to determine which registers/memories to target.
 
-There are currently three types of `DecodedInstructions` that represent different classes of `Instruction` that the `Cpu` is capable of executing. These are: `MemoryInstruction`, `BranchInstruction`, and `ArithmeticInstruction`
+There are currently three types of `DecodedInstructions` that represent different classes of `Instruction` that the `Cpu` is capable of executing. These are: `MemoryInstruction`, `ControlInstruction`, and `ArithmeticInstruction`
 
 ### MemoryInstruction
 
 The `MemoryInstruction` structure provides a standard interface for processing memory related instructions like `Load` and `Store`.
 
-### BranchInstruction
+### ControlInstruction
 
-The `BranchInstruction` structure provides a standard interface for processing execution control instructions. It does this by exposing a `take` method and `destination` attribute. The `take` method can be overloaded by extensions to determine the behavior of how the decision to branch or not is made. The core `BranchInstruction::execute` method should be sufficient for handling most branching logic given a properly overridden `take` method.
+The `ControlInstruction` structure provides a standard interface for processing execution control instructions. It does this by exposing a `take` method and `destination` attribute. The `take` method can be overloaded by extensions to determine the behavior of how the decision to branch or not is made. The core `ControlInstruction::execute` method should be sufficient for handling most branching logic given a properly overridden `take` method.
 
 ### ArithmeticInstruction
 

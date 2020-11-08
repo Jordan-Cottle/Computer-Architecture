@@ -17,12 +17,9 @@ Store::Store(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
     this->targetRegisterIndex = getR2(instruction->data);
 
-    int offset = getImmediateS(instruction->data);
+    this->memoryOffset = getImmediateS(instruction->data);
 
-    // Convert 12th bit to negative
-    offset += -4096 * ((int)getBit(offset, 11) >> 11);
-
-    this->memoryOffset = offset;
+    this->memoryOffset = sign_extend(this->memoryOffset, 11);
 }
 
 // Execute/Store
@@ -39,6 +36,11 @@ void Store::execute(Cpu *cpu)
     }
     else
     {
+        if (this->targetRegisterIndex == 0)
+        {
+            throw std::runtime_error("Stores to register 0 have no effect!");
+        }
+
         int data = cpu->intRegister.read(this->targetRegisterIndex);
 
         std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
@@ -65,6 +67,9 @@ Load::Load(RawInstruction *instruction) : MemoryInstruction(instruction)
 {
     this->targetRegisterIndex = getRd(instruction->data);
     this->memoryOffset = getImmediateI(instruction->data);
+
+    // Handle 12 bit 2's compliment
+    this->memoryOffset = sign_extend(this->memoryOffset, 11);
 }
 
 void Load::execute(Cpu *cpu)

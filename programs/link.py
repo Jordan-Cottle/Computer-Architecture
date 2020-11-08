@@ -297,8 +297,17 @@ class InstructionTemplate:
 
 
 def twos_compliment(num, bits):
-    b = (num).to_bytes(bits // 4 + 1, byteorder="big", signed=True)
-    return bin(int.from_bytes(b, byteorder="big"))[-bits:]
+    if num < 0:
+        b = (num).to_bytes(bits // 4 + 1, byteorder="big", signed=True)
+        return bin(int.from_bytes(b, byteorder="big"))[-bits:]
+
+    b = bin(num)[2:]
+
+    assert len(b) <= bits, f"{num} does not fit into {bits} bits!"
+
+    while len(b) < bits:
+        b = "0" + b
+    return b
 
 
 ROUNDING_MODE = "000"
@@ -313,53 +322,59 @@ def resolve_abi_name(token):
 
 
 def split_bits(num):
-    if num < 0:
-        bits = twos_compliment(num, 32)
-    else:
-        bits = bin(num)[2:]
-        while len(bits) < 32:
-            bits = "0" + bits
+    bits = twos_compliment(num, 32)
 
     return bits[:20], bits[20:]
 
 
 MACROS = {
-    "nop": "addi x0, x0, 0",  # No operation
+    "nop": "addi zero, zero, 0",  # No operation
     "mv": "addi {0}, {1}, 0",  # Copy register
     "not": "xori {0}, {1}, -1",  # One’s complement
-    "neg": "sub {0}, x0, {1}",  # Two’s complement
-    "negw": "subw {0}, x0, {1}",  # Two’s complement word
+    "neg": "sub {0}, zero, {1}",  # Two’s complement
+    "negw": "subw {0}, zero, {1}",  # Two’s complement word
     "sext.w": "addiw {0}, {1}, 0",  # Sign extend word
     "seqz": "sltiu {0}, {1}, 1",  # Set if = zero
-    "snez": "sltu {0}, x0, {1}",  # Set if != zero
-    "sltz": "slt {0}, {1}, x0",  # Set if < zero
-    "sgtz": "slt {0}, x0, {1}",  # Set if > zero
+    "snez": "sltu {0}, zero, {1}",  # Set if != zero
+    "sltz": "slt {0}, {1}, zero",  # Set if < zero
+    "sgtz": "slt {0}, zero, {1}",  # Set if > zero
     "fmv.s": "fsgnj.s {0}, {1}, {1}",  # Copy single-precision register
     "fabs.s": "fsgnjx.s {0}, {1}, {1}",  # Single-precision absolute value
     "fneg.s": "fsgnjn.s {0}, {1}, {1}",  # Single-precision negate
     "fmv.d": "fsgnj.d {0}, {1}, {1}",  # Copy double-precision register
     "fabs.d": "fsgnjx.d {0}, {1}, {1}",  # Double-precision absolute value
     "fneg.d": "fsgnjn.d {0}, {1}, {1}",  # Double-precision negate
-    "beqz": "beq {0}, x0, {1}",  # Branch if = zero
-    "bnez": "bne {0}, x0, {1}",  # Branch if != zero
-    "blez": "bge x0, {0}, {1}",  # Branch if ≤ zero
-    "bgez": "bge {0}, x0, {1}",  # Branch if ≥ zero
-    "bltz": "blt {0}, x0, {1}",  # Branch if < zero
-    "bgtz": "blt x0, {0}, {1}",  # Branch if > zero
+    "beqz": "beq {0}, zero, {1}",  # Branch if = zero
+    "bnez": "bne {0}, zero, {1}",  # Branch if != zero
+    "blez": "bge zero, {0}, {1}",  # Branch if ≤ zero
+    "bgez": "bge {0}, zero, {1}",  # Branch if ≥ zero
+    "bltz": "blt {0}, zero, {1}",  # Branch if < zero
+    "bgtz": "blt zero, {0}, {1}",  # Branch if > zero
     "bgt": "blt {1}, {0}, {2}",  # Branch if >
     "ble": "bge {1}, {0}, {2}",  # Branch if ≤
     "bgtu": "bltu {1}, {0}, {2}",  # Branch if >, unsigned
     "bleu": "bgeu {1}, {0}, {2}",  # Branch if ≤, unsigned
-    "j": "jal x0, {0}",  # Jump
-    "jal": "jal x1, {0}",  # Jump and link
-    "jr": "jalr x0, {0}, 0",  # Jump register
-    "jalr": "jalr x1, {0}, 0",  # Jump and link register
-    "ret": "jalr x0, x1, 0",  # Return from subroutine
+    "j": "jal zero, {0}",  # Jump
+    "jal": "jal ra, {0}",  # Jump and link
+    "jr": "jalr zero, {0}, 0",  # Jump register
+    "jalr": "jalr ra, {0}, 0",  # Jump and link register
+    "ret": "jalr zero, ra, 0",  # Return from subroutine
 }
 
 
+def split_high(num):
+    """ Assumes that a %low is following. """
+
+    high, low = split_bits(num)
+
+    if low[0] == "1":
+        high, _ = split_bits(num << 1)
+
+    return high
+
+
 ASSEMBLER_RELOCATIONS = {
-    r"%hi": lambda num: int(split_bits(num)[0], 2) << 12,
+    r"%hi": lambda num: int(split_high(num), 2) << 12,
     r"%lo": lambda num: int(split_bits(num)[1], 2),
 }
 
@@ -389,10 +404,10 @@ class Instruction(InstructionTemplate):
     @classmethod
     def parse(cls, line, labels):
         keyword, *args = line.split()
-        args = [parse_token(arg) for arg in args]
-
         if keyword in MACROS:
             keyword, *args = MACROS[keyword].format(*args).split()
+
+        args = [parse_token(arg) for arg in args]
 
         print(keyword, args)
 
@@ -440,6 +455,7 @@ class Instruction(InstructionTemplate):
                 try:
                     value = int(arg)
                 except ValueError:
+                    print(f"Resolving label: {arg} => {labels[arg]}")
                     value = labels[arg]
 
             target_length = len(instruction.immediate)
@@ -561,6 +577,10 @@ assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
 instruction = Instruction.parse("fsw f3 -4(x1)", labels={})
 expected = f"11111110001100001010111000100111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("sw	ra, 12(sp)", labels={})
+expected = f"00000000000101110010011000100011"
 assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
 

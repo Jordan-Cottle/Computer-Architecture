@@ -10,7 +10,7 @@
 
 ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
-    this->immediate = !this->isFp && getBit(instruction->data, 5) == 0;
+    this->immediate = !this->isFp && getOpcode(instruction->data) == 0b0010011;
 
     this->destinationIndex = getRd(instruction->data);
     this->leftIndex = getR1(instruction->data);
@@ -21,10 +21,7 @@ ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : Deco
     }
     else
     {
-        this->rightIndex = getImmediateI(instruction->data);
-
-        // Set 12'th bit to negative
-        this->rightIndex += -4096 * ((int)getBit(this->rightIndex, 11) >> 11);
+        this->rightIndex = sign_extend(getImmediateI(instruction->data), 11);
     }
 }
 
@@ -40,6 +37,7 @@ void Add::execute(Cpu *cpu)
 
         float right = cpu->fpRegister.read(this->rightIndex);
 
+        std::cout << "F" + str(this->destinationIndex) << " <- " << str(left) << " " << str(right) << "\n";
         cpu->fpRegister.write(this->destinationIndex, right + left);
     }
     else
@@ -48,6 +46,7 @@ void Add::execute(Cpu *cpu)
 
         int right = this->immediate ? this->rightIndex : cpu->intRegister.read(this->rightIndex);
 
+        std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " " << str(right) << "\n";
         cpu->intRegister.write(this->destinationIndex, left + right);
     }
 }
@@ -55,7 +54,7 @@ void Add::execute(Cpu *cpu)
 std::string Add::__str__()
 {
     std::string prefix;
-    if (this->immediate)
+    if (this->isFp)
     {
         prefix = "F";
     }
@@ -75,4 +74,28 @@ std::string Add::__str__()
     }
 
     return s + ")";
+}
+
+Lui::Lui(RawInstruction *instruction) : ArithmeticInstruction(instruction)
+{
+    this->leftIndex = getImmediateU(instruction->data);
+}
+
+void Lui::execute(Cpu *cpu)
+{
+    std::cout << "x" + str(this->destinationIndex) << " <- " << str(this->leftIndex) << "\n";
+    cpu->intRegister.write(this->destinationIndex, this->leftIndex);
+}
+
+Slli::Slli(RawInstruction *instruction) : ArithmeticInstruction(instruction)
+{
+    // Shift can be at most 31 bits (32 bit shift would result in all 0s)
+    this->rightIndex = this->rightIndex & 0x1F;
+}
+
+void Slli::execute(Cpu *cpu)
+{
+    int left = cpu->intRegister.read(this->leftIndex);
+    std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " << " << str(this->rightIndex) << "\n";
+    cpu->intRegister.write(this->destinationIndex, left << this->rightIndex);
 }

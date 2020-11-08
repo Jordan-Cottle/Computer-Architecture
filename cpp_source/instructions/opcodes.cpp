@@ -412,3 +412,23 @@ uint32_t getImmediateUB(uint32_t data)
 
     return bits;
 }
+
+int twos_compliment(uint32_t data, uint8_t bit_length)
+{
+    int value = data;
+    uint8_t bit_index = bit_length - 1;
+    value += -(1 << (bit_length)) * ((int)getBit(value, bit_index) >> bit_index);
+    return value;
+}
+
+uint32_t sign_extend(uint32_t data, uint8_t sign_bit_index)
+{
+    uint32_t sign = getBit(data, sign_bit_index) >> sign_bit_index;
+
+    for (int i = sign_bit_index + 1; i < 32; i++)
+    {
+        data |= sign << i;
+    }
+
+    return data;
+}
