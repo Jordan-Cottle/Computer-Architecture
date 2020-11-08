@@ -42,4 +42,13 @@ std::string DecodedInstruction::__str__()
 DecodedInstruction::DecodedInstruction(RawInstruction *instruction) : RawInstruction(instruction->data)
 {
     this->isFp = instruction->keyword()[0] == 'f';
+
+    if (this->isFp)
+    {
+        this->executionTime = 5;
+    }
+    else
+    {
+        this->executionTime = 1;
+    }
 }
