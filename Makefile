@@ -6,7 +6,8 @@ TESTS:= fetch_test \
 	store_test \
 	cpu_test \
 	memory_test \
-	binary_test
+	binary_test \
+	opcode_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1
 BINARIES := $(addsuffix .bin, ${PROGRAMS})
