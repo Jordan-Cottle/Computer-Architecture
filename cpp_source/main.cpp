@@ -57,16 +57,16 @@ struct TestPipeline : Pipeline
 };
 
 TestPipeline testPipeline;
-Fetch fetchUnit = Fetch(&cpu);
 
 void fetchTest()
 {
+    Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
     cpu.addPipeline(&testPipeline);
 
     cpu.loadProgram("test_program.bin");
 
-    masterEventQueue.tick(0);
+    fetchUnit.process(new Event("Fetch", 0, &fetchUnit));
     assert(fetchUnit.staged() != NULL);
     RawInstruction *instruction = fetchUnit.staged();
 
@@ -89,6 +89,7 @@ void fpTest()
     // Read/write from ram[124] (offsets in program are set to +/- 4)
     cpu.intRegister.write(1, RAM_LOCATION - 4);
 
+    Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
 
     cpu.loadProgram("fpTest.bin");
@@ -168,22 +169,22 @@ void executeTest()
 
     Add *add = new Add(instruction);
 
+    cpu.intRegister.write(1, 0);
     assert(cpu.intRegister.read(1) == 0);
     execute.stage(add);
     execute.tick();
     testPipeline.tick();
 
-    std::cout << cpu.intRegister << "\n";
-    assert(cpu.intRegister.read(1) == 4);
+    assert(cpu.intRegister.read(1) == 8);
 }
 
 void storeTest()
 {
 
-    cpu.intRegister.write(1, 20); // Store in memory address 20
+    const int RAM_LOCATION = 100;
+    cpu.intRegister.write(1, RAM_LOCATION);
 
     cpu.fpRegister.write(3, PI); // Pi
-    std::cout << "Float " << cpu.fpRegister << "\n";
 
     StorePipeline store = StorePipeline(&cpu);
     cpu.addPipeline(&store);
@@ -193,10 +194,10 @@ void storeTest()
     RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(12));
     Store *storeInstruction = new Store(instruction);
 
-    assert(cpu.ram.read<float>(16) == 0);
+    assert(cpu.ram.read<float>(RAM_LOCATION - 4) == 0);
     store.stage(storeInstruction);
     store.tick();
-    assert(cpu.ram.read<float>(16) == PI);
+    assert(cpu.ram.read<float>(RAM_LOCATION - 4) == PI);
 }
 
 void cpuTest()
@@ -238,16 +239,16 @@ void cpuTest()
 
     while (!cpu.complete)
     {
-        std::cout << "\n"
-                  << simulationClock << "\n";
+        // std::cout << "\n"
+        //           << simulationClock << "\n";
 
-        std::cout << "\n~~~EventQueue~~~\n";
-        std::cout << masterEventQueue << "\n";
+        // std::cout << "\n~~~EventQueue~~~\n";
+        // std::cout << masterEventQueue << "\n";
 
-        std::cout << "\n~~~Processing events~~~\n";
+        // std::cout << "\n~~~Processing events~~~\n";
         masterEventQueue.tick(simulationClock.cycle);
 
-        std::cout << "\n~~~Ticking cpu~~~\n";
+        // std::cout << "\n~~~Ticking cpu~~~\n";
 
         simulationClock.tick();
     }
@@ -263,7 +264,7 @@ void cpuTest()
     }
 
     std::cout << "Memory state verified!\n";
-    std::cout << cpu.ram << "\n";
+    // std::cout << cpu.ram << "\n";
 }
 
 void memoryTest()
@@ -280,8 +281,6 @@ void memoryTest()
     float num = .1f;
     memory.write(4, num);
     assert(memory.read<float>(4) == num);
-
-    std::cout << memory << "\n";
 }
 
 void binaryReadTest()
@@ -291,21 +290,20 @@ void binaryReadTest()
     cpu.loadProgram("test_program.bin");
 
     std::vector<uint32_t> expected = {
-        0b00000000000000000010000011000011,
-        0b00000000000000000000000000011011,
-        0b00000000001100000000000100010111,
-        0b00000000000000000000000000011011,
-        0b00000000000000000000000000011011,
-        0b00000000001100001010000001001011,
+        0b00000000000000001010000000000111,
+        0b00000000000000000000000000110011,
+        0b00000000001000000000000111010011,
+        0b00000000000000000000000000110011,
+        0b00000000000000000000000000110011,
+        0b00000000001100001010000000100111,
         0b11111111110000001000000010010011,
-        0b00000000000100010100000000001111,
+        0b00000000001000001001000001100011,
     };
 
     for (uint32_t i = 0; i < expected.size(); i++)
     {
         uint32_t instruction = cpu.ram.read<uint32_t>(i * 4);
         RawInstruction rInstruction = RawInstruction(instruction);
-        std::cout << rInstruction << "\n";
         assert(instruction == expected[i]);
     }
 }
@@ -397,5 +395,6 @@ void run_tests()
 int main()
 {
     run_tests();
+    // runProgram("CPU0.bin");
     return 0;
 }
