@@ -82,10 +82,12 @@ constexpr float E = 2.718281828f;
 
 void fpTest()
 {
-    cpu.ram.write(120, PI);
+    const int RAM_LOCATION = 124;
+    cpu.ram.write(RAM_LOCATION, PI);
     cpu.fpRegister.write(2, E);
 
-    cpu.intRegister.write(1, 120); // Read/write from ram[120]
+    // Read/write from ram[124] (offsets in program are set to +/- 4)
+    cpu.intRegister.write(1, RAM_LOCATION - 4);
 
     cpu.addPipeline(&fetchUnit);
 
@@ -101,9 +103,9 @@ void fpTest()
     instruction = RawInstruction(cpu.ram.read<uint32_t>(4));
     Add add = Add(&instruction);
 
-    assert(cpu.intRegister.read(1) == 120);
+    assert(cpu.intRegister.read(1) == RAM_LOCATION - 4);
     add.execute(&cpu);
-    assert(cpu.intRegister.read(1) == 124);
+    assert(cpu.intRegister.read(1) == RAM_LOCATION + 4);
 
     instruction = RawInstruction(cpu.ram.read<uint32_t>(8));
     add = Add(&instruction);
@@ -116,16 +118,16 @@ void fpTest()
     instruction = RawInstruction(cpu.ram.read<uint32_t>(12));
     Store store = Store(&instruction);
 
-    assert(cpu.ram.read<float>(120) == PI);
+    assert(cpu.ram.read<float>(RAM_LOCATION) == PI);
     store.execute(&cpu);
-    assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
+    assert(cpu.ram.read<float>(RAM_LOCATION) == cpu.fpRegister.read(3));
 
     instruction = RawInstruction(cpu.ram.read<uint32_t>(16));
     add = Add(&instruction);
 
-    assert(cpu.intRegister.read(1) == 124);
+    assert(cpu.intRegister.read(1) == RAM_LOCATION + 4);
     add.execute(&cpu);
-    assert(cpu.intRegister.read(1) == 120);
+    assert(cpu.intRegister.read(1) == RAM_LOCATION);
 }
 
 void decodeTest()
