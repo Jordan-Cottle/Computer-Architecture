@@ -6,7 +6,6 @@ using namespace Simulation;
 
 int main()
 {
-    Fetch fetchUnit = Fetch(&cpu);
     cpu.addPipeline(&fetchUnit);
     cpu.addPipeline(&testPipeline);
 

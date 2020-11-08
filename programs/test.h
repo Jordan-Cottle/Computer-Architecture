@@ -3,6 +3,16 @@
 #include "pipeline.h"
 #include "simulation.h"
 
+#include "fetch.h"
+#include "decode.h"
+#include "execute.h"
+#include "store.h"
+
+Fetch fetchUnit = Fetch(&Simulation::cpu);
+Decode decodeUnit = Decode(&Simulation::cpu);
+Execute executeUnit = Execute(&Simulation::cpu);
+StorePipeline storeUnit = StorePipeline(&Simulation::cpu);
+
 constexpr float PI = 3.141592654f;
 constexpr float E = 2.718281828f;
 
