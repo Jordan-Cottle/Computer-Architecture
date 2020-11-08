@@ -37,6 +37,7 @@ void Add::execute(Cpu *cpu)
 
         float right = cpu->fpRegister.read(this->rightIndex);
 
+        std::cout << "F" + str(this->destinationIndex) << " <- " << str(left) << " " << str(right) << "\n";
         cpu->fpRegister.write(this->destinationIndex, right + left);
     }
     else
@@ -45,6 +46,7 @@ void Add::execute(Cpu *cpu)
 
         int right = this->immediate ? this->rightIndex : cpu->intRegister.read(this->rightIndex);
 
+        std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " " << str(right) << "\n";
         cpu->intRegister.write(this->destinationIndex, left + right);
     }
 }
@@ -81,6 +83,7 @@ Lui::Lui(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 
 void Lui::execute(Cpu *cpu)
 {
+    std::cout << "x" + str(this->destinationIndex) << " <- " << str(this->leftIndex) << "\n";
     cpu->intRegister.write(this->destinationIndex, this->leftIndex);
 }
 
@@ -93,5 +96,6 @@ Slli::Slli(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 void Slli::execute(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
+    std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " << " << str(this->rightIndex) << "\n";
     cpu->intRegister.write(this->destinationIndex, left << this->rightIndex);
 }
