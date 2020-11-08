@@ -36,6 +36,11 @@ void ControlInstruction::execute(Cpu *cpu)
         }
     }
 
+    if (take)
+    {
+        std::cout << "Jumping to " << str(this->destination) << "\n";
+    }
+
     // Fetch unit has already made a correct prediction, nothing to do
     // TODO actual PC should be tracked separate from fetch unit's predictions
 }
@@ -57,7 +62,10 @@ Bne::Bne(RawInstruction *instruction) : BranchInstruction(instruction)
 
 bool Bne::take(Cpu *cpu)
 {
-    return cpu->intRegister.read(this->leftIndex) != cpu->intRegister.read(this->rightIndex);
+    int left = cpu->intRegister.read(this->leftIndex);
+    int right = cpu->intRegister.read(this->rightIndex);
+    std::cout << "Branching to " << str(this->destination) << " if " << str(left) << " != " << str(right) << "\n";
+    return left != right;
 }
 
 std::string Bne::__str__()
@@ -71,7 +79,10 @@ Blt::Blt(RawInstruction *instruction) : BranchInstruction(instruction)
 
 bool Blt::take(Cpu *cpu)
 {
-    return cpu->intRegister.read(this->leftIndex) < cpu->intRegister.read(this->rightIndex);
+    int left = cpu->intRegister.read(this->leftIndex);
+    int right = cpu->intRegister.read(this->rightIndex);
+    std::cout << "Branching to " << str(this->destination) << " if " << str(left) << " < " << str(right) << "\n";
+    return left < right;
 }
 
 std::string Blt::__str__()
