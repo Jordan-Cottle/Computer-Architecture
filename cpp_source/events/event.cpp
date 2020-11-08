@@ -23,7 +23,7 @@ bool Event ::operator<(const Event &other)
 {
     if (this->time == other.time)
     {
-        return this->priority < other.priority;
+        return this->priority > other.priority;
     }
 
     return this->time < other.time;

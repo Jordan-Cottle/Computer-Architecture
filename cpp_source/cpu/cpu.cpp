@@ -61,13 +61,13 @@ void Cpu::tick()
     // Work pipelines backwards
     // This allows allows each stage to set the instruction into the next stage with worrying
     // about the instruction being boosted all the way through the pipeline in a single cycle
-    int i = SIM_CYCLES_PER_CPU;
+    int i = 0;
     for (auto pipeline : this->pipelines)
     {
-        masterEventQueue.push(new Event("Tick", simulationClock.cycle + --i, pipeline));
+        masterEventQueue.push(new Event("Tick", simulationClock.cycle, pipeline, MEDIUM + i++));
     }
 
-    masterEventQueue.push(new Event("Fetch", simulationClock.cycle + i, this->pipelines[0], 11));
+    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0], HIGH));
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 
     SimulationDevice::tick();
