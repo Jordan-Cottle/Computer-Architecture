@@ -64,19 +64,23 @@ void Cpu::tick()
     int i = 0;
     for (auto pipeline : this->pipelines)
     {
-        masterEventQueue.push(new Event("Tick", simulationClock.cycle, pipeline, MEDIUM + i++));
+        masterEventQueue.push(new Event("Tick", simulationClock.cycle, pipeline, MEDIUM + i));
+
+        i += 2; // Leave space between pipeline priorities for other events to go
     }
 
-    if (!this->pipelines[0]->busy)
+    if (!this->pipelines[0]->busy())
     {
-        masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0], HIGH));
+        // Fetch event should be higher priority then Fetch Tick but less than Decode Tick
+        masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0], MEDIUM + 1));
     }
     else
     {
         std::cout << "Cpu not fetching due to busy Fetch unit\n";
     }
 
-    masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
+    // Make sure any other events scheduled for this time are handled before main cpu tick
+    masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, LOW));
 
     SimulationDevice::tick();
 }
