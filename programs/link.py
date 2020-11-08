@@ -362,8 +362,19 @@ MACROS = {
 }
 
 
+def split_high(num):
+    """ Assumes that a %low is following. """
+
+    high, low = split_bits(num)
+
+    if low[0] == "1":
+        high, _ = split_bits(num << 1)
+
+    return high
+
+
 ASSEMBLER_RELOCATIONS = {
-    r"%hi": lambda num: int(split_bits(num)[0], 2) << 12,
+    r"%hi": lambda num: int(split_high(num), 2) << 12,
     r"%lo": lambda num: int(split_bits(num)[1], 2),
 }
 
