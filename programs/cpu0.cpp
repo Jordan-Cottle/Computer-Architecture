@@ -49,6 +49,7 @@ void runProgram(std::string name)
     }
     std::cout << "Program complete!\n";
 
+    std::cout << "Analyzing memory state\n";
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
@@ -64,6 +65,7 @@ void runProgram(std::string name)
         // Ensure simulation and implementation match
         assert(ARRAY_C[i] == c);
     }
+    std::cout << "Memory analysis complete\n";
 
     std::cout << "Cpu clock cycles: " << cpu.clocksProcessed << "\n";
     std::cout << "Cpu instructions processed: " << cpu.instructionsProcessed << "\n";
