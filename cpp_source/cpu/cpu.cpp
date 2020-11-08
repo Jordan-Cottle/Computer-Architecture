@@ -67,7 +67,15 @@ void Cpu::tick()
         masterEventQueue.push(new Event("Tick", simulationClock.cycle, pipeline, MEDIUM + i++));
     }
 
-    masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0], HIGH));
+    if (!this->pipelines[0]->busy)
+    {
+        masterEventQueue.push(new Event("Fetch", simulationClock.cycle, this->pipelines[0], HIGH));
+    }
+    else
+    {
+        std::cout << "Cpu not fetching due to busy Fetch unit\n";
+    }
+
     masterEventQueue.push(new Event("Tick", simulationClock.cycle + SIM_CYCLES_PER_CPU, this, 0));
 
     SimulationDevice::tick();
