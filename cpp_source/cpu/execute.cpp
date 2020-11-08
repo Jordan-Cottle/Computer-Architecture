@@ -27,6 +27,7 @@ void Execute::tick()
     if (this->next->busy)
     {
         std::cout << "Execute waiting because next stage is busy\n";
+        this->busy = true;
         return;
     }
 

@@ -28,6 +28,7 @@ void Fetch::tick()
     if (this->next->busy)
     {
         std::cout << "Fetch waiting because next stage is busy\n";
+        this->busy = true;
         return;
     }
 

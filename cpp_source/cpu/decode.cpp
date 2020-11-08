@@ -89,6 +89,7 @@ void Decode::tick()
     if (this->next->busy)
     {
         std::cout << "Decode waiting because next stage is busy\n";
+        this->busy = true;
         return;
     }
 
