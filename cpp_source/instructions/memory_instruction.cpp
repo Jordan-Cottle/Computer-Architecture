@@ -19,8 +19,7 @@ Store::Store(RawInstruction *instruction) : MemoryInstruction(instruction)
 
     this->memoryOffset = getImmediateS(instruction->data);
 
-    // Handle 12 bit 2's compliment
-    this->memoryOffset = twos_compliment(this->memoryOffset, 12);
+    this->memoryOffset = sign_extend(this->memoryOffset, 11);
 }
 
 // Execute/Store
@@ -65,7 +64,7 @@ Load::Load(RawInstruction *instruction) : MemoryInstruction(instruction)
     this->memoryOffset = getImmediateI(instruction->data);
 
     // Handle 12 bit 2's compliment
-    this->memoryOffset = twos_compliment(this->memoryOffset, 12);
+    this->memoryOffset = sign_extend(this->memoryOffset, 11);
 }
 
 void Load::execute(Cpu *cpu)
