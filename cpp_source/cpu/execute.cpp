@@ -53,7 +53,7 @@ void Execute::tick()
 
         // Decoded instruction use complete. No further reference to it will be created
         delete instruction;
-        workCompleted = new Event("WorkCompleted", simulationClock.cycle + 10, this, HIGH);
+        workCompleted = new Event("WorkCompleted", simulationClock.cycle + instruction->executionTime * 10, this, HIGH);
     }
 
     this->cpu->instructionsProcessed++;

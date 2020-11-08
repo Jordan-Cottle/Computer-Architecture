@@ -30,6 +30,8 @@ struct DecodedInstruction : RawInstruction
 {
     bool isFp;
 
+    uint32_t executionTime;
+
     DecodedInstruction(RawInstruction *instruction);
 
     virtual void execute(Cpu *cpu) = 0;
