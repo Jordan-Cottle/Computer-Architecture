@@ -1,33 +1,4 @@
-#include <iostream>
-#include <stdlib.h>
-
-#include "event_queue.h"
-#include "event.h"
-
-#include "instruction.h"
-
-#include "device.h"
-
-#include "sim_register.h"
-
-#include "fetch.h"
-#include "decode.h"
-
-#include "memory_instruction.h"
-#include "arithmetic_instruction.h"
-
-#include "cpu.h"
-
-#include "execute.h"
-#include "store.h"
-
-#include "control_instructions.h"
-
-#include "sim_memory.h"
-
-#include "opcodes.h"
-
-#include "simulation.h"
+#include "test.h"
 using namespace Simulation;
 
 void runProgram(std::string name)
@@ -58,10 +29,10 @@ void runProgram(std::string name)
         ARRAY_B[i] = b;
     }
 
-    cpu.addPipeline(new Fetch(&cpu))
-        ->addPipeline(new Decode(&cpu))
-        ->addPipeline(new Execute(&cpu))
-        ->addPipeline(new StorePipeline(&cpu));
+    cpu.addPipeline(&fetchUnit)
+        ->addPipeline(&decodeUnit)
+        ->addPipeline(&executeUnit)
+        ->addPipeline(&storeUnit);
 
     cpu.loadProgram(name);
 
@@ -99,24 +70,8 @@ void runProgram(std::string name)
     std::cout << "Cpu cpi: " << cpu.cpi() << "\n";
 }
 
-void run_tests()
-{
-    // These won't use the meq and so won't conflict with each other
-    std::cout << "Running tests\n";
-    fpTest();
-    testOpcodes();
-    memoryTest();
-    binaryReadTest();
-    fetchTest();
-    decodeTest();
-    executeTest();
-    storeTest();
-    std::cout << "Tests completed\n";
-}
-
 int main()
 {
-    // run_tests();
     runProgram("CPU0.bin");
     return 0;
 }

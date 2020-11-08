@@ -1,4 +1,4 @@
-EXE := main
+EXE := cpu0
 TESTS:= fetch_test \
 	fp_test \
 	decode_test \
