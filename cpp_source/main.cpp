@@ -119,6 +119,13 @@ void fpTest()
     assert(cpu.ram.read<float>(120) == PI);
     store.execute(&cpu);
     assert(cpu.ram.read<float>(120) == cpu.fpRegister.read(3));
+
+    instruction = RawInstruction(cpu.ram.read<uint32_t>(16));
+    add = Add(&instruction);
+
+    assert(cpu.intRegister.read(1) == 124);
+    add.execute(&cpu);
+    assert(cpu.intRegister.read(1) == 120);
 }
 
 void decodeTest()
@@ -365,6 +372,6 @@ void runProgram(std::string name)
 
 int main()
 {
-    runProgram("CPU0.bin");
+    fpTest();
     return 0;
 }
