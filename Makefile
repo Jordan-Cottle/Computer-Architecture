@@ -1,5 +1,12 @@
 EXE := main
-TESTS:= fetch_test fp_test decode_test execute_test store_test cpu_test memory_test
+TESTS:= fetch_test \
+	fp_test \
+	decode_test \
+	execute_test \
+	store_test \
+	cpu_test \
+	memory_test \
+	binary_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1
 BINARIES := $(addsuffix .bin, ${PROGRAMS})
