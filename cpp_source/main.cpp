@@ -323,6 +323,13 @@ void testOpcodes()
 
     assert(getImmediateU(0xABCDEF12) == 0xABCDE000);
     assert(getImmediateUB(0xABCDEF12) == 0x001DE2BC);
+
+    assert(sign_extend(1024, 11) == 1024);
+    assert((int)sign_extend(1, 0) == -1);
+    assert(sign_extend(2048, 11) == 0xFFFFF800);
+    assert(sign_extend(2048, 11) + (2048 << 1) == 0x00000800);
+    assert((int)sign_extend(4, 2) == -4);
+    assert((int)sign_extend(-4, 2) == -4);
 }
 
 void runProgram(std::string name)
@@ -372,8 +379,23 @@ void runProgram(std::string name)
     std::cout << cpu.ram << "\n";
 }
 
+void run_tests()
+{
+    // These won't use the meq and so won't conflict with each other
+    std::cout << "Running tests\n";
+    fpTest();
+    testOpcodes();
+    memoryTest();
+    binaryReadTest();
+    fetchTest();
+    decodeTest();
+    executeTest();
+    storeTest();
+    std::cout << "Tests completed\n";
+}
+
 int main()
 {
-    fpTest();
+    run_tests();
     return 0;
 }
