@@ -20,6 +20,8 @@ struct Cpu : SimulationDevice
 
     bool complete;
 
+    uint32_t instructionsProcessed;
+
     Register<int> intRegister;
     Register<float> fpRegister;
 
@@ -41,6 +43,7 @@ struct Cpu : SimulationDevice
 
     Pipeline *getPipeline(std::string type);
 
+    float cpi();
     std::string __str__();
 };
 

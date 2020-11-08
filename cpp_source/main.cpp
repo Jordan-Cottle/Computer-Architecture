@@ -393,6 +393,10 @@ void runProgram(std::string name)
         // Ensure simulation and implementation match
         assert(ARRAY_C[i] == c);
     }
+
+    std::cout << "Cpu clock cycles: " << cpu.clocksProcessed << "\n";
+    std::cout << "Cpu instructions processed: " << cpu.instructionsProcessed << "\n";
+    std::cout << "Cpu cpi: " << cpu.cpi() << "\n";
 }
 
 void run_tests()
