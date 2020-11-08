@@ -37,25 +37,59 @@ void Execute::tick()
     this->_busy = true;
 
     DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
-
     std::cout << "Execute processing instruction: " << instruction << "\n";
-
-    Store *store = dynamic_cast<Store *>(instruction);
-    Event *workCompleted;
-    if (store != NULL)
+    Load *load = dynamic_cast<Load *>(instruction);
+    if (load != NULL)
     {
-        this->next->stage(instruction);
-        workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+        Event *event = new Event("MemoryRequest", simulationClock.cycle, this, HIGH);
+        masterEventQueue.push(event);
     }
     else
     {
-        instruction->execute(this->cpu);
+        Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle + instruction->executionTime * 10, this, HIGH);
+        masterEventQueue.push(workCompleted);
+    }
+}
+void Execute::process(Event *event)
+{
+    if (event->type == "WorkCompleted")
+    {
+        event->handled = true;
+        DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
+        std::cout << "Execute executing instruction: " << instruction << "\n";
 
-        // Decoded instruction use complete. No further reference to it will be created
-        delete instruction;
-        workCompleted = new Event("WorkCompleted", simulationClock.cycle + instruction->executionTime * 10, this, HIGH);
+        Store *store = dynamic_cast<Store *>(instruction);
+        if (store != NULL)
+        {
+            this->next->stage(instruction);
+        }
+        else
+        {
+            instruction->execute(this->cpu);
+
+            // Decoded instruction use complete. No further reference to it will be created
+            delete instruction;
+        }
+
+        this->cpu->instructionsProcessed++;
+    }
+    else if (event->type == "MemoryRequest")
+    {
+        event->handled = true;
+        Load *load = (Load *)this->staged();
+        bool accepted = this->cpu->ram.request(load->memoryAddress(this->cpu), this);
+        if (!accepted)
+        {
+            Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
+            masterEventQueue.push(event);
+        }
+    }
+    else if (event->type == "MemoryReady")
+    {
+        event->handled = true;
+        Event *event = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+        masterEventQueue.push(event);
     }
 
-    this->cpu->instructionsProcessed++;
-    masterEventQueue.push(workCompleted);
+    Pipeline::process(event);
 }

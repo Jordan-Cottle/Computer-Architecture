@@ -17,6 +17,7 @@ struct Execute : Pipeline
     Execute(Cpu *cpu);
 
     void tick();
+    void process(Event *event);
 };
 
 #endif
