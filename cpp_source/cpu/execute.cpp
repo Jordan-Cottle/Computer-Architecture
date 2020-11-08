@@ -39,4 +39,6 @@ void Execute::tick()
         // Decoded instruction use complete. No further reference to it will be created
         delete instruction;
     }
+
+    this->cpu->instructionsProcessed++;
 }

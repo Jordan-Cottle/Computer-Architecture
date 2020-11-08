@@ -29,6 +29,7 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
 
     this->pipelines = {};
     this->complete = false;
+    this->instructionsProcessed = 0;
 }
 
 Cpu *Cpu::addPipeline(Pipeline *pipeline)
@@ -110,6 +111,11 @@ Pipeline *Cpu::getPipeline(std::string type)
     }
 
     return NULL;
+}
+
+float Cpu::cpi()
+{
+    return (float)this->clocksProcessed / this->instructionsProcessed;
 }
 
 std::string Cpu::__str__()
