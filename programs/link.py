@@ -297,8 +297,17 @@ class InstructionTemplate:
 
 
 def twos_compliment(num, bits):
-    b = (num).to_bytes(bits // 4 + 1, byteorder="big", signed=True)
-    return bin(int.from_bytes(b, byteorder="big"))[-bits:]
+    if num < 0:
+        b = (num).to_bytes(bits // 4 + 1, byteorder="big", signed=True)
+        return bin(int.from_bytes(b, byteorder="big"))[-bits:]
+
+    b = bin(num)[2:]
+
+    assert len(b) <= bits, f"{num} does not fit into {bits} bits!"
+
+    while len(b) < bits:
+        b = "0" + b
+    return b
 
 
 ROUNDING_MODE = "000"
@@ -313,12 +322,7 @@ def resolve_abi_name(token):
 
 
 def split_bits(num):
-    if num < 0:
-        bits = twos_compliment(num, 32)
-    else:
-        bits = bin(num)[2:]
-        while len(bits) < 32:
-            bits = "0" + bits
+    bits = twos_compliment(num, 32)
 
     return bits[:20], bits[20:]
 
