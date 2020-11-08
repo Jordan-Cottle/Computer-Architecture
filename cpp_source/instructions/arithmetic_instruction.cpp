@@ -92,5 +92,6 @@ Slli::Slli(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 
 void Slli::execute(Cpu *cpu)
 {
-    cpu->intRegister.write(this->destinationIndex, this->leftIndex << this->rightIndex);
+    int left = cpu->intRegister.read(this->leftIndex);
+    cpu->intRegister.write(this->destinationIndex, left << this->rightIndex);
 }
