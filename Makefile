@@ -21,6 +21,10 @@ run: ${EXE}.exe ${BINARIES}
 	import os
 	os.system("./$<")
 
+cpu0: cpu0.exe CPU0.bin
+	import os
+	os.system("./cpu0.exe")
+
 tests: ${BINARIES} ${TESTS} 
 	# All tests have been triggered
 
