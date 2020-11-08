@@ -10,7 +10,7 @@ int main()
 
     cpu.loadProgram("fpTest.bin");
 
-    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(4));
+    RawInstruction *instruction = new RawInstruction(cpu.memory.read<uint32_t>(4));
 
     Add *add = new Add(instruction);
 

@@ -15,7 +15,7 @@ using namespace Simulation;
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT, "Integer")),
              fpRegister(Register<float>(REGISTER_COUNT, "Float")),
-             ram(Memory(MEMORY_SIZE, MEMORY_DELAY, {0x200, 0x1400 - 0x200}))
+             memory(Memory(MEMORY_SIZE, MEMORY_DELAY, {0x200, 0x1400 - 0x200}))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
@@ -83,7 +83,7 @@ void Cpu::loadProgram(std::string fileName)
     int memAddress = 0;
     while (programFile.read((char *)&instruction, sizeof(instruction)))
     {
-        this->ram.write(memAddress, instruction);
+        this->memory.write(memAddress, instruction);
         memAddress += sizeof(instruction);
     }
 }
@@ -124,7 +124,7 @@ std::string Cpu::__str__()
     s += "\t\tInteger " + addIndent(str(this->intRegister), 2) + "\n";
     s += "\t\tFloat " + addIndent(str(this->fpRegister), 2) + "\n";
 
-    s += "\t}\n\t" + addIndent(str(this->ram));
+    s += "\t}\n\t" + addIndent(str(this->memory));
 
     s += "\t}\n\tPipelines: {\n";
     for (auto pipeline : this->pipelines)

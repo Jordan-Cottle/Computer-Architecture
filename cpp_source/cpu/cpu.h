@@ -32,7 +32,7 @@ struct Cpu : SimulationDevice
     Register<float> fpRegister;
 
     // TODO put these somewhere else
-    Memory ram;
+    Memory memory;
 
     std::vector<Pipeline *> pipelines;
 
