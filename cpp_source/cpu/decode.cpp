@@ -86,17 +86,21 @@ void Decode::tick()
         std::cout << "No instruction to decode\n";
         return;
     }
-    if (this->next->busy)
+    if (this->next->busy())
     {
         std::cout << "Decode waiting because next stage is busy\n";
-        this->busy = true;
         return;
     }
+    if (this->busy())
+    {
+        std::cout << "Decode continuing to work on its task\n";
+        return;
+    }
+    this->_busy = true;
 
     RawInstruction *instruction = this->staged();
 
     std::cout << "Decode processing instruction: " << instruction << "\n";
-    this->busy = true;
 
     DecodedInstruction *decodedInstruction = this->decode(instruction);
     delete instruction; // All data has been saved to decodedInstruction

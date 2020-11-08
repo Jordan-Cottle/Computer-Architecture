@@ -25,12 +25,17 @@ void Fetch::tick()
         return;
     }
 
-    if (this->next->busy)
+    if (this->next->busy())
     {
         std::cout << "Fetch waiting because next stage is busy\n";
-        this->busy = true;
         return;
     }
+    if (this->busy())
+    {
+        std::cout << "Fetch continuing to work on its task\n";
+        return;
+    }
+    this->_busy = true;
 
     RawInstruction *instruction = this->staged();
 
@@ -90,7 +95,6 @@ void Fetch::process(Event *event)
     if (event->type == "Fetch")
     {
         event->handled = true;
-        this->busy = true;
         this->stage(new RawInstruction(this->cpu->ram.read<uint32_t>(this->cpu->programCounter.value)));
         ++this->cpu->programCounter;
     }

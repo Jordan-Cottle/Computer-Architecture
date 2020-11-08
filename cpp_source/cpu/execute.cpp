@@ -24,12 +24,17 @@ void Execute::tick()
         std::cout << "No instruction to execute\n";
         return;
     }
-    if (this->next->busy)
+    if (this->next->busy())
     {
         std::cout << "Execute waiting because next stage is busy\n";
-        this->busy = true;
         return;
     }
+    if (this->busy())
+    {
+        std::cout << "Execute continuing to work on its task\n";
+        return;
+    }
+    this->_busy = true;
 
     DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
 

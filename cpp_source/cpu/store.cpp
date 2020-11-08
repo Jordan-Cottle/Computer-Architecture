@@ -26,10 +26,15 @@ void StorePipeline::tick()
         std::cout << "No instruction to store\n";
         return;
     }
+    if (this->busy())
+    {
+        std::cout << "Store continuing to work on its task\n";
+        return;
+    }
+    this->_busy = true;
 
     Store *instruction = (Store *)this->staged();
 
-    this->busy = true;
     std::cout << "Store processing instruction: " << instruction << "\n";
 
     instruction->execute(this->cpu);

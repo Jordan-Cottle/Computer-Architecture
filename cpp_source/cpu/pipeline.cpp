@@ -40,7 +40,17 @@ void Pipeline::stage(RawInstruction *instruction)
 void Pipeline::flush()
 {
     this->memory.clear(0);
-    this->busy = false;
+    this->_busy = false;
+}
+
+bool Pipeline::busy()
+{
+    if (this->next != NULL && this->next->busy())
+    {
+        return true;
+    }
+
+    return this->_busy;
 }
 
 RawInstruction *Pipeline::staged()
