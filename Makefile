@@ -1,5 +1,5 @@
 EXE := main
-TESTS:= fetch_test fp_test decode_test execute_test
+TESTS:= fetch_test fp_test decode_test execute_test store_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1
 PROGRAM_DIR := programs

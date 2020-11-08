@@ -30,28 +30,6 @@
 #include "simulation.h"
 using namespace Simulation;
 
-void storeTest()
-{
-
-    const int RAM_LOCATION = 100;
-    cpu.intRegister.write(1, RAM_LOCATION);
-
-    cpu.fpRegister.write(3, PI); // Pi
-
-    StorePipeline store = StorePipeline(&cpu);
-    cpu.addPipeline(&store);
-
-    cpu.loadProgram("fpTest.bin");
-
-    RawInstruction *instruction = new RawInstruction(cpu.ram.read<uint32_t>(12));
-    Store *storeInstruction = new Store(instruction);
-
-    assert(cpu.ram.read<float>(RAM_LOCATION - 4) == 0);
-    store.stage(storeInstruction);
-    store.tick();
-    assert(cpu.ram.read<float>(RAM_LOCATION - 4) == PI);
-}
-
 void cpuTest()
 {
     constexpr int ASM_I = 1;
