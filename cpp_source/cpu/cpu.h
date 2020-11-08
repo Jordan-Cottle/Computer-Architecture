@@ -12,6 +12,12 @@
 
 #include "program_counter.h"
 
+constexpr int REGISTER_COUNT = 32;
+constexpr int MEMORY_SIZE = 0x1400;
+constexpr int MEMORY_DELAY = 20;
+constexpr int SIM_CYCLES_PER_CPU = 10;
+constexpr int MEMORY_ADDRESSES_PER_INSTRUCTION = 4;
+
 struct Cpu : SimulationDevice
 {
     ProgramCounter programCounter;
