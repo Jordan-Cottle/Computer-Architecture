@@ -17,7 +17,7 @@ tests: ${TESTS}
 
 %_test: %_test.exe
 	import os
-	os.system(f"./$@.exe")
+	assert os.system(f"./$@.exe") == 0, "$@ test failed!"
 
 %.bin: ${PROGRAM_DIR}/%.s
 	import os
