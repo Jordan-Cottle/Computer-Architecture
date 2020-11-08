@@ -47,10 +47,15 @@ RawInstruction *Pipeline::staged()
     return this->memory.read(0);
 }
 
-void Pipeline::tick()
+void Pipeline::process(Event *event)
 {
-    this->flush();
-    SimulationDevice::tick();
+    if (event->type == "WorkCompleted")
+    {
+        event->handled = true;
+        this->flush();
+    }
+
+    SimulationDevice::process(event);
 }
 
 std::string Pipeline::__str__()

@@ -73,6 +73,9 @@ void Fetch::tick()
         Event *complete = new Event("Complete", simulationClock.cycle + this->cpu->pipelines.size(), this->cpu);
         masterEventQueue.push(complete);
     }
+
+    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+    masterEventQueue.push(workCompleted);
 }
 
 void Fetch::process(Event *event)

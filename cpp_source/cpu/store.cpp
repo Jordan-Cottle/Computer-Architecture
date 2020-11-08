@@ -9,6 +9,9 @@
 
 #include "cpu.h"
 
+#include "simulation.h"
+using namespace Simulation;
+
 StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 {
     this->cpu = cpu;
@@ -31,4 +34,6 @@ void StorePipeline::tick()
 
     // No further reference to instruction will be created
     delete instruction;
+    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+    masterEventQueue.push(workCompleted);
 }

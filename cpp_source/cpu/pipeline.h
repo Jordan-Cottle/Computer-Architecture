@@ -26,7 +26,7 @@ struct Pipeline : SimulationDevice
 
     RawInstruction *staged();
 
-    void tick();
+    void process(Event *event);
 
     std::string __str__();
 };

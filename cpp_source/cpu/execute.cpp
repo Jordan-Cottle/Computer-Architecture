@@ -41,4 +41,6 @@ void Execute::tick()
     }
 
     this->cpu->instructionsProcessed++;
+    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+    masterEventQueue.push(workCompleted);
 }
