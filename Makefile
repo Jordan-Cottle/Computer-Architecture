@@ -1,18 +1,19 @@
 EXE := main
-TESTS:= fetch_test fp_test decode_test execute_test store_test cpu_test
+TESTS:= fetch_test fp_test decode_test execute_test store_test cpu_test memory_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1
+BINARIES := $(addsuffix .bin, ${PROGRAMS})
 PROGRAM_DIR := programs
 
 SHELL = /usr/bin/python3
 .ONESHELL:
 .PHONY=build,clean,run,tests
 
-run: ${EXE}.exe $(addsuffix .bin, ${PROGRAMS})
+run: ${EXE}.exe ${BINARIES}
 	import os
 	os.system("./$<")
 
-tests: ${TESTS}
+tests: ${BINARIES} ${TESTS} 
 	# All tests have been triggered
 
 %_test: %_test.exe
