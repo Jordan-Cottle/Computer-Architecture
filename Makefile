@@ -1,29 +1,36 @@
-EXE := main.exe
+EXE := main
+TESTS:= fetch_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1
+PROGRAM_DIR := programs
 
 SHELL = /usr/bin/python3
 .ONESHELL:
-.PHONY=build,clean,run
+.PHONY=build,clean,run,test
 
-run: build $(addsuffix .bin, ${PROGRAMS})
+run: ${EXE}.exe $(addsuffix .bin, ${PROGRAMS})
 	import os
-	os.system("./${EXE}")
+	os.system("./$<")
 
-build: cpp_source  # cpp_source directory needs to exist
-	from compile import main
-	main("${SOURCE_ROOT}", "${EXE}")
-
-%.bin: programs/%.s
+test: $(addsuffix .exe, ${TESTS})
 	import os
-	os.chdir("programs")
+	for program in "${TESTS}".split():
+	  os.system(f"./{program}.exe")
+
+%.bin: ${PROGRAM_DIR}/%.s
+	import os
+	os.chdir("${PROGRAM_DIR}")
 	
 	from link import main
 	main("$(basename $@).s", binary=True)
 	os.replace("$@", "../$@")
 
+%.exe: ${PROGRAM_DIR}/%.cpp
+	from compile import main
+	main("${SOURCE_ROOT}", "$@", "$<")
+
 clean:
 	import os
 	os.system("rm -rf obj")
-	os.system("rm ${EXE}")
+	os.system("rm *.exe")
 	os.system("rm *.bin")

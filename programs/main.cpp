@@ -1,6 +1,5 @@
 #include <iostream>
 #include <stdlib.h>
-#include <assert.h>
 
 #include "event_queue.h"
 #include "event.h"
@@ -10,7 +9,7 @@
 #include "device.h"
 
 #include "sim_register.h"
-#include "pipeline.h"
+
 #include "fetch.h"
 #include "decode.h"
 
@@ -30,52 +29,6 @@
 
 #include "simulation.h"
 using namespace Simulation;
-
-// Echo any events/instructions for debugging partial pipelines
-struct TestPipeline : Pipeline
-{
-    TestPipeline() : Pipeline("TestPipeline")
-    {
-    }
-
-    void tick()
-    {
-        RawInstruction *staged = this->staged();
-
-        std::cout << this->type << " T " << simulationClock.cycle << ": ";
-        if (staged == NULL)
-        {
-            std::cout << " no instruction\n";
-        }
-        else
-        {
-            std::cout << this->staged() << "\n";
-        }
-
-        Pipeline::tick();
-    }
-};
-
-TestPipeline testPipeline;
-
-void fetchTest()
-{
-    Fetch fetchUnit = Fetch(&cpu);
-    cpu.addPipeline(&fetchUnit);
-    cpu.addPipeline(&testPipeline);
-
-    cpu.loadProgram("test_program.bin");
-
-    fetchUnit.process(new Event("Fetch", 0, &fetchUnit));
-    assert(fetchUnit.staged() != NULL);
-    RawInstruction *instruction = fetchUnit.staged();
-
-    fetchUnit.tick();
-    assert(testPipeline.staged() != NULL);
-    assert(testPipeline.staged() == instruction);
-
-    testPipeline.tick();
-}
 
 constexpr float PI = 3.141592654f;
 constexpr float E = 2.718281828f;
