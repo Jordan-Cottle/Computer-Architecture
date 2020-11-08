@@ -3,6 +3,9 @@
 #include "pipeline.h"
 #include "simulation.h"
 
+constexpr float PI = 3.141592654f;
+constexpr float E = 2.718281828f;
+
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
 {

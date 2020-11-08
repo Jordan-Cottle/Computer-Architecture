@@ -1,5 +1,5 @@
 EXE := main
-TESTS:= fetch_test
+TESTS:= fetch_test fp_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1
 PROGRAM_DIR := programs
@@ -12,10 +12,12 @@ run: ${EXE}.exe $(addsuffix .bin, ${PROGRAMS})
 	import os
 	os.system("./$<")
 
-test: $(addsuffix .exe, ${TESTS})
+tests: ${TESTS}
+	# All tests have been triggered
+
+%_test: %_test.exe
 	import os
-	for program in "${TESTS}".split():
-	  os.system(f"./{program}.exe")
+	os.system(f"./$@.exe")
 
 %.bin: ${PROGRAM_DIR}/%.s
 	import os
