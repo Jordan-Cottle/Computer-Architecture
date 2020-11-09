@@ -8,6 +8,8 @@
 
 #include "opcodes.h"
 
+#include "simulation.h"
+
 ControlInstruction::ControlInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
 }
@@ -32,17 +34,13 @@ void ControlInstruction::execute(Cpu *cpu)
 
         if (take)
         {
+            std::cout << "Jumping by " << str(this->offset(cpu)) << "\n";
             cpu->programCounter.jump(this->offset(cpu));
         }
         else
         {
-            cpu->programCounter.value = cpu->jumpedFrom;
+            cpu->programCounter.value = cpu->jumpedFrom + MEMORY_ADDRESSES_PER_INSTRUCTION;
         }
-    }
-
-    if (take)
-    {
-        std::cout << "Jumping by " << str(this->offset(cpu)) << "\n";
     }
 
     // Fetch unit has already made a correct prediction, nothing to do
@@ -106,7 +104,7 @@ int Jump::offset(Cpu *cpu)
 
 void Jump::execute(Cpu *cpu)
 {
-    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom);
+    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom + MEMORY_ADDRESSES_PER_INSTRUCTION);
 
     ControlInstruction::execute(cpu);
 }
@@ -132,7 +130,7 @@ void Jalr::execute(Cpu *cpu)
         return;
     }
 
-    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom);
+    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom + MEMORY_ADDRESSES_PER_INSTRUCTION);
 
     ControlInstruction::execute(cpu);
 }

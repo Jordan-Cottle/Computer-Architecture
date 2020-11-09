@@ -56,7 +56,6 @@ void Execute::process(Event *event)
     {
         event->handled = true;
         DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
-        std::cout << "Execute executing instruction: " << instruction << "\n";
 
         Store *store = dynamic_cast<Store *>(instruction);
         if (store != NULL)
@@ -65,6 +64,7 @@ void Execute::process(Event *event)
         }
         else
         {
+            std::cout << "Execute executing instruction: " << instruction << "\n";
             instruction->execute(this->cpu);
 
             // Decoded instruction use complete. No further reference to it will be created
