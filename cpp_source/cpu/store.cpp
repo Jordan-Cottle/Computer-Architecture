@@ -53,7 +53,7 @@ void StorePipeline::process(Event *event)
     {
         event->handled = true;
         Store *store = (Store *)this->staged();
-        bool accepted = this->cpu->ram.request(store->memoryAddress(this->cpu), this);
+        bool accepted = this->cpu->memory.request(store->memoryAddress(this->cpu), this);
         if (!accepted)
         {
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);

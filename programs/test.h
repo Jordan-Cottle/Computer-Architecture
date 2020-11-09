@@ -19,6 +19,7 @@ constexpr float E = 2.718281828f;
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline
 {
+    Event *lastEvent;
     TestPipeline() : Pipeline("TestPipeline")
     {
     }
@@ -38,6 +39,13 @@ struct TestPipeline : Pipeline
         }
 
         Pipeline::tick();
+    }
+
+    void process(Event *event)
+    {
+        std::cout << "Event received: " << str(event) << "\n";
+
+        this->lastEvent = event;
     }
 };
 

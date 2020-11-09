@@ -77,7 +77,7 @@ void Execute::process(Event *event)
     {
         event->handled = true;
         Load *load = (Load *)this->staged();
-        bool accepted = this->cpu->ram.request(load->memoryAddress(this->cpu), this);
+        bool accepted = this->cpu->memory.request(load->memoryAddress(this->cpu), this);
         if (!accepted)
         {
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
