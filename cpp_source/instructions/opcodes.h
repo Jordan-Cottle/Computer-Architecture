@@ -19,9 +19,9 @@ constexpr uint32_t O_MASK = 0x7f;
 constexpr uint32_t F3_MASK = 0x7000;
 constexpr uint32_t F7_MASK = 0xfe000000;
 
-constexpr uint32_t RD_MASK = 0xF80;
-constexpr uint32_t R1_MASK = 0xF8000;
-constexpr uint32_t R2_MASK = 0x1F00000;
+constexpr uint32_t RD_MASK = 0x00000F80;
+constexpr uint32_t R1_MASK = 0x000F8000;
+constexpr uint32_t R2_MASK = 0x01F00000;
 constexpr uint32_t IMM_I_MASK = 0xFFF00000;
 constexpr uint32_t IMM_S_MASK = 0xFE000F80;
 constexpr uint32_t IMM_U_MASK = 0xFFFFF000;
