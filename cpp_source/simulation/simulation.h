@@ -9,6 +9,7 @@
 #include "event_queue.h"
 #include "clock.h"
 #include "cpu.h"
+#include "memory_bus.h"
 
 constexpr int REGISTER_COUNT = 32;
 constexpr int MEMORY_SIZE = 0x1400;
@@ -22,6 +23,9 @@ namespace Simulation
     extern EventQueue masterEventQueue;
     extern Clock simulationClock;
     extern Cpu cpu;
+    extern Cpu cpu2;
+    extern Memory ram;
+    extern MemoryBus memBus;
 } // namespace Simulation
 
 #endif
