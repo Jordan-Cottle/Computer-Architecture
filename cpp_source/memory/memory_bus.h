@@ -9,8 +9,6 @@
 #include "sim_memory.h"
 #include "heap.h"
 
-constexpr uint32_t BUS_ARBITRATION_TIME = 5;
-
 struct MemoryRequest : printable
 {
     uint32_t address;
