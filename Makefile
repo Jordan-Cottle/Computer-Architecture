@@ -36,7 +36,7 @@ duo-core: duo-core.exe CPU0.bin CPU1.bin
 tests: ${BINARIES} ${TESTS} 
 	# All tests have been triggered
 
-%_test: %_test.exe
+%_test: %_test.exe ${BINARIES}
 	import os
 	assert os.system(f"./$<") == 0, "$@ has failed!"
 

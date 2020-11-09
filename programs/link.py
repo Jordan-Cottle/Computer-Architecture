@@ -607,6 +607,10 @@ instruction = Instruction.parse("jal	foo", labels={"foo": 24}, current_mem_addre
 expected = f"00000000110000000000000011101111"
 assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
+instruction = Instruction.parse("jal	foo", labels={"foo": 0}, current_mem_address=20)
+expected = f"11111110110111111111000011101111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
 
 def read_file(file_name):
     with open(file_name, "r") as assembly_file:

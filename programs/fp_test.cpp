@@ -2,6 +2,7 @@
 
 #include "arithmetic_instruction.h"
 #include "memory_instruction.h"
+#include "control_instructions.h"
 
 using namespace Simulation;
 
@@ -51,6 +52,35 @@ int main()
     assert(cpu.intRegister.read(1) == RAM_LOCATION + 4);
     add.execute(&cpu);
     assert(cpu.intRegister.read(1) == RAM_LOCATION);
+
+    instruction = RawInstruction(cpu.memory.read<uint32_t>(20));
+    assert(instruction.data == 0xFEDFF0EF);
+
+    Jump jump = Jump(&instruction);
+    assert(jump.offset(&cpu) == -20);
+    cpu.programCounter.value = 20;
+    jump.execute(&cpu);
+    std::cout << cpu.programCounter << "\n";
+    assert(cpu.programCounter.value == 0);
+
+    cpu.addPipeline(&fetchUnit);
+    cpu.addPipeline(&testPipeline);
+
+    cpu.programCounter.value = 20;
+    fetchUnit.stage(&instruction);
+    fetchUnit.tick();
+    std::cout << cpu.programCounter << "\n";
+    assert(cpu.programCounter.value == 0);
+    fetchUnit.flush();
+    testPipeline.flush();
+
+    instruction = RawInstruction(cpu.memory.read<uint32_t>(24));
+    Blt blt = Blt(&instruction);
+    assert(blt.offset(&cpu) == 8);
+    fetchUnit.stage(&instruction);
+    fetchUnit.tick();
+    assert(cpu.programCounter.value == 8);
+    std::cout << str(blt.offset(&cpu)) << "\n";
 
     return 0;
 }
