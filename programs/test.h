@@ -8,11 +8,6 @@
 #include "execute.h"
 #include "store.h"
 
-Fetch fetchUnit = Fetch(&Simulation::cpu);
-Decode decodeUnit = Decode(&Simulation::cpu);
-Execute executeUnit = Execute(&Simulation::cpu);
-StorePipeline storeUnit = StorePipeline(&Simulation::cpu);
-
 constexpr float PI = 3.141592654f;
 constexpr float E = 2.718281828f;
 
@@ -50,3 +45,9 @@ struct TestPipeline : Pipeline
 };
 
 TestPipeline testPipeline;
+
+Cpu cpu;
+Fetch fetchUnit = Fetch(&cpu);
+Decode decodeUnit = Decode(&cpu);
+Execute executeUnit = Execute(&cpu);
+StorePipeline storeUnit = StorePipeline(&cpu);

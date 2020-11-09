@@ -22,10 +22,6 @@ namespace Simulation
 {
     extern EventQueue masterEventQueue;
     extern Clock simulationClock;
-    extern Cpu cpu;
-    extern Cpu cpu2;
-    extern Memory ram;
-    extern MemoryBus memBus;
 } // namespace Simulation
 
 #endif
