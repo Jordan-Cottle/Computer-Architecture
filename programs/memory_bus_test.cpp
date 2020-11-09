@@ -6,7 +6,7 @@ using namespace Simulation;
 int main()
 {
     cpu.memory->write(0, PI);
-    MemoryBus bus = MemoryBus(BUS_ARBITRATION_TIME, cpu.memory);
+    MemoryBus bus = MemoryBus(BUS_ARBITRATION_TIME, (Memory *)cpu.memory);
 
     // Bus should accept all memory requests
     bool accepted = bus.request(0, &testPipeline);
@@ -44,7 +44,7 @@ int main()
     assert(testPipeline.lastEvent->type == "MemoryReady");
     // Write a value to memory through the bus
     bus.write(0, PI);
-    assert(cpu.memory->read<float>(0) == PI);
+    assert(cpu.memory->readFloat(0) == PI);
 
     // Finish processing events in this cycle
     assert(masterEventQueue.top()->type == "ProcessRequest");
@@ -65,7 +65,7 @@ int main()
     assert(testPipeline.lastEvent->type == "MemoryReady");
     assert(testPipeline.lastEvent->time == simulationClock.cycle);
 
-    assert(cpu.memory->busy[cpu.memory->partition(0)] == true);
-    assert(bus.read<float>(0) == PI);
-    assert(cpu.memory->busy[cpu.memory->partition(0)] == false);
+    assert(bus.memory->busy[bus.memory->partition(0)] == true);
+    assert(bus.readFloat(0) == PI);
+    assert(bus.memory->busy[bus.memory->partition(0)] == false);
 }

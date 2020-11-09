@@ -20,7 +20,7 @@ int main()
     float ARRAY_C[ARRAY_SIZE];
     float ARRAY_D[ARRAY_SIZE];
 
-    Memory *ram = new Memory(0x1400, MEMORY_DELAY, {0x100, 0x200, 0x1400});
+    Memory *ram = new Memory(MEMORY_DELAY, MEMORY_SIZE, {0x100, 0x200, 0x1400});
 
     // Initialize arrays in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)
@@ -51,7 +51,7 @@ int main()
 
     for (int i = 0; i < 0x200; i += 4)
     {
-        uint32_t data = ram->read<uint32_t>(i);
+        uint32_t data = ram->readUint(i);
         if (data != 0)
         {
             std::cout << i << ": " << RawInstruction(data).keyword() << "\n";
@@ -81,10 +81,10 @@ int main()
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
-        float a = ram->read<float>(ARRAY_A_START + memOffset);
-        float b = ram->read<float>(ARRAY_B_START + memOffset);
-        float c = ram->read<float>(ARRAY_C_START + memOffset);
-        float d = ram->read<float>(ARRAY_D_START + memOffset);
+        float a = ram->readFloat(ARRAY_A_START + memOffset);
+        float b = ram->readFloat(ARRAY_B_START + memOffset);
+        float c = ram->readFloat(ARRAY_C_START + memOffset);
+        float d = ram->readFloat(ARRAY_D_START + memOffset);
 
         std::cout << str(a) << " + " << str(b) << " = " << str(c) << "\n";
         std::cout << str(a) << " - " << str(b) << " = " << str(d) << "\n";

@@ -82,13 +82,13 @@ void Load::execute(Cpu *cpu)
     uint32_t memAddress = this->memoryAddress(cpu);
     if (this->isFp)
     {
-        float data = cpu->memory->read<float>(memAddress);
+        float data = cpu->memory->readFloat(memAddress);
 
         cpu->fpRegister.write(this->targetRegisterIndex, data);
     }
     else
     {
-        int data = cpu->memory->read<int>(memAddress);
+        int data = cpu->memory->readInt(memAddress);
 
         cpu->intRegister.write(this->targetRegisterIndex, data);
     }

@@ -16,7 +16,7 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT, "Integer")),
              fpRegister(Register<float>(REGISTER_COUNT, "Float")),
              // Default settings for cpu0.s
-             memory(new Memory(MEMORY_SIZE, MEMORY_DELAY, {0x200, 0x1400}))
+             memory(new Memory(MEMORY_DELAY, MEMORY_SIZE, {0x200, 0x1400}))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
@@ -27,11 +27,11 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
     this->instructionsProcessed = 0;
 }
 
-Cpu::Cpu(Memory *memory) : SimulationDevice("Cpu"),
-                           intRegister(Register<int>(REGISTER_COUNT, "Integer")),
-                           fpRegister(Register<float>(REGISTER_COUNT, "Float")),
-                           // Default settings for cpu0.s
-                           memory(memory)
+Cpu::Cpu(MemoryInterface *memory) : SimulationDevice("Cpu"),
+                                    intRegister(Register<int>(REGISTER_COUNT, "Integer")),
+                                    fpRegister(Register<float>(REGISTER_COUNT, "Float")),
+                                    // Default settings for cpu0.s
+                                    memory(memory)
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;

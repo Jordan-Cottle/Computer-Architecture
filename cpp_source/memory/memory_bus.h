@@ -22,13 +22,12 @@ struct MemoryRequest : printable
 };
 
 // Use Memory Interface to keep it compatible with cpu0.s simulation
-struct MemoryBus : SimulationDevice
+struct MemoryBus : MemoryInterface
 {
     Memory *memory;
 
     MinHeap<MemoryRequest *> requests;
     std::vector<uint32_t> busyFor;
-    int accessTime;
 
     MemoryBus(int accessTime, Memory *memory);
 
@@ -36,19 +35,12 @@ struct MemoryBus : SimulationDevice
     bool request(uint32_t address, SimulationDevice *device);
     void process(Event *event);
 
-    template <typename T>
-    T read(uint32_t address)
-    {
-        std::cout << "Memory bus used to read address " << address << "\n";
-        return this->memory->read<T>(address);
-    }
-
-    template <typename T>
-    void write(uint32_t address, T value)
-    {
-        std::cout << "Memory bus used to write address " << address << "\n";
-        this->memory->write(address, value);
-    }
+    uint32_t readUint(uint32_t address);
+    int readInt(uint32_t address);
+    float readFloat(uint32_t address);
+    void write(uint32_t address, uint32_t value);
+    void write(uint32_t address, int value);
+    void write(uint32_t address, float value);
 
     std::string __str__();
 };
