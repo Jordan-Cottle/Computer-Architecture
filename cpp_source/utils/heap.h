@@ -180,6 +180,11 @@ public:
     {
         return this->items.empty();
     }
+
+    int size()
+    {
+        return this->items.size();
+    }
 };
 
 #endif
