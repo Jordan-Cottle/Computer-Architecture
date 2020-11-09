@@ -20,9 +20,7 @@ int main()
     float ARRAY_C[ARRAY_SIZE];
     float ARRAY_D[ARRAY_SIZE];
 
-    Memory *ram = new Memory(0x1400, 20, {0x100, 0x100, 0x1400 - 0x200});
-    Cpu cpu0 = Cpu(ram);
-    Cpu cpu1 = Cpu(ram);
+    Memory *ram = new Memory(0x1400, MEMORY_DELAY, {0x100, 0x200, 0x1400});
 
     // Initialize arrays in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)

@@ -25,26 +25,34 @@ Memory::Memory(uint32_t size, int accessTime, std::vector<uint32_t> partitions) 
 
     this->partitions = partitions;
 
-    uint32_t length = 0;
     for (auto partition : partitions)
     {
-        length += partition;
+        if (partition > size)
+        {
+            throw std::runtime_error("Partition for memory cannot be bigger than its size");
+        }
         this->busy.push_back(false);
-    }
-
-    if (length != size)
-    {
-        throw std::runtime_error("Memory must be completely broken into partitions!");
     }
 }
 
 uint32_t Memory::partition(uint32_t address)
 {
-    uint32_t i = 0;
-    uint32_t j = address;
-    while (j >= this->partitions[i])
+    if (address > this->data.size())
     {
-        j -= this->partitions[i++];
+        throw std::runtime_error("Access is outside of the memory's range");
+    }
+
+    std::cout << "Checking partition of address " << address << "\n";
+    std::cout << "Partitions :\n";
+    for (auto partition : this->partitions)
+    {
+        std::cout << "\t" << partition << "\n";
+    }
+
+    uint32_t i = 0;
+    while (address >= this->partitions[i])
+    {
+        i++;
     }
     return i;
 }
