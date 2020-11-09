@@ -67,6 +67,12 @@ void Cpu::process(Event *event)
 
 void Cpu::tick()
 {
+    if (this->complete)
+    {
+        std::cout << "Cpu ignoring tick because it is set to complete\n";
+        return;
+    }
+
     std::cout << "Cpu cycle " << this->clocksProcessed << ": " << this->programCounter << "\n";
     // Work pipelines backwards
     // This allows allows each stage to set the instruction into the next stage with worrying
