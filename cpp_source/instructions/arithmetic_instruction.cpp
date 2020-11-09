@@ -37,8 +37,8 @@ void Add::execute(Cpu *cpu)
 
         float right = cpu->fpRegister.read(this->rightIndex);
 
-        std::cout << "F" + str(this->destinationIndex) << " <- " << str(left) << " " << str(right) << "\n";
-        cpu->fpRegister.write(this->destinationIndex, right + left);
+        std::cout << "F" + str(this->destinationIndex) << " <- " << str(left) << " + " << str(right) << "\n";
+        cpu->fpRegister.write(this->destinationIndex, left + right);
     }
     else
     {
@@ -46,7 +46,7 @@ void Add::execute(Cpu *cpu)
 
         int right = this->immediate ? this->rightIndex : cpu->intRegister.read(this->rightIndex);
 
-        std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " " << str(right) << "\n";
+        std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " + " << str(right) << "\n";
         cpu->intRegister.write(this->destinationIndex, left + right);
     }
 }
@@ -64,6 +64,57 @@ std::string Add::__str__()
     }
 
     std::string s = DecodedInstruction::__str__() + " (" + prefix + str(this->destinationIndex) + " <- " + prefix + str(this->leftIndex) + " + ";
+    if (this->immediate)
+    {
+        s += "#" + str(this->rightIndex);
+    }
+    else
+    {
+        s += prefix + str(this->rightIndex);
+    }
+
+    return s + ")";
+}
+
+Sub::Sub(RawInstruction *instruction) : ArithmeticInstruction(instruction)
+{
+}
+
+void Sub::execute(Cpu *cpu)
+{
+    if (this->isFp)
+    {
+        float left = cpu->fpRegister.read(this->leftIndex);
+
+        float right = cpu->fpRegister.read(this->rightIndex);
+
+        std::cout << "F" + str(this->destinationIndex) << " <- " << str(left) << " - " << str(right) << "\n";
+        cpu->fpRegister.write(this->destinationIndex, left - right);
+    }
+    else
+    {
+        int left = cpu->intRegister.read(this->leftIndex);
+
+        int right = this->immediate ? this->rightIndex : cpu->intRegister.read(this->rightIndex);
+
+        std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " - " << str(right) << "\n";
+        cpu->intRegister.write(this->destinationIndex, left - right);
+    }
+}
+
+std::string Sub::__str__()
+{
+    std::string prefix;
+    if (this->isFp)
+    {
+        prefix = "F";
+    }
+    else
+    {
+        prefix = "R";
+    }
+
+    std::string s = DecodedInstruction::__str__() + " (" + prefix + str(this->destinationIndex) + " <- " + prefix + str(this->leftIndex) + " - ";
     if (this->immediate)
     {
         s += "#" + str(this->rightIndex);

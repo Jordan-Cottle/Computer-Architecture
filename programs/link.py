@@ -583,6 +583,10 @@ instruction = Instruction.parse("sw	ra, 12(sp)", labels={})
 expected = f"00000000000101110010011000100011"
 assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
+instruction = Instruction.parse("fsub.s	ft0, ft0, ft1", labels={})
+expected = f"00001001101111010000110101010011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
 
 def read_file(file_name):
     with open(file_name, "r") as assembly_file:

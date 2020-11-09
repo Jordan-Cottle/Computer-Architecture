@@ -45,13 +45,21 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Add(instruction);
     }
-    else if (op == "lui")
-    {
-        return new Lui(instruction);
-    }
     else if (op == "add")
     {
         return new Add(instruction);
+    }
+    else if (op == "fsub.s")
+    {
+        return new Sub(instruction);
+    }
+    else if (op == "sub")
+    {
+        return new Sub(instruction);
+    }
+    else if (op == "lui")
+    {
+        return new Lui(instruction);
     }
     else if (op == "slli")
     {
