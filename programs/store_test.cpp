@@ -15,7 +15,7 @@ int main()
 
     cpu.loadProgram("fpTest.bin");
 
-    RawInstruction *instruction = new RawInstruction(cpu.memory.read<uint32_t>(12));
+    RawInstruction *instruction = new RawInstruction(cpu.memory->read<uint32_t>(12));
     Store *storeInstruction = new Store(instruction);
 
     storeUnit.stage(storeInstruction);
@@ -26,18 +26,18 @@ int main()
     masterEventQueue.tick(0);
     std::cout << masterEventQueue << "\n";
     assert(masterEventQueue.top()->type == "MemoryReady");
-    assert(masterEventQueue.top()->time == (ulong)cpu.memory.accessTime);
+    assert(masterEventQueue.top()->time == (ulong)cpu.memory->accessTime);
     assert(masterEventQueue.top()->device == &storeUnit);
 
-    simulationClock.cycle = cpu.memory.accessTime;
+    simulationClock.cycle = cpu.memory->accessTime;
     storeUnit.process(masterEventQueue.pop());
     assert(masterEventQueue.top()->type == "WorkCompleted");
-    assert(masterEventQueue.top()->time == (ulong)cpu.memory.accessTime);
+    assert(masterEventQueue.top()->time == (ulong)cpu.memory->accessTime);
     assert(masterEventQueue.top()->device == &storeUnit);
 
-    assert(cpu.memory.read<float>(RAM_LOCATION - 4) == 0);
+    assert(cpu.memory->read<float>(RAM_LOCATION - 4) == 0);
     storeUnit.process(masterEventQueue.pop());
-    assert(cpu.memory.read<float>(RAM_LOCATION - 4) == PI);
+    assert(cpu.memory->read<float>(RAM_LOCATION - 4) == PI);
 
     return 0;
 }

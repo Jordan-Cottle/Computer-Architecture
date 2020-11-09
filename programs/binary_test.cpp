@@ -20,7 +20,7 @@ int main()
 
     for (uint32_t i = 0; i < expected.size(); i++)
     {
-        uint32_t instruction = cpu.memory.read<uint32_t>(i * 4);
+        uint32_t instruction = cpu.memory->read<uint32_t>(i * 4);
         RawInstruction rInstruction = RawInstruction(instruction);
         assert(instruction == expected[i]);
     }

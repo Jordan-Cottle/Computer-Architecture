@@ -10,7 +10,7 @@ int main()
 
     cpu.loadProgram("fpTest.bin");
 
-    RawInstruction *instruction = new RawInstruction(cpu.memory.read<uint32_t>(0));
+    RawInstruction *instruction = new RawInstruction(cpu.memory->read<uint32_t>(0));
 
     decodeUnit.stage(instruction);
     decodeUnit.tick();

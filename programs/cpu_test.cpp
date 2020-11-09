@@ -25,7 +25,7 @@ int main()
     // Initialize array in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        cpu.memory.write(ARRAY_START + (i * sizeof(INITIAL)), INITIAL + i * OFFSET);
+        cpu.memory->write(ARRAY_START + (i * sizeof(INITIAL)), INITIAL + i * OFFSET);
     }
 
     cpu.addPipeline(new Fetch(&cpu))
@@ -50,7 +50,7 @@ int main()
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         float expected = (INITIAL + i * OFFSET) + VALUE_ADDED;
-        float actual = cpu.memory.read<float>(ARRAY_START + (i * sizeof(INITIAL)));
+        float actual = cpu.memory->read<float>(ARRAY_START + (i * sizeof(INITIAL)));
         // std::cout << "Expected: " << expected << "\n";
         // std::cout << "Actual: " << actual << "\n";
         assert(actual == expected);

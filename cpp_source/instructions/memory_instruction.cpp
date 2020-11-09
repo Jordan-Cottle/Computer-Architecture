@@ -37,7 +37,7 @@ void Store::execute(Cpu *cpu)
         float data = cpu->fpRegister.read(this->targetRegisterIndex);
 
         std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
-        cpu->memory.write(memAddress, data);
+        cpu->memory->write(memAddress, data);
     }
     else
     {
@@ -49,7 +49,7 @@ void Store::execute(Cpu *cpu)
         int data = cpu->intRegister.read(this->targetRegisterIndex);
 
         std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
-        cpu->memory.write(memAddress, data);
+        cpu->memory->write(memAddress, data);
     }
 }
 
@@ -82,13 +82,13 @@ void Load::execute(Cpu *cpu)
     uint32_t memAddress = this->memoryAddress(cpu);
     if (this->isFp)
     {
-        float data = cpu->memory.read<float>(memAddress);
+        float data = cpu->memory->read<float>(memAddress);
 
         cpu->fpRegister.write(this->targetRegisterIndex, data);
     }
     else
     {
-        int data = cpu->memory.read<int>(memAddress);
+        int data = cpu->memory->read<int>(memAddress);
 
         cpu->intRegister.write(this->targetRegisterIndex, data);
     }

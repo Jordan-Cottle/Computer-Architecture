@@ -25,12 +25,12 @@ struct Cpu : SimulationDevice
     Register<int> intRegister;
     Register<float> fpRegister;
 
-    // TODO put these somewhere else
-    Memory memory;
+    Memory *memory;
 
     std::vector<Pipeline *> pipelines;
 
     Cpu();
+    Cpu(Memory *memory);
 
     Cpu *addPipeline(Pipeline *pipeline);
 

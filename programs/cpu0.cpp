@@ -21,8 +21,8 @@ void runProgram(std::string name)
         int memOffset = i * sizeof(float);
         float a = rand();
         float b = rand();
-        cpu.memory.write(ARRAY_A_START + memOffset, a);
-        cpu.memory.write(ARRAY_B_START + memOffset, b);
+        cpu.memory->write(ARRAY_A_START + memOffset, a);
+        cpu.memory->write(ARRAY_B_START + memOffset, b);
 
         // Initialize arrays for implementing/testing CPU0.s
         ARRAY_A[i] = a;
@@ -53,9 +53,9 @@ void runProgram(std::string name)
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
-        float a = cpu.memory.read<float>(ARRAY_A_START + memOffset);
-        float b = cpu.memory.read<float>(ARRAY_B_START + memOffset);
-        float c = cpu.memory.read<float>(ARRAY_C_START + memOffset);
+        float a = cpu.memory->read<float>(ARRAY_A_START + memOffset);
+        float b = cpu.memory->read<float>(ARRAY_B_START + memOffset);
+        float c = cpu.memory->read<float>(ARRAY_C_START + memOffset);
 
         std::cout << str(a) << " + " << str(b) << " = " << str(c) << "\n";
 

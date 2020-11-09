@@ -33,7 +33,7 @@ void Fetch::tick()
     if (this->free())
     {
         std::cout << "Fetching new instruction\n";
-        this->stage(new RawInstruction(this->cpu->memory.read<uint32_t>(this->cpu->programCounter.value)));
+        this->stage(new RawInstruction(this->cpu->memory->read<uint32_t>(this->cpu->programCounter.value)));
     }
     this->_busy = true;
 

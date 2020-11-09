@@ -16,7 +16,22 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT, "Integer")),
              fpRegister(Register<float>(REGISTER_COUNT, "Float")),
              // Default settings for cpu0.s
-             memory(Memory(MEMORY_SIZE, MEMORY_DELAY, {0x200, 0x1400 - 0x200}))
+             memory(new Memory(MEMORY_SIZE, MEMORY_DELAY, {0x200, 0x1400 - 0x200}))
+{
+    this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
+    this->branchSpeculated = false;
+    this->jumpedFrom = -1;
+
+    this->pipelines = {};
+    this->complete = false;
+    this->instructionsProcessed = 0;
+}
+
+Cpu::Cpu(Memory *memory) : SimulationDevice("Cpu"),
+                           intRegister(Register<int>(REGISTER_COUNT, "Integer")),
+                           fpRegister(Register<float>(REGISTER_COUNT, "Float")),
+                           // Default settings for cpu0.s
+                           memory(memory)
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
@@ -84,7 +99,7 @@ void Cpu::loadProgram(std::string fileName, uint32_t offset)
     uint32_t memAddress = offset;
     while (programFile.read((char *)&instruction, sizeof(instruction)))
     {
-        this->memory.write(memAddress, instruction);
+        this->memory->write(memAddress, instruction);
         memAddress += sizeof(instruction);
     }
 
