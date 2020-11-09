@@ -10,7 +10,7 @@
 
 struct ControlInstruction : DecodedInstruction
 {
-    int destination;
+    int offset;
     ControlInstruction(RawInstruction *instruction);
 
     virtual bool take(Cpu *cpu);

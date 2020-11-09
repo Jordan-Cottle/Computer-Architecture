@@ -37,7 +37,7 @@ struct Cpu : SimulationDevice
     void tick();
     void process(Event *event);
 
-    void loadProgram(std::string fileName);
+    void loadProgram(std::string fileName, uint32_t offset = 0);
 
     void flush();
 

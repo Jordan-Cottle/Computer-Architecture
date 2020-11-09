@@ -1,4 +1,4 @@
-EXE := cpu0
+EXE := duo-core
 TESTS:= fetch_test \
 	fp_test \
 	decode_test \
@@ -16,7 +16,10 @@ PROGRAM_DIR := programs
 
 SHELL = /usr/bin/python3
 .ONESHELL:
-.PHONY=build,clean,run,tests
+.PHONY=build,clean,run,tests,cpu0,duo-core
+
+assignment: cpu0 duo-core
+	# Both simulations complete
 
 run: ${EXE}.exe ${BINARIES}
 	import os
@@ -25,6 +28,10 @@ run: ${EXE}.exe ${BINARIES}
 cpu0: cpu0.exe CPU0.bin
 	import os
 	os.system("./cpu0.exe")
+
+duo-core: duo-core.exe CPU0.bin CPU1.bin
+	import os
+	os.system("./duo-core.exe")
 
 tests: ${BINARIES} ${TESTS} 
 	# All tests have been triggered
