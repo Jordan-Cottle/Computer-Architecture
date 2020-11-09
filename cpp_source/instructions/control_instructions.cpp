@@ -10,12 +10,16 @@
 
 ControlInstruction::ControlInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
-    this->offset = sign_extend(getImmediateSB(instruction->data), 12);
 }
 
 bool ControlInstruction::take(Cpu *cpu)
 {
     return true; // Default branch behavior is to always take
+}
+
+int ControlInstruction::offset(Cpu *cpu)
+{
+    return sign_extend(getImmediateSB(this->data), 12);
 }
 
 void ControlInstruction::execute(Cpu *cpu)
@@ -28,7 +32,7 @@ void ControlInstruction::execute(Cpu *cpu)
 
         if (take)
         {
-            cpu->programCounter.jump(this->offset);
+            cpu->programCounter.jump(this->offset(cpu));
         }
         else
         {
@@ -38,7 +42,7 @@ void ControlInstruction::execute(Cpu *cpu)
 
     if (take)
     {
-        std::cout << "Jumping by " << str(this->offset) << "\n";
+        std::cout << "Jumping by " << str(this->offset(cpu)) << "\n";
     }
 
     // Fetch unit has already made a correct prediction, nothing to do
@@ -47,7 +51,7 @@ void ControlInstruction::execute(Cpu *cpu)
 
 std::string ControlInstruction::__str__()
 {
-    return DecodedInstruction::__str__() + " (PC += " + str(this->offset) + ")";
+    return DecodedInstruction::__str__();
 }
 
 BranchInstruction::BranchInstruction(RawInstruction *instruction) : ControlInstruction(instruction)
@@ -64,7 +68,7 @@ bool Bne::take(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
     int right = cpu->intRegister.read(this->rightIndex);
-    std::cout << "Jumping by " << str(this->offset) << " if " << str(left) << " != " << str(right) << "\n";
+    std::cout << "Jumping by " << str(this->offset(cpu)) << " if " << str(left) << " != " << str(right) << "\n";
     return left != right;
 }
 
@@ -81,7 +85,7 @@ bool Blt::take(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
     int right = cpu->intRegister.read(this->rightIndex);
-    std::cout << "Jumping by " << str(this->offset) << " if " << str(left) << " < " << str(right) << "\n";
+    std::cout << "Jumping by " << str(this->offset(cpu)) << " if " << str(left) << " < " << str(right) << "\n";
     return left < right;
 }
 
@@ -92,8 +96,12 @@ std::string Blt::__str__()
 
 Jump::Jump(RawInstruction *instruction) : ControlInstruction(instruction)
 {
-    this->offset = sign_extend(getImmediateUB(instruction->data), 20);
     this->registerIndex = getRd(instruction->data);
+}
+
+int Jump::offset(Cpu *cpu)
+{
+    return sign_extend(getImmediateUB(this->data), 20);
 }
 
 void Jump::execute(Cpu *cpu)
@@ -107,14 +115,16 @@ Jalr::Jalr(RawInstruction *instruction) : ControlInstruction(instruction)
 {
     this->registerIndex = getRd(instruction->data);
     this->sourceIndex = getR1(instruction->data);
-    this->offset = twos_compliment(getImmediateI(instruction->data), 12);
+}
+
+int Jalr::offset(Cpu *cpu)
+{
+    return sign_extend(getImmediateI(this->data), 12) + cpu->intRegister.read(this->sourceIndex);
 }
 
 void Jalr::execute(Cpu *cpu)
 {
-    this->offset += cpu->intRegister.read(this->sourceIndex);
-
-    if (this->offset == 0)
+    if (this->offset(cpu) == 0)
     {
         // Is this how we're supposed to end the program??
         std::cout << "Return to PC 0 detected, program complete\n";

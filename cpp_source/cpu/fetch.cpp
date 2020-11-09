@@ -48,7 +48,8 @@ void Fetch::tick()
 
         this->cpu->branchSpeculated = true;
         this->cpu->jumpedFrom = this->cpu->programCounter.value;
-        this->cpu->programCounter.jump(getImmediateSB(instruction->data));
+        ControlInstruction branch = ControlInstruction(instruction);
+        this->cpu->programCounter.jump(branch.offset(this->cpu));
 
         std::cout << "Branch by " << this->cpu->programCounter << " predicted\n";
     }
@@ -58,9 +59,9 @@ void Fetch::tick()
         this->cpu->jumpedFrom = this->cpu->programCounter.value;
 
         Jump jump = Jump(instruction);
-        std::cout << "Jump by " << jump.offset << " detected\n";
+        std::cout << "Jump by " << jump.offset(this->cpu) << " detected\n";
 
-        this->cpu->programCounter.jump(jump.offset);
+        this->cpu->programCounter.jump(jump.offset(this->cpu));
     }
     else if (opcode == 0b1100111)
     {
@@ -69,8 +70,7 @@ void Fetch::tick()
 
         Jalr jalr = Jalr(instruction);
 
-        int offset = jalr.offset + cpu->intRegister.read(jalr.sourceIndex);
-        this->cpu->programCounter.jump(offset);
+        this->cpu->programCounter.jump(jalr.offset(this->cpu));
         std::cout << "Jalr to " << this->cpu->programCounter << " detected\n";
     }
     else

@@ -10,10 +10,10 @@
 
 struct ControlInstruction : DecodedInstruction
 {
-    int offset;
     ControlInstruction(RawInstruction *instruction);
 
     virtual bool take(Cpu *cpu);
+    virtual int offset(Cpu *cpu);
 
     void execute(Cpu *cpu);
 
@@ -50,6 +50,7 @@ struct Jump : ControlInstruction
     int registerIndex;
     Jump(RawInstruction *instruction);
 
+    int offset(Cpu *cpu);
     void execute(Cpu *cpu);
 };
 
@@ -59,6 +60,7 @@ struct Jalr : ControlInstruction
     int sourceIndex;
     Jalr(RawInstruction *instruction);
 
+    int offset(Cpu *cpu);
     void execute(Cpu *cpu);
 };
 
