@@ -21,6 +21,9 @@ int main()
     float ARRAY_D[ARRAY_SIZE];
 
     Memory *ram = new Memory(MEMORY_DELAY, MEMORY_SIZE, {0x100, 0x200, 0x1400});
+    MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
+    Cpu cpu0 = Cpu(memBus);
+    Cpu cpu1 = Cpu(memBus);
 
     // Initialize arrays in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)
