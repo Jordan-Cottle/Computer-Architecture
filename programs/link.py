@@ -405,7 +405,14 @@ class Instruction(InstructionTemplate):
     def parse(cls, line, labels, current_mem_address=0):
         keyword, *args = line.split()
         if keyword in MACROS:
-            keyword, *args = MACROS[keyword].format(*args).split()
+            if "jal" not in keyword:
+                keyword, *args = MACROS[keyword].format(*args).split()
+
+            elif keyword == "jal" and len(args) < 2:
+                keyword, *args = MACROS[keyword].format(*args).split()
+
+            elif keyword == "jalr" and len(args) < 3:
+                keyword, *args = MACROS[keyword].format(*args).split()
 
         args = [parse_token(arg) for arg in args]
 
@@ -609,6 +616,12 @@ assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
 instruction = Instruction.parse("jal	foo", labels={"foo": 0}, current_mem_address=20)
 expected = f"11111110110111111111000011101111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse(
+    "jalr x1 x1 bar", labels={"bar": 40}, current_mem_address=12
+)
+expected = f"00000001110000001000000011100111"
 assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
 
