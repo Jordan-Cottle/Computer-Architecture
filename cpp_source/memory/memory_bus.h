@@ -9,8 +9,6 @@
 #include "sim_memory.h"
 #include "heap.h"
 
-constexpr uint32_t BUS_ARBITRATION_TIME = 5;
-
 struct MemoryRequest : printable
 {
     uint32_t address;
@@ -24,7 +22,7 @@ struct MemoryRequest : printable
 };
 
 // Use Memory Interface to keep it compatible with cpu0.s simulation
-struct MemoryBus : Memory
+struct MemoryBus : MemoryInterface
 {
     Memory *memory;
 
@@ -37,17 +35,12 @@ struct MemoryBus : Memory
     bool request(uint32_t address, SimulationDevice *device);
     void process(Event *event);
 
-    template <typename T>
-    T read(uint32_t address)
-    {
-        return this->memory->read<T>(address);
-    }
-
-    template <typename T>
-    void write(uint32_t address, T value)
-    {
-        this->memory->write(address, value);
-    }
+    uint32_t readUint(uint32_t address);
+    int readInt(uint32_t address);
+    float readFloat(uint32_t address);
+    void write(uint32_t address, uint32_t value);
+    void write(uint32_t address, int value);
+    void write(uint32_t address, float value);
 
     std::string __str__();
 };

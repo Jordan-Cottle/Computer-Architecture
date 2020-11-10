@@ -3,18 +3,18 @@ using namespace Simulation;
 
 int main()
 {
-    Memory memory = Memory(8, 20, {0x4, 0x4});
+    Memory memory = Memory(20, 8, {0x4, 0x8});
 
     for (int i = 0; i < 32; i++)
     {
         int num = 1 << i;
         memory.write(0, num);
-        assert(memory.read<int>(0) == num);
+        assert(memory.readInt(0) == num);
     }
 
     float num = .1f;
     memory.write(4, num);
-    assert(memory.read<float>(4) == num);
+    assert(memory.readFloat(4) == num);
 
     uint32_t partition = memory.partition(0);
     assert(partition == 0);

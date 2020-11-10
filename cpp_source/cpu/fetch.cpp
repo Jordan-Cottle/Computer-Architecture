@@ -33,8 +33,7 @@ void Fetch::tick()
     if (this->free())
     {
         std::cout << "Fetching new instruction\n";
-        this->stage(new RawInstruction(this->cpu->memory.read<uint32_t>(this->cpu->programCounter.value)));
-        ++this->cpu->programCounter;
+        this->stage(new RawInstruction(this->cpu->memory->readUint(this->cpu->programCounter.value)));
     }
     this->_busy = true;
 
@@ -49,9 +48,10 @@ void Fetch::tick()
 
         this->cpu->branchSpeculated = true;
         this->cpu->jumpedFrom = this->cpu->programCounter.value;
-        this->cpu->programCounter.jump(getImmediateSB(instruction->data));
+        ControlInstruction branch = ControlInstruction(instruction);
+        this->cpu->programCounter.jump(branch.offset(this->cpu));
 
-        std::cout << "Branch to " << this->cpu->programCounter << " predicted\n";
+        std::cout << "Branch by " << this->cpu->programCounter << " predicted\n";
     }
     else if (opcode == 0b1101111)
     {
@@ -59,9 +59,9 @@ void Fetch::tick()
         this->cpu->jumpedFrom = this->cpu->programCounter.value;
 
         Jump jump = Jump(instruction);
-        std::cout << "Jump to " << jump.destination << " detected\n";
+        std::cout << "Jump by " << jump.offset(this->cpu) << " detected\n";
 
-        this->cpu->programCounter.jump(jump.destination);
+        this->cpu->programCounter.jump(jump.offset(this->cpu));
     }
     else if (opcode == 0b1100111)
     {
@@ -70,9 +70,12 @@ void Fetch::tick()
 
         Jalr jalr = Jalr(instruction);
 
-        int destination = jalr.destination + cpu->intRegister.read(jalr.sourceIndex);
-        this->cpu->programCounter.jump(destination);
+        this->cpu->programCounter.jump(jalr.offset(this->cpu));
         std::cout << "Jalr to " << this->cpu->programCounter << " detected\n";
+    }
+    else
+    {
+        ++this->cpu->programCounter;
     }
 
     // Stop fetching if halt is encountered

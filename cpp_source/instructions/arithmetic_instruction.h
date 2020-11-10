@@ -31,6 +31,15 @@ struct Add : ArithmeticInstruction
     std::string __str__();
 };
 
+struct Sub : ArithmeticInstruction
+{
+    Sub(RawInstruction *instruction);
+
+    void execute(Cpu *cpu);
+
+    std::string __str__();
+};
+
 struct Lui : ArithmeticInstruction
 {
     Lui(RawInstruction *instruction);

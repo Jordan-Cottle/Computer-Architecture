@@ -9,6 +9,4 @@ namespace Simulation
 {
     EventQueue masterEventQueue;
     Clock simulationClock;
-    Cpu cpu;
-
 } // namespace Simulation

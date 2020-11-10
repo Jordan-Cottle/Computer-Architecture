@@ -56,7 +56,6 @@ void Execute::process(Event *event)
     {
         event->handled = true;
         DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
-        std::cout << "Execute executing instruction: " << instruction << "\n";
 
         Store *store = dynamic_cast<Store *>(instruction);
         if (store != NULL)
@@ -65,6 +64,7 @@ void Execute::process(Event *event)
         }
         else
         {
+            std::cout << "Execute executing instruction: " << instruction << "\n";
             instruction->execute(this->cpu);
 
             // Decoded instruction use complete. No further reference to it will be created
@@ -77,7 +77,7 @@ void Execute::process(Event *event)
     {
         event->handled = true;
         Load *load = (Load *)this->staged();
-        bool accepted = this->cpu->memory.request(load->memoryAddress(this->cpu), this);
+        bool accepted = this->cpu->memory->request(load->memoryAddress(this->cpu), this);
         if (!accepted)
         {
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);

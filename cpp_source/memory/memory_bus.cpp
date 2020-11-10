@@ -23,7 +23,7 @@ std::string MemoryRequest::__str__()
     return "Memory request for address " + str(this->address) + " by " + this->device->type + " resolved at time " + str(this->completeAt);
 }
 
-MemoryBus::MemoryBus(int accessTime, Memory *memory) : Memory(0, accessTime), memory(memory)
+MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTime), memory(memory)
 {
     this->busyFor = std::vector<uint32_t>(memory->partitions.size());
     this->requests = MinHeap<MemoryRequest *>();
@@ -77,6 +77,36 @@ void MemoryBus::process(Event *event)
     }
 
     SimulationDevice::process(event);
+}
+
+uint32_t MemoryBus::readUint(uint32_t address)
+{
+    return this->memory->readUint(address);
+}
+
+int MemoryBus::readInt(uint32_t address)
+{
+    return this->memory->readInt(address);
+}
+
+float MemoryBus::readFloat(uint32_t address)
+{
+    return this->memory->readFloat(address);
+}
+
+void MemoryBus::write(uint32_t address, uint32_t value)
+{
+    this->memory->write(address, value);
+}
+
+void MemoryBus::write(uint32_t address, int value)
+{
+    this->memory->write(address, value);
+}
+
+void MemoryBus::write(uint32_t address, float value)
+{
+    this->memory->write(address, value);
 }
 
 std::string MemoryBus::__str__()

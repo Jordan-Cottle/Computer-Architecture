@@ -402,7 +402,7 @@ class Instruction(InstructionTemplate):
         self.bits = template.bits
 
     @classmethod
-    def parse(cls, line, labels):
+    def parse(cls, line, labels, current_mem_address=0):
         keyword, *args = line.split()
         if keyword in MACROS:
             keyword, *args = MACROS[keyword].format(*args).split()
@@ -455,8 +455,8 @@ class Instruction(InstructionTemplate):
                 try:
                     value = int(arg)
                 except ValueError:
-                    print(f"Resolving label: {arg} => {labels[arg]}")
-                    value = labels[arg]
+                    value = labels[arg] - current_mem_address
+                    print(f"Resolving label: {arg} => {value}")
 
             target_length = len(instruction.immediate)
             offset = min(immediate.low for immediate in instruction.format.immediates)
@@ -583,6 +583,34 @@ instruction = Instruction.parse("sw	ra, 12(sp)", labels={})
 expected = f"00000000000101110010011000100011"
 assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
+instruction = Instruction.parse("fsub.s	ft0, ft0, ft1", labels={})
+expected = f"00001001101111010000110101010011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse(
+    "blt	a1, a0, foo", labels={"foo": 24}, current_mem_address=12
+)
+expected = f"00000001001010011100011001100011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse(
+    "blt	a1, a0, foo", labels={"foo": 12}, current_mem_address=24
+)
+expected = f"11111111001010011100101011100011"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("jal	foo", labels={"foo": 12}, current_mem_address=24)
+expected = f"11111111010111111111000011101111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("jal	foo", labels={"foo": 24}, current_mem_address=12)
+expected = f"00000000110000000000000011101111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("jal	foo", labels={"foo": 0}, current_mem_address=20)
+expected = f"11111110110111111111000011101111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
 
 def read_file(file_name):
     with open(file_name, "r") as assembly_file:
@@ -620,7 +648,7 @@ def assemble_program(data):
     for line in data:
         print(line)
 
-        program.append(Instruction.parse(line, labels))
+        program.append(Instruction.parse(line, labels, len(program) * 4))
 
     return program
 

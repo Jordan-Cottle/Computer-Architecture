@@ -15,7 +15,23 @@ using namespace Simulation;
 Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT, "Integer")),
              fpRegister(Register<float>(REGISTER_COUNT, "Float")),
-             memory(Memory(MEMORY_SIZE, MEMORY_DELAY, {0x200, 0x1400 - 0x200}))
+             // Default settings for cpu0.s
+             memory(new Memory(MEMORY_DELAY, MEMORY_SIZE, {0x200, 0x1400}))
+{
+    this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
+    this->branchSpeculated = false;
+    this->jumpedFrom = -1;
+
+    this->pipelines = {};
+    this->complete = false;
+    this->instructionsProcessed = 0;
+}
+
+Cpu::Cpu(MemoryInterface *memory) : SimulationDevice("Cpu"),
+                                    intRegister(Register<int>(REGISTER_COUNT, "Integer")),
+                                    fpRegister(Register<float>(REGISTER_COUNT, "Float")),
+                                    // Default settings for cpu0.s
+                                    memory(memory)
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;
@@ -51,6 +67,12 @@ void Cpu::process(Event *event)
 
 void Cpu::tick()
 {
+    if (this->complete)
+    {
+        std::cout << "Cpu ignoring tick because it is set to complete\n";
+        return;
+    }
+
     std::cout << "Cpu cycle " << this->clocksProcessed << ": " << this->programCounter << "\n";
     // Work pipelines backwards
     // This allows allows each stage to set the instruction into the next stage with worrying
@@ -69,7 +91,7 @@ void Cpu::tick()
     SimulationDevice::tick();
 }
 
-void Cpu::loadProgram(std::string fileName)
+void Cpu::loadProgram(std::string fileName, uint32_t offset)
 {
     std::ifstream programFile(fileName, std::ios::binary);
 
@@ -80,12 +102,14 @@ void Cpu::loadProgram(std::string fileName)
 
     uint32_t instruction = 0;
 
-    int memAddress = 0;
+    uint32_t memAddress = offset;
     while (programFile.read((char *)&instruction, sizeof(instruction)))
     {
-        this->memory.write(memAddress, instruction);
+        this->memory->write(memAddress, instruction);
         memAddress += sizeof(instruction);
     }
+
+    this->programCounter.value = offset;
 }
 
 void Cpu::flush()

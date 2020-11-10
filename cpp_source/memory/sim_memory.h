@@ -11,37 +11,42 @@
 
 #include "device.h"
 
-struct Memory : SimulationDevice
+struct MemoryInterface : SimulationDevice
+{
+    int accessTime;
+    MemoryInterface(uint32_t accessTime);
+
+    virtual bool request(uint32_t address, SimulationDevice *device) = 0;
+
+    // I was using templates for this
+    // But supporting using RAM directly and a Memory bus on the same cpu interface was impossible
+    // I hate this. It's a large volume of code just for the sake of a compiler
+    virtual uint32_t readUint(uint32_t address) = 0;
+    virtual int readInt(uint32_t address) = 0;
+    virtual float readFloat(uint32_t address) = 0;
+    virtual void write(uint32_t address, uint32_t value) = 0;
+    virtual void write(uint32_t address, int value) = 0;
+    virtual void write(uint32_t address, float value) = 0;
+};
+
+struct Memory : MemoryInterface
 {
     std::vector<uint8_t> data;
-    int accessTime;
     std::vector<uint32_t> partitions;
     std::vector<bool> busy;
 
-    Memory(uint32_t size, int accessTime);
-    Memory(uint32_t size, int accessTime, std::vector<uint32_t> partitions);
+    Memory(int accessTime, uint32_t size);
+    Memory(int accessTime, uint32_t size, std::vector<uint32_t> partitions);
 
     uint32_t partition(uint32_t address);
     bool request(uint32_t address, SimulationDevice *device);
 
-    template <typename T>
-    T read(uint32_t address)
-    {
-        this->busy[this->partition(address)] = false;
-        return *(T *)&this->data[address];
-    }
-
-    template <typename T>
-    void write(uint32_t address, T value)
-    {
-        this->busy[this->partition(address)] = false;
-
-        uint8_t *start = (uint8_t *)&value;
-        for (uint32_t i = 0; i < sizeof(value); i++)
-        {
-            this->data[address + i] = *(start + i);
-        }
-    }
+    uint32_t readUint(uint32_t address);
+    int readInt(uint32_t address);
+    float readFloat(uint32_t address);
+    void write(uint32_t address, uint32_t value);
+    void write(uint32_t address, int value);
+    void write(uint32_t address, float value);
 
     std::string __str__();
 };

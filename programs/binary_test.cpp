@@ -15,12 +15,12 @@ int main()
         0b00000000000000000000000000110011,
         0b00000000001100001010000000100111,
         0b11111111110000001000000010010011,
-        0b00000000001000001001000001100011,
+        0b11111110001000001001001011100011,
     };
 
     for (uint32_t i = 0; i < expected.size(); i++)
     {
-        uint32_t instruction = cpu.memory.read<uint32_t>(i * 4);
+        uint32_t instruction = cpu.memory->readUint(i * 4);
         RawInstruction rInstruction = RawInstruction(instruction);
         assert(instruction == expected[i]);
     }

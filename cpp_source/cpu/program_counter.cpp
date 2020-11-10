@@ -4,6 +4,7 @@
 */
 
 #include <assert.h>
+#include <iostream>
 
 #include "program_counter.h"
 
@@ -33,7 +34,8 @@ bool ProgramCounter::operator==(int value)
 void ProgramCounter::jump(int destination)
 {
     assert(destination % this->step == 0);
-    this->value = destination;
+    std::cout << "Jumping a distance of " << str(destination) << "\n";
+    this->value += destination;
 }
 
 std::string ProgramCounter::__str__()
