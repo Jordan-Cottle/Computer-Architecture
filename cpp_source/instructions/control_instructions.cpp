@@ -104,9 +104,8 @@ int Jump::offset(Cpu *cpu)
 
 void Jump::execute(Cpu *cpu)
 {
-    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom + MEMORY_ADDRESSES_PER_INSTRUCTION);
-
     ControlInstruction::execute(cpu);
+    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom + MEMORY_ADDRESSES_PER_INSTRUCTION);
 }
 
 Jalr::Jalr(RawInstruction *instruction) : ControlInstruction(instruction)
@@ -130,7 +129,6 @@ void Jalr::execute(Cpu *cpu)
         return;
     }
 
-    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom + MEMORY_ADDRESSES_PER_INSTRUCTION);
-
     ControlInstruction::execute(cpu);
+    cpu->intRegister.write(this->registerIndex, cpu->jumpedFrom + MEMORY_ADDRESSES_PER_INSTRUCTION);
 }
