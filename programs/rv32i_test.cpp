@@ -1,0 +1,383 @@
+#include "test.h"
+
+#include "arithmetic_instruction.h"
+#include "control_instructions.h"
+#include "memory_instruction.h"
+
+constexpr int FOO = 0;
+constexpr int BAR = 40;
+
+int main()
+{
+    int pc = 0;
+    Memory *testRam = new Memory(0, MEMORY_SIZE);
+    Cpu *testCpu = new Cpu(testRam);
+
+    Fetch *testFetch = new Fetch(testCpu);
+    Decode *testDecode = new Decode(testCpu);
+    Execute *testExecute = new Execute(testCpu);
+    StorePipeline *testStore = new StorePipeline(testCpu);
+    testCpu->addPipeline(testFetch);
+    testCpu->addPipeline(testDecode);
+    testCpu->addPipeline(testExecute);
+    testCpu->addPipeline(testStore);
+
+    testCpu->loadProgram("rv32i.bin");
+
+    // LUI  # 0
+    pc = 0;
+    RawInstruction instruction = RawInstruction(testRam->readUint(pc));
+    Lui lui = Lui(&instruction);
+    lui.execute(testCpu);
+
+    assert(testCpu->intRegister.read(1) == 1048576);
+
+    // AUIPC  # 4
+    pc = 4;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    Add nop = Add(&instruction);
+
+    // JAL  # 8
+    pc = 8;
+    testCpu->programCounter.value = pc;
+    testCpu->jumpedFrom = 8; // Mock Fetch unit behavior
+    instruction = RawInstruction(testRam->readUint(pc));
+    Jump jal = Jump(&instruction);
+    jal.execute(testCpu);
+
+    assert(jal.offset(testCpu) == FOO - pc);
+    assert(testCpu->intRegister.read(1) == pc + 4);
+    assert(testCpu->programCounter.value == FOO);
+
+    // JALR  # 12
+    pc = 12;
+    testCpu->programCounter.value = pc;
+    testCpu->jumpedFrom = pc; // Mock Fetch unit behavior
+    instruction = RawInstruction(testRam->readUint(pc));
+    Jalr jalr = Jalr(&instruction);
+    int regOffset = 0;
+    testCpu->intRegister.write(1, regOffset);
+    assert(jalr.offset(testCpu) == BAR - pc + regOffset);
+    regOffset = 4;
+    testCpu->intRegister.write(1, regOffset);
+    assert(jalr.offset(testCpu) == BAR - pc + regOffset);
+    regOffset = -4;
+    testCpu->intRegister.write(1, regOffset);
+    assert(jalr.offset(testCpu) == BAR - pc + regOffset);
+    jalr.execute(testCpu);
+
+    assert(testCpu->programCounter.value == BAR + regOffset);
+
+    // BEQ  # 16
+    pc = 12;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // BNE  # 20
+    pc = 20;
+    testCpu->programCounter.value = pc;
+    testCpu->jumpedFrom = pc; // Mock Fetch unit behavior
+    instruction = RawInstruction(testRam->readUint(pc));
+    Bne bne = Bne(&instruction);
+    assert(bne.offset(testCpu) == FOO - pc);
+
+    testCpu->intRegister.write(1, 10);
+    testCpu->intRegister.write(2, 11);
+    bne.execute(testCpu);
+    assert(testCpu->programCounter.value == FOO);
+
+    // Test speculated branch actually fails
+    testCpu->intRegister.write(2, 10);
+    testCpu->branchSpeculated = true;
+    bne.execute(testCpu);
+    std::cout << testCpu->programCounter.value << "\n";
+    assert(testCpu->programCounter.value == pc + 4);
+
+    // BLT  # 24
+    pc = 24;
+    testCpu->programCounter.value = pc;
+    testCpu->jumpedFrom = pc; // Mock Fetch unit behavior
+    instruction = RawInstruction(testRam->readUint(pc));
+    Blt blt = Blt(&instruction);
+    assert(blt.offset(testCpu) == BAR - pc);
+
+    // reset predictor so branch triggers in execute
+    testCpu->branchSpeculated = false;
+    testCpu->intRegister.write(1, 10);
+    testCpu->intRegister.write(2, 11);
+    blt.execute(testCpu);
+    assert(testCpu->programCounter.value == BAR);
+
+    // Test speculated branch actually fails
+    testCpu->intRegister.write(2, 10);
+    testCpu->branchSpeculated = true;
+    bne.execute(testCpu);
+    assert(testCpu->programCounter.value == pc + 4);
+
+    // BGE
+    pc = 28;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // BLTU
+    pc = 32;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // BGEU
+    pc = 36;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // LB
+    pc = 40;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // LH
+    pc = 44;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // LW
+    pc = 48;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    Load load = Load(&instruction);
+
+    int memoryLocation = 400;
+    testRam->write(memoryLocation, 42);
+    testCpu->intRegister.write(1, memoryLocation - 16); // load has offset of 16 set as immediate
+    load.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == 42);
+
+    // LBU
+    pc = 52;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // LHU
+    pc = 56;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SB
+    pc = 60;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SH
+    pc = 64;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SW
+    pc = 68;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    Store store = Store(&instruction);
+
+    memoryLocation = 500;
+    testCpu->intRegister.write(1, memoryLocation + 16); // store has -16 offset set
+    testCpu->intRegister.write(2, 300);
+
+    store.execute(testCpu);
+    assert(testRam->readInt(memoryLocation) == 300);
+
+    // ADDI
+    pc = 72;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    Add addi = Add(&instruction);
+
+    testCpu->intRegister.write(1, 16);
+    addi.execute(testCpu);
+    assert(testCpu->intRegister.read(1) == -16);
+
+    // SLTI
+    pc = 76;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SLTIU
+    pc = 80;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // XORI
+    pc = 84;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // ORI
+    pc = 88;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // ANDI
+    pc = 92;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SLLI
+    pc = 96;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    Slli slli = Slli(&instruction);
+
+    testCpu->intRegister.write(1, 3);
+    slli.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == 3 << 3);
+
+    // SRLI
+    pc = 100;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SRAI
+    pc = 104;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // ADD
+    pc = 108;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    Add add = Add(&instruction);
+
+    testCpu->intRegister.write(1, -10);
+    testCpu->intRegister.write(2, 24);
+    add.execute(testCpu);
+    assert(testCpu->intRegister.read(3) == 14);
+
+    // SUB
+    pc = 112;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    Sub sub = Sub(&instruction);
+
+    testCpu->intRegister.write(1, 32);
+    testCpu->intRegister.write(2, 64);
+    sub.execute(testCpu);
+    assert(testCpu->intRegister.read(3) == -32);
+
+    // SLL
+    pc = 116;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SLTU
+    pc = 120;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // XOR
+    pc = 124;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SRL
+    pc = 128;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SRA
+    pc = 132;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // OR
+    pc = 136;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // AND
+    pc = 140;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // FENCE -- NOT IMPLEMENTED
+    pc = 144;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // FENCE.I -- NOT IMPLEMENTED
+    pc = 148;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SCALL -- NOT IMPLEMENTED
+    pc = 152;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // SBREAK -- NOT IMPLEMENTED
+    pc = 156;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // RDCYCLE
+    pc = 160;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // RDCYCLEH
+    pc = 164;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // RDTIME -- NOT IMPLEMENTED
+    pc = 168;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // RDTIMEH -- NOT IMPLEMENTED
+    pc = 172;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // RDINSTRET
+    pc = 176;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+
+    // RDINSTRETH
+    pc = 180;
+    testCpu->programCounter.value = pc;
+    instruction = RawInstruction(testRam->readUint(pc));
+    nop = Add(&instruction);
+}
