@@ -19,8 +19,8 @@ void runProgram(std::string name)
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
-        float a = rand();
-        float b = rand();
+        float a = get_random();
+        float b = get_random();
         cpu.memory->write(ARRAY_A_START + memOffset, a);
         cpu.memory->write(ARRAY_B_START + memOffset, b);
 

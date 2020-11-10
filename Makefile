@@ -18,8 +18,15 @@ SHELL = /usr/bin/python3
 .ONESHELL:
 .PHONY=build,clean,run,tests,cpu0,duo-core
 
-assignment: cpu0 duo-core
+assignment: cpu0.exe duo-core.exe
 	# Both simulations complete
+	import os
+
+	# Start assignment3 part 1
+	os.system("./cpu0.exe")
+	input("Part 1 complete, press enter to continue")
+	# Start assignment3 part 2
+	os.system("./duo-core.exe")
 
 run: ${EXE}.exe ${BINARIES}
 	import os

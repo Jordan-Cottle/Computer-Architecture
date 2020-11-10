@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <random>
 
 #include "pipeline.h"
 #include "simulation.h"
@@ -10,6 +11,13 @@
 
 constexpr float PI = 3.141592654f;
 constexpr float E = 2.718281828f;
+
+float get_random()
+{
+    static std::default_random_engine e;
+    static std::uniform_real_distribution<> dis(-100, 100);
+    return dis(e);
+}
 
 // Echo any events/instructions for debugging partial pipelines
 struct TestPipeline : Pipeline

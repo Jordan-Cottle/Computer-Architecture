@@ -12,4 +12,5 @@ jobs:
     - name: verify
       run: |
         make tests
-        make
+        make cpu0
+        make duo-core

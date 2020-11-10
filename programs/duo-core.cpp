@@ -29,8 +29,8 @@ int main()
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
-        float a = (float)i;
-        float b = (float)-i;
+        float a = get_random();
+        float b = get_random();
         ram->write(ARRAY_A_START + memOffset, a);
         ram->write(ARRAY_B_START + memOffset, b);
 
@@ -89,8 +89,8 @@ int main()
         float c = ram->readFloat(ARRAY_C_START + memOffset);
         float d = ram->readFloat(ARRAY_D_START + memOffset);
 
-        std::cout << str(a) << " + " << str(b) << " = " << str(c) << "\n";
-        std::cout << str(a) << " - " << str(b) << " = " << str(d) << "\n";
+        std::cout << "CPU0.s: " << str(a) << " + " << str(b) << " = " << str(c) << "\n";
+        std::cout << "CPU1.s: " << str(a) << " - " << str(b) << " = " << str(d) << "\n";
 
         // CPU0.s functionality
         ARRAY_C[i] = ARRAY_A[i] + ARRAY_B[i];
