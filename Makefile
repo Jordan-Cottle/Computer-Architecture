@@ -19,7 +19,7 @@ SHELL = /usr/bin/python3
 .ONESHELL:
 .PHONY=build,clean,run,tests,cpu0,duo-core
 
-assignment: cpu0.exe duo-core.exe
+assignment: ${BINARIES} cpu0.exe duo-core.exe
 	# Both simulations complete
 	import os
 
