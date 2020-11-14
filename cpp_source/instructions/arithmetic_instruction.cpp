@@ -6,6 +6,7 @@
 #include "arithmetic_instruction.h"
 
 #include "cpu.h"
+#include "binary.h"
 #include "opcodes.h"
 
 ArithmeticInstruction::ArithmeticInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)

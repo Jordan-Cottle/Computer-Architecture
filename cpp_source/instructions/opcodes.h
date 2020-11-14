@@ -28,14 +28,6 @@ constexpr uint32_t IMM_U_MASK = 0xFFFFF000;
 
 std::string identify(uint32_t instruction);
 
-uint32_t singleBitMask(uint8_t index);
-
-uint32_t getBit(uint32_t data, uint8_t index);
-
-uint32_t setBit(uint32_t data, uint8_t index, bool value);
-
-uint32_t slice(uint32_t data, uint8_t start, uint8_t end);
-
 uint32_t getOpcode(uint32_t data);
 
 uint32_t getRd(uint32_t data);
@@ -53,9 +45,5 @@ uint32_t getImmediateSB(uint32_t data);
 uint32_t getImmediateU(uint32_t data);
 
 uint32_t getImmediateUB(uint32_t data);
-
-int twos_compliment(uint32_t data, uint8_t bit_length);
-
-uint32_t sign_extend(uint32_t data, uint8_t sign_bit_index);
 
 #endif // __OPCODES__

@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <random>
 
+#include "binary.h"
+
 #include "pipeline.h"
 #include "simulation.h"
 

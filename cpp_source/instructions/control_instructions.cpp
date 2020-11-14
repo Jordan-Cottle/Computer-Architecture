@@ -6,6 +6,7 @@
 #include "control_instructions.h"
 #include "cpu.h"
 
+#include "binary.h"
 #include "opcodes.h"
 
 #include "simulation.h"
