@@ -20,7 +20,6 @@ SHELL = /usr/bin/python3
 .PHONY=build,clean,run,tests,cpu0,duo-core
 
 assignment: ${BINARIES} cpu0.exe duo-core.exe
-	# Both simulations complete
 	import os
 
 	# Start assignment3 part 1
