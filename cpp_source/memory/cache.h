@@ -11,6 +11,12 @@
 constexpr uint32_t DIRECT_MAPPED = 1;
 constexpr uint32_t FULLY_ASSOCIATIVE = 0;
 
+struct AddressNotFound : std::runtime_error
+{
+    uint32_t address;
+    AddressNotFound(uint32_t address);
+};
+
 struct Cache : MemoryInterface
 {
     // Configurable attributes

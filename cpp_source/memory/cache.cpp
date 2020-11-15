@@ -10,6 +10,11 @@
 #include "simulation.h"
 using namespace Simulation;
 
+AddressNotFound::AddressNotFound(uint32_t address) : std::runtime_error("Memory address " + str(address) + " not available in cache")
+{
+    this->address = address;
+}
+
 Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source) : MemoryInterface(accessTime, size)
 {
     if (size % blockSize != 0)
