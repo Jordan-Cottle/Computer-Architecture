@@ -26,6 +26,7 @@ struct Cache : MemoryInterface
     // Attributes
     Memory *data;
     std::vector<bool> valid;
+    std::vector<uint32_t> tags;
     SimulationDevice *requestor;
 
     uint32_t tagWidth;
@@ -40,15 +41,25 @@ struct Cache : MemoryInterface
     uint32_t hits;
     uint32_t misses;
 
+    // Backing MemorySource
+    MemoryInterface *source;
+
+    // Request tracking data
+    bool outstandingMiss;
+    uint32_t addressRequested;
+
     Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source);
 
     uint32_t tag(uint32_t address);
     uint32_t blockIndex(uint32_t address);
+    uint32_t setIndex(uint32_t blockIndex);
     uint32_t blockOffset(uint32_t address);
     uint32_t cacheAddress(uint32_t address);
 
-    bool request(uint32_t address, SimulationDevice *device);
+    void loadBlock(uint32_t address);
+    uint32_t locateData(uint32_t address);
 
+    bool request(uint32_t address, SimulationDevice *device);
     void process(Event *event);
 
     uint32_t readUint(uint32_t address);

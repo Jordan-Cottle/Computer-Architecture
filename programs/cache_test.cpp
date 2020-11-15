@@ -16,21 +16,34 @@ void testEventHandling()
 {
     cache->request(0, &testPipeline);
 
+    // Compulsory miss, cache reads from main memory
     assert(masterEventQueue.size() == 1);
-    Event *nextEvent = masterEventQueue.top();
+    Event *nextEvent = masterEventQueue.pop();
     assert(nextEvent->type == "MemoryReady");
-    assert(nextEvent->time == (ulong)cache->accessTime);
+    assert(nextEvent->time == (ulong)memory->accessTime); // Long delay for cache miss
     assert(nextEvent->device == cache);
 
     simulationClock.cycle = nextEvent->time;
-    masterEventQueue.pop();
     nextEvent->device->process(nextEvent);
 
+    // Internal cache reading from its own memory for a read hit
     assert(masterEventQueue.size() == 1);
-    nextEvent = masterEventQueue.top();
+    nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "MemoryReady");                          // Same event type
+    assert(nextEvent->time == memory->accessTime + cache->accessTime); // Scheduled after cache access time
+    assert(nextEvent->device == cache);                                // Passed back to cache (this is the actual cache read)
+
+    simulationClock.cycle = nextEvent->time; // Update sim time to event time
+    nextEvent->device->process(nextEvent);
+
+    // Test pipeline now gets its message after memDelay + cacheDelay
+    assert(masterEventQueue.size() == 1);
+    nextEvent = masterEventQueue.pop();
     assert(nextEvent->type == "MemoryReady");         // Same event type
-    assert(nextEvent->time == simulationClock.cycle); // Scheduled for same time
-    assert(nextEvent->device == &testPipeline);       // Passed back to requesting device
+    assert(nextEvent->time == simulationClock.cycle); // Scheduled for same time as cache internal read
+    assert(nextEvent->device == &testPipeline);       // Passed back to original requesting device
+
+    nextEvent->device->process(nextEvent);
 }
 
 void testAdressing()
@@ -43,7 +56,6 @@ void testAdressing()
         {
             uint32_t address = i + (CACHE_SIZE * j);
             assert(cache->tag(address) == j);
-            assert(cache->cacheAddress(address) == i);
         }
     }
 }
@@ -51,19 +63,26 @@ void testAdressing()
 void testMemoryAccess()
 {
     // Seed cache with data
+    std::vector<int> data = std::vector<int>(CACHE_SIZE / 4);
+
     for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
     {
-        cache->write(i, (int)(CACHE_SIZE - i));
+        int datum = rand();
+        data[i / 4] = datum;
+        cache->write(i, datum);
     }
 
     for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
     {
-        assert(cache->readInt(i) == (int)(CACHE_SIZE - i));
+        assert(cache->readInt(i) == data[i / 4]);
     }
+
+    // TODO: test memory accesses for tag != 0
 }
 
 void testReplacementPolicy()
 {
+    // TODO specific tests for verifying and associativity replacement policy
 }
 
 int main()
