@@ -50,6 +50,16 @@ void testAdressing()
 
 void testMemoryAccess()
 {
+    // Seed cache with data
+    for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
+    {
+        cache->write(i, (int)(CACHE_SIZE - i));
+    }
+
+    for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
+    {
+        assert(cache->readInt(i) == (int)(CACHE_SIZE - i));
+    }
 }
 
 void testReplacementPolicy()
