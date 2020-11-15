@@ -9,12 +9,13 @@ using namespace Simulation;
 
 std::string HEX_CHARS[16] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
-MemoryInterface::MemoryInterface(uint32_t accessTime) : SimulationDevice("Memory")
+MemoryInterface::MemoryInterface(uint32_t accessTime, uint32_t size) : SimulationDevice("Memory")
 {
     this->accessTime = accessTime;
+    this->size = size;
 }
 
-Memory::Memory(int accessTime, uint32_t size) : MemoryInterface(accessTime)
+Memory::Memory(uint32_t accessTime, uint32_t size) : MemoryInterface(accessTime, size)
 {
     this->data = std::vector<uint8_t>(size);
     this->accessTime = accessTime;
@@ -23,7 +24,7 @@ Memory::Memory(int accessTime, uint32_t size) : MemoryInterface(accessTime)
     this->busy = {false};
 }
 
-Memory::Memory(int accessTime, uint32_t size, std::vector<uint32_t> partitions) : MemoryInterface(accessTime)
+Memory::Memory(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partitions) : MemoryInterface(accessTime, size)
 {
     this->data = std::vector<uint8_t>(size);
     this->accessTime = accessTime;
