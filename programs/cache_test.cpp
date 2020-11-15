@@ -43,6 +43,7 @@ void testAdressing()
         {
             uint32_t address = i + (CACHE_SIZE * j);
             assert(cache->tag(address) == j);
+            assert(cache->cacheAddress(address) == i);
         }
     }
 }

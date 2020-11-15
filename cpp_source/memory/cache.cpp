@@ -19,7 +19,6 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
 
     uint32_t blocks = size / blockSize;
 
-    this->size = size;
     this->blockSize = blockSize;
 
     if (associativity == FULLY_ASSOCIATIVE)
@@ -63,6 +62,14 @@ uint32_t Cache::blockIndex(uint32_t address)
 uint32_t Cache::blockOffset(uint32_t address)
 {
     return this->offsetMask & address;
+}
+
+uint32_t Cache::cacheAddress(uint32_t address)
+{
+    uint32_t blockIndex = this->blockIndex(address);
+    uint32_t offset = this->blockOffset(address);
+
+    return (blockIndex * this->blockSize) + offset;
 }
 
 bool Cache::request(uint32_t address, SimulationDevice *device)

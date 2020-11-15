@@ -14,7 +14,6 @@ constexpr uint32_t FULLY_ASSOCIATIVE = 0;
 struct Cache : MemoryInterface
 {
     // Configurable attributes
-    uint32_t size;
     uint32_t blockSize;
     uint32_t associativity;
 
@@ -40,6 +39,7 @@ struct Cache : MemoryInterface
     uint32_t tag(uint32_t address);
     uint32_t blockIndex(uint32_t address);
     uint32_t blockOffset(uint32_t address);
+    uint32_t cacheAddress(uint32_t address);
 
     bool request(uint32_t address, SimulationDevice *device);
 
