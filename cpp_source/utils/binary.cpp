@@ -3,6 +3,8 @@
     Created: 11/14/2020
 */
 
+#include <stdexcept>
+
 #include "binary.h"
 
 uint32_t singleBitMask(uint8_t index)
@@ -49,4 +51,20 @@ uint32_t sign_extend(uint32_t data, uint8_t sign_bit_index)
     }
 
     return data;
+}
+
+uint8_t bitLength(uint32_t data, bool assertPowerOfTwo)
+{
+    uint8_t length = 0;
+    while (data > 0)
+    {
+        if (assertPowerOfTwo && data % 2 != 0 && data != 1)
+        {
+            throw std::runtime_error("Number checked should be a power of two!");
+        }
+        length += 1;
+        data = data >> 1;
+    }
+
+    return length;
 }

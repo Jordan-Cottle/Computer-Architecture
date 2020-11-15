@@ -22,4 +22,6 @@ uint32_t setBit(uint32_t data, uint8_t index, bool value);
 
 uint32_t slice(uint32_t data, uint8_t start, uint8_t end);
 
+uint8_t bitLength(uint32_t data, bool assertPowerOfTwo = false);
+
 #endif
