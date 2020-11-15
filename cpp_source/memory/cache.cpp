@@ -19,7 +19,7 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
 {
     if (size % blockSize != 0)
     {
-        throw std::runtime_error("Block size of a cache must evenly divide it's entire size");
+        throw std::logic_error("Block size of a cache must evenly divide it's entire size");
     }
 
     uint32_t blocks = size / blockSize;
@@ -34,7 +34,7 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
 
     if (this->associativity > blocks)
     {
-        throw std::runtime_error("Cache cannot have more associativity than it has blocks!");
+        throw std::logic_error("Cache cannot have more associativity than it has blocks!");
     }
 
     this->data = new Memory(accessTime, size);
@@ -50,7 +50,7 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
 
     if ((this->offsetMask ^ this->blockIndexMask ^ this->tagMask) != FULL_MASK)
     {
-        throw std::runtime_error("Mask computation for a mask has encountered an error!");
+        throw std::logic_error("Mask computation for a mask has encountered an error!");
     }
 }
 
@@ -84,7 +84,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device)
 
     if (!accepted)
     {
-        throw std::runtime_error("Caches should only have one access at a time!");
+        throw std::logic_error("Caches should only have one access at a time!");
     }
 
     this->requestor = device;
