@@ -17,6 +17,9 @@ struct MemoryInterface : SimulationDevice
     uint32_t size;
     MemoryInterface(uint32_t accessTime, uint32_t size);
 
+    bool withinBounds(uint32_t address);
+    void checkBounds(uint32_t address);
+
     virtual bool request(uint32_t address, SimulationDevice *device) = 0;
 
     // I was using templates for this

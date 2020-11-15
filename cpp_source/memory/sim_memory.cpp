@@ -15,6 +15,19 @@ MemoryInterface::MemoryInterface(uint32_t accessTime, uint32_t size) : Simulatio
     this->size = size;
 }
 
+bool MemoryInterface::withinBounds(uint32_t address)
+{
+    return address < this->size;
+}
+
+void MemoryInterface::checkBounds(uint32_t address)
+{
+    if (!this->withinBounds(address))
+    {
+        throw std::runtime_error("Access is outside of the memory's range");
+    }
+}
+
 Memory::Memory(uint32_t accessTime, uint32_t size) : MemoryInterface(accessTime, size)
 {
     this->data = std::vector<uint8_t>(size);
@@ -43,11 +56,7 @@ Memory::Memory(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partiti
 
 uint32_t Memory::partition(uint32_t address)
 {
-    if (address > this->data.size())
-    {
-        throw std::runtime_error("Access is outside of the memory's range");
-    }
-
+    this->checkBounds(address);
     uint32_t i = 0;
     while (address >= this->partitions[i])
     {
@@ -58,6 +67,7 @@ uint32_t Memory::partition(uint32_t address)
 
 bool Memory::request(uint32_t address, SimulationDevice *device)
 {
+    this->checkBounds(address);
     uint32_t partition = this->partition(address);
 
     if (this->busy[partition])
@@ -75,24 +85,28 @@ bool Memory::request(uint32_t address, SimulationDevice *device)
 
 uint32_t Memory::readUint(uint32_t address)
 {
+    this->checkBounds(address);
     this->busy[this->partition(address)] = false;
     return *(uint32_t *)&this->data[address];
 }
 
 int Memory::readInt(uint32_t address)
 {
+    this->checkBounds(address);
     this->busy[this->partition(address)] = false;
     return *(int *)&this->data[address];
 }
 
 float Memory::readFloat(uint32_t address)
 {
+    this->checkBounds(address);
     this->busy[this->partition(address)] = false;
     return *(float *)&this->data[address];
 }
 
 void Memory::write(uint32_t address, uint32_t value)
 {
+    this->checkBounds(address);
     this->busy[this->partition(address)] = false;
 
     uint8_t *start = (uint8_t *)&value;
@@ -104,6 +118,7 @@ void Memory::write(uint32_t address, uint32_t value)
 
 void Memory::write(uint32_t address, int value)
 {
+    this->checkBounds(address);
     this->busy[this->partition(address)] = false;
 
     uint8_t *start = (uint8_t *)&value;
@@ -115,6 +130,7 @@ void Memory::write(uint32_t address, int value)
 
 void Memory::write(uint32_t address, float value)
 {
+    this->checkBounds(address);
     this->busy[this->partition(address)] = false;
 
     uint8_t *start = (uint8_t *)&value;
