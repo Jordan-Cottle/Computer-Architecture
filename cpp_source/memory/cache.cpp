@@ -199,8 +199,7 @@ void Cache::process(Event *event)
         {
             this->loadBlock(this->addressRequested);
             this->outstandingMiss = false;
-            Event *memoryReady = new Event(event->type, event->time + this->accessTime, this, HIGH);
-            masterEventQueue.push(memoryReady);
+            this->request(this->addressRequested, this->requestor); // Re trigger request
         }
         else
         {
