@@ -57,7 +57,6 @@ struct Cache : MemoryInterface
     uint32_t cacheAddress(uint32_t address);
 
     void loadBlock(uint32_t address);
-    uint32_t locateData(uint32_t address);
 
     bool request(uint32_t address, SimulationDevice *device);
     void process(Event *event);

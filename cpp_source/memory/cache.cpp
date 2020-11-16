@@ -89,10 +89,11 @@ uint32_t Cache::cacheAddress(uint32_t address)
     uint32_t setIndex = this->setIndex(address);
     uint32_t offset = this->blockOffset(address);
 
-    uint32_t blockIndex = setIndex * this->associativity;
+    uint32_t startBlockIndex = setIndex * this->associativity;
 
     for (uint32_t i = 0; i < this->associativity; i++)
     {
+        uint32_t blockIndex = startBlockIndex + i;
         if (!this->valid[blockIndex])
         {
             continue;
@@ -100,7 +101,7 @@ uint32_t Cache::cacheAddress(uint32_t address)
 
         if (this->tags[blockIndex] == tag)
         {
-            return (blockIndex * this->blockSize) + offset;
+            return ((blockIndex * this->blockSize) + offset);
         }
     }
 
@@ -109,38 +110,50 @@ uint32_t Cache::cacheAddress(uint32_t address)
 
 void Cache::loadBlock(uint32_t address)
 {
+    uint32_t tag = this->tag(address);
+    uint32_t setIndex = this->setIndex(address);
+
+    uint32_t blockIndex = setIndex * this->associativity;
+    bool spaceFound = false;
+    for (uint32_t i = 0; i < this->associativity; i++)
+    {
+        // Select first available invalid block
+        if (!this->valid[blockIndex])
+        {
+            std::cout << "Cache allocating fresh space for address: " << str(address) << "\n";
+            spaceFound = true;
+        }
+        else if (this->tags[blockIndex] == tag)
+        {
+            std::cout << "Cache reloading address: " << str(address) << "\n";
+            spaceFound = true;
+        }
+        else
+        {
+            blockIndex++;
+        }
+
+        if (spaceFound)
+        {
+            break;
+        }
+    }
+
+    if (!spaceFound)
+    {
+        // TODO handle replacement policy
+        throw std::runtime_error("No free space in cache found and no replacement policy implementation yet!");
+    }
+
     // Shouldn't this take some time?
-    uint32_t blockIndex = this->blockIndex(address);
-    // TODO find place in set
+    uint32_t start = blockIndex * this->blockSize;
     for (uint32_t i = 0; i < this->blockSize; i += 4)
     {
-        this->data->write(blockIndex + i, this->source->readUint(address + i));
+        this->data->write(start + i, this->source->readUint(address + i));
     }
 
     this->valid[blockIndex] = true;
-    this->tags[blockIndex] = this->tag(address);
-}
-
-uint32_t Cache::locateData(uint32_t address)
-{
-    uint32_t tag = this->tag(address);
-    uint32_t blockIndex = this->blockIndex(address);
-
-    for (uint32_t i = 0; i < this->associativity; i++)
-    {
-        if (!this->valid[blockIndex + i])
-        {
-            continue;
-        }
-
-        if (this->tags[blockIndex + i] == tag)
-        {
-            // Cache address
-            return (blockIndex + i) + this->tag(address);
-        }
-    }
-
-    throw AddressNotFound(address);
+    this->tags[blockIndex] = tag;
 }
 
 bool Cache::request(uint32_t address, SimulationDevice *device)
@@ -158,9 +171,10 @@ bool Cache::request(uint32_t address, SimulationDevice *device)
         // Request block from memory
         accepted = this->source->request(address, this);
         this->outstandingMiss = true;
+        this->addressRequested = address;
         if (!accepted)
         {
-            throw std::logic_error("Caches does not handle downstream rejecting it's memory request properly!");
+            throw std::logic_error("Caches do not handle downstream rejecting it's memory request properly!");
         }
         return accepted;
     }
