@@ -213,30 +213,30 @@ void Cache::process(Event *event)
 
 uint32_t Cache::readUint(uint32_t address)
 {
-    return this->data->readUint(address);
+    return this->data->readUint(this->cacheAddress(address));
 }
 
 int Cache::readInt(uint32_t address)
 {
-    return this->data->readInt(address);
+    return this->data->readInt(this->cacheAddress(address));
 }
 
 float Cache::readFloat(uint32_t address)
 {
-    return this->data->readFloat(address);
+    return this->data->readFloat(this->cacheAddress(address));
 }
 
 void Cache::write(uint32_t address, uint32_t value)
 {
-    this->data->write(address, value);
+    this->data->write(this->cacheAddress(address), value);
 }
 
 void Cache::write(uint32_t address, int value)
 {
-    this->data->write(address, value);
+    this->data->write(this->cacheAddress(address), value);
 }
 
 void Cache::write(uint32_t address, float value)
 {
-    this->data->write(address, value);
+    this->data->write(this->cacheAddress(address), value);
 }
