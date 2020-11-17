@@ -53,9 +53,9 @@ void testAdressing()
     Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
     for (uint32_t i = 0; i < CACHE_SIZE; i++)
     {
-        assert(cache->blockOffset(i) == i % BLOCK_SIZE);
-        assert(cache->blockIndex(i) == i / BLOCK_SIZE);
-        for (uint32_t j = 0; j < memory->size / CACHE_SIZE; j++)
+        assert(cache->offset(i) == i % BLOCK_SIZE);
+        assert(cache->index(i) == i / BLOCK_SIZE);
+        for (uint32_t j = 0; j < memory->size / BLOCK_SIZE; j++)
         {
             uint32_t address = i + (CACHE_SIZE * j);
             assert(cache->tag(address) == j);
@@ -73,8 +73,8 @@ void testBlockLoad()
     for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
     {
         assert(cache->data->readInt(i) == 0);
-        assert(cache->tags[cache->blockIndex(i)] == 0);
-        assert(cache->valid[cache->blockIndex(i)] == false);
+        assert(cache->tags[cache->index(i)] == 0);
+        assert(cache->valid[cache->index(i)] == false);
     }
 
     for (uint32_t i = 0; i < CACHE_SIZE / BLOCK_SIZE; i++)
@@ -95,8 +95,8 @@ void testBlockLoad()
         for (uint32_t j = start + BLOCK_SIZE; j < CACHE_SIZE; j += 4)
         {
             assert(cache->data->readInt(j) == 0);
-            assert(cache->tags[cache->blockIndex(j)] == 0);
-            assert(cache->valid[cache->blockIndex(j)] == false);
+            assert(cache->tags[cache->index(j)] == 0);
+            assert(cache->valid[cache->index(j)] == false);
         }
     }
 }

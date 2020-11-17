@@ -41,19 +41,20 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     {
         throw std::logic_error("Cache cannot have more associativity than it has blocks!");
     }
+    uint32_t sets = blocks / associativity;
 
     this->data = new Memory(accessTime, size);
 
     this->offsetWidth = bitLength(blockSize - 1);
     this->offsetMask = slice(FULL_MASK, offsetWidth - 1, 0);
 
-    this->blockIndexWidth = bitLength(blocks - 1);
-    this->blockIndexMask = slice(FULL_MASK, blockIndexWidth + offsetWidth - 1, offsetWidth);
+    this->indexWidth = bitLength(sets - 1);
+    this->indexMask = slice(FULL_MASK, indexWidth + offsetWidth - 1, offsetWidth);
 
-    this->tagWidth = 32 - blockIndexWidth - offsetWidth;
+    this->tagWidth = 32 - indexWidth - offsetWidth;
     this->tagMask = slice(FULL_MASK, 31, 32 - tagWidth);
 
-    if ((this->offsetMask ^ this->blockIndexMask ^ this->tagMask) != FULL_MASK)
+    if ((this->offsetMask ^ this->indexMask ^ this->tagMask) != FULL_MASK)
     {
         throw std::logic_error("Mask computation for a mask has encountered an error!");
     }
@@ -65,20 +66,15 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
 
 uint32_t Cache::tag(uint32_t address)
 {
-    return (this->tagMask & address) >> (this->offsetWidth + this->blockIndexWidth);
+    return (this->tagMask & address) >> (this->offsetWidth + this->indexWidth);
 }
 
-uint32_t Cache::blockIndex(uint32_t address)
+uint32_t Cache::index(uint32_t address)
 {
-    return (this->blockIndexMask & address) >> this->offsetWidth;
+    return (this->indexMask & address) >> this->offsetWidth;
 }
 
-uint32_t Cache::setIndex(uint32_t address)
-{
-    return this->blockIndex(address) / this->associativity;
-}
-
-uint32_t Cache::blockOffset(uint32_t address)
+uint32_t Cache::offset(uint32_t address)
 {
     return this->offsetMask & address;
 }
@@ -86,10 +82,10 @@ uint32_t Cache::blockOffset(uint32_t address)
 uint32_t Cache::cacheAddress(uint32_t address)
 {
     uint32_t tag = this->tag(address);
-    uint32_t setIndex = this->setIndex(address);
-    uint32_t offset = this->blockOffset(address);
+    uint32_t index = this->index(address);
+    uint32_t offset = this->offset(address);
 
-    uint32_t startBlockIndex = setIndex * this->associativity;
+    uint32_t startBlockIndex = index * this->associativity;
 
     for (uint32_t i = 0; i < this->associativity; i++)
     {
@@ -111,12 +107,14 @@ uint32_t Cache::cacheAddress(uint32_t address)
 void Cache::loadBlock(uint32_t address)
 {
     uint32_t tag = this->tag(address);
-    uint32_t setIndex = this->setIndex(address);
+    uint32_t index = this->index(address);
 
-    uint32_t blockIndex = setIndex * this->associativity;
+    uint32_t startBlockIndex = index * this->associativity;
+    uint32_t blockIndex;
     bool spaceFound = false;
     for (uint32_t i = 0; i < this->associativity; i++)
     {
+        blockIndex = startBlockIndex + i;
         // Select first available invalid block
         if (!this->valid[blockIndex])
         {
@@ -127,10 +125,6 @@ void Cache::loadBlock(uint32_t address)
         {
             std::cout << "Cache reloading address: " << str(address) << "\n";
             spaceFound = true;
-        }
-        else
-        {
-            blockIndex++;
         }
 
         if (spaceFound)

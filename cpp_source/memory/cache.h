@@ -31,8 +31,8 @@ struct Cache : MemoryInterface
 
     uint32_t tagWidth;
     uint32_t tagMask;
-    uint32_t blockIndexWidth;
-    uint32_t blockIndexMask;
+    uint32_t indexWidth;
+    uint32_t indexMask;
     uint32_t offsetWidth;
     uint32_t offsetMask;
 
@@ -51,9 +51,8 @@ struct Cache : MemoryInterface
     Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source);
 
     uint32_t tag(uint32_t address);
-    uint32_t blockIndex(uint32_t address);
-    uint32_t setIndex(uint32_t blockIndex);
-    uint32_t blockOffset(uint32_t address);
+    uint32_t index(uint32_t address);
+    uint32_t offset(uint32_t address);
     uint32_t cacheAddress(uint32_t address);
 
     void loadBlock(uint32_t address);
