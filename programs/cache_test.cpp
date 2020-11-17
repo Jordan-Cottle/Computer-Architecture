@@ -12,8 +12,9 @@ constexpr uint32_t ASSOCIATIVITY = DIRECT_MAPPED;
 Memory *memory = new Memory(CACHE_DELAY * 10, CACHE_SIZE * 4);
 std::vector<int> mockData = std::vector<int>(memory->size / 4);
 
-void testEventHandling(Cache *cache)
+void testEventHandling()
 {
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
     cache->request(0, &testPipeline);
 
     // Compulsory miss, cache reads from main memory
@@ -44,10 +45,14 @@ void testEventHandling(Cache *cache)
     assert(nextEvent->device == &testPipeline);       // Passed back to original requesting device
 
     nextEvent->device->process(nextEvent);
+
+    delete cache;
 }
 
-void testAdressing(Cache *cache)
+void testAdressing()
 {
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+
     for (uint32_t i = 0; i < CACHE_SIZE; i++)
     {
         assert(cache->offset(i) == i % BLOCK_SIZE);
@@ -58,10 +63,13 @@ void testAdressing(Cache *cache)
             assert(cache->tag(address) == j);
         }
     }
+
+    delete cache;
 }
 
-void testBlockLoad(Cache *cache)
+void testBlockLoad()
 {
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
     // Ensure cache is blank to start
     for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
     {
@@ -88,6 +96,8 @@ void testBlockLoad(Cache *cache)
             assert(cache->valid[cache->index(j)] == false);
         }
     }
+
+    delete cache;
 }
 
 void processRequest(Cache *cache, uint32_t address)
@@ -103,8 +113,9 @@ void processRequest(Cache *cache, uint32_t address)
     }
 }
 
-void testMemoryAccess(Cache *cache)
+void testMemoryAccess()
 {
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
     // Read all values from memory through the cache
     for (uint32_t i = 0; i < memory->size / 4; i++)
     {
@@ -112,10 +123,13 @@ void testMemoryAccess(Cache *cache)
         processRequest(cache, memAddress);
         assert(cache->readInt(memAddress) == mockData[i]);
     }
+
+    delete cache;
 }
 
-void testReplacementPolicy(Cache *cache)
+void testReplacementPolicy()
 {
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
     // Fill up cache
     for (uint32_t i = 0; i < cache->size; i += 4)
     {
@@ -141,6 +155,8 @@ void testReplacementPolicy(Cache *cache)
         // Assert that value was updated even though cache was full
         assert(cache->readUint(outOfCacheAddress) == outOfCacheAddress);
     }
+
+    delete cache;
 }
 
 void seedMemory()
@@ -158,32 +174,21 @@ void seedMemory()
 int main()
 {
     seedMemory();
-    Cache *cache;
 
     std::cout << "\nTesting cache event handling system\n";
-    cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
-    testEventHandling(cache);
-    delete cache;
+    testEventHandling();
 
     std::cout << "\nTesting cache address processing system\n";
-    cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
-    testAdressing(cache);
-    delete cache;
+    testAdressing();
 
     std::cout << "\nTesting block loading procedure\n";
-    cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
-    testBlockLoad(cache);
-    delete cache;
+    testBlockLoad();
 
     std::cout << "\nTesting cache memory addressing system\n";
-    cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
-    testMemoryAccess(cache);
-    delete cache;
+    testMemoryAccess();
 
     std::cout << "\nTesting cache replacement policy\n";
-    cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, 4, memory);
-    testReplacementPolicy(cache);
-    delete cache;
+    testReplacementPolicy();
 
     return 0;
 }
