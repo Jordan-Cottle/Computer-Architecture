@@ -55,6 +55,7 @@ struct Cache : MemoryInterface
     uint32_t offset(uint32_t address);
     uint32_t cacheAddress(uint32_t address);
 
+    uint32_t blockToEvict(uint32_t index);
     void loadBlock(uint32_t address);
 
     bool request(uint32_t address, SimulationDevice *device);

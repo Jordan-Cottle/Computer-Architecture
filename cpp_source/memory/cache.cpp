@@ -104,40 +104,34 @@ uint32_t Cache::cacheAddress(uint32_t address)
     throw AddressNotFound(address);
 }
 
-void Cache::loadBlock(uint32_t address)
+uint32_t Cache::blockToEvict(uint32_t address)
 {
     uint32_t tag = this->tag(address);
     uint32_t index = this->index(address);
-
     uint32_t startBlockIndex = index * this->associativity;
     uint32_t blockIndex;
-    bool spaceFound = false;
+
     for (uint32_t i = 0; i < this->associativity; i++)
     {
         blockIndex = startBlockIndex + i;
         // Select first available invalid block
         if (!this->valid[blockIndex])
         {
-            std::cout << "Cache allocating fresh space for address: " << str(address) << "\n";
-            spaceFound = true;
+            return blockIndex;
         }
         else if (this->tags[blockIndex] == tag)
         {
-            std::cout << "Cache reloading address: " << str(address) << "\n";
-            spaceFound = true;
-        }
-
-        if (spaceFound)
-        {
-            break;
+            return blockIndex;
         }
     }
 
-    if (!spaceFound)
-    {
-        // TODO handle replacement policy
-        throw std::runtime_error("No free space in cache found and no replacement policy implementation yet!");
-    }
+    return startBlockIndex + ((rand() - 1) % this->associativity);
+}
+
+void Cache::loadBlock(uint32_t address)
+{
+    uint32_t blockIndex = this->blockToEvict(address);
+    std::cout << "Set " << this->index(address) << " replacing block " << blockIndex % this->associativity << "\n";
 
     // Shouldn't this take some time?
     uint32_t start = blockIndex * this->blockSize;
@@ -147,7 +141,7 @@ void Cache::loadBlock(uint32_t address)
     }
 
     this->valid[blockIndex] = true;
-    this->tags[blockIndex] = tag;
+    this->tags[blockIndex] = this->tag(address);
 }
 
 bool Cache::request(uint32_t address, SimulationDevice *device)
