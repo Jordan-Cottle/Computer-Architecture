@@ -27,6 +27,7 @@ struct Cache : MemoryInterface
     Memory *data;
     std::vector<bool> valid;
     std::vector<uint32_t> tags;
+    std::vector<bool> lruBits;
     SimulationDevice *requestor;
 
     uint32_t tagWidth;
@@ -55,6 +56,7 @@ struct Cache : MemoryInterface
     uint32_t offset(uint32_t address);
     uint32_t cacheAddress(uint32_t address);
 
+    void updateLruState(uint32_t address);
     uint32_t blockToEvict(uint32_t index);
     void loadBlock(uint32_t address);
 

@@ -28,6 +28,7 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     uint32_t blocks = size / blockSize;
     this->valid = std::vector<bool>(blocks);
     this->tags = std::vector<uint32_t>(blocks);
+    this->lruBits = std::vector<bool>(blocks);
 
     this->blockSize = blockSize;
 
@@ -104,6 +105,49 @@ uint32_t Cache::cacheAddress(uint32_t address)
     throw AddressNotFound(address);
 }
 
+void Cache::updateLruState(uint32_t address)
+{
+    // Get actual block index of location in cache
+    uint32_t tag = this->tag(address);
+    uint32_t index = this->index(address);
+    uint32_t startBlockIndex = index * this->associativity;
+    uint32_t blockIndex;
+
+    bool found = false;
+    for (uint32_t i = 0; i < this->associativity; i++)
+    {
+        blockIndex = startBlockIndex + i;
+        if (this->tags[blockIndex] == tag)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        throw std::logic_error("Updates to lru state can only be applied to blocks that are in the cache!");
+    }
+
+    std::cout << "Address " << address << " at cache block " << blockIndex << " in set " << index << " has been used\n";
+
+    // Set bit if not set
+    if (!this->lruBits[blockIndex])
+    {
+        this->lruBits[blockIndex] = true;
+        return;
+    }
+
+    // Bit was already set, clear all other bits
+    for (uint32_t i = 0; i < this->associativity; i++)
+    {
+        this->lruBits[index + i] = false;
+    }
+
+    // Reset current bit to true
+    this->lruBits[blockIndex] = true;
+}
+
 uint32_t Cache::blockToEvict(uint32_t address)
 {
     uint32_t tag = this->tag(address);
@@ -121,11 +165,22 @@ uint32_t Cache::blockToEvict(uint32_t address)
         }
         else if (this->tags[blockIndex] == tag)
         {
+            std::cout << "Cache reloading block " << blockIndex << "\n";
             return blockIndex;
         }
     }
 
-    return startBlockIndex + ((rand() - 1) % this->associativity);
+    // Select first LRU unset location
+    for (uint32_t i = 0; i < this->associativity; i++)
+    {
+        if (!this->lruBits[startBlockIndex + i])
+        {
+            blockIndex = startBlockIndex + i;
+            break;
+        }
+    }
+
+    return blockIndex;
 }
 
 void Cache::loadBlock(uint32_t address)
@@ -201,30 +256,36 @@ void Cache::process(Event *event)
 
 uint32_t Cache::readUint(uint32_t address)
 {
+    this->updateLruState(address);
     return this->data->readUint(this->cacheAddress(address));
 }
 
 int Cache::readInt(uint32_t address)
 {
+    this->updateLruState(address);
     return this->data->readInt(this->cacheAddress(address));
 }
 
 float Cache::readFloat(uint32_t address)
 {
+    this->updateLruState(address);
     return this->data->readFloat(this->cacheAddress(address));
 }
 
 void Cache::write(uint32_t address, uint32_t value)
 {
+    this->updateLruState(address);
     this->data->write(this->cacheAddress(address), value);
 }
 
 void Cache::write(uint32_t address, int value)
 {
+    this->updateLruState(address);
     this->data->write(this->cacheAddress(address), value);
 }
 
 void Cache::write(uint32_t address, float value)
 {
+    this->updateLruState(address);
     this->data->write(this->cacheAddress(address), value);
 }

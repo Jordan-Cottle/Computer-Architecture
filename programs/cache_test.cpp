@@ -116,20 +116,6 @@ void processRequest(Cache *cache, uint32_t address)
 void testMemoryAccess()
 {
     Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
-    // Read all values from memory through the cache
-    for (uint32_t i = 0; i < memory->size / 4; i++)
-    {
-        uint32_t memAddress = i * sizeof(int);
-        processRequest(cache, memAddress);
-        assert(cache->readInt(memAddress) == mockData[i]);
-    }
-
-    delete cache;
-}
-
-void testReplacementPolicy()
-{
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
     // Fill up cache
     for (uint32_t i = 0; i < cache->size; i += 4)
     {
@@ -155,6 +141,84 @@ void testReplacementPolicy()
         // Assert that value was updated even though cache was full
         assert(cache->readUint(outOfCacheAddress) == outOfCacheAddress);
     }
+
+    delete cache;
+}
+
+void testReplacementPolicy()
+{
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, 4, memory);
+
+    // All bits start off unset
+    for (auto bit : cache->lruBits)
+    {
+        assert(!bit);
+    }
+
+    processRequest(cache, 0);
+    cache->readInt(0);
+    // First block set
+    assert(cache->lruBits[0]);
+    // Next block not
+    assert(!cache->lruBits[1]);
+
+    // Another read should leave state the same
+    cache->readInt(0);
+    assert(cache->lruBits[0]);
+    assert(!cache->lruBits[1]);
+
+    // Wrap around request to hit same block again
+    assert(!cache->valid[1]);
+    processRequest(cache, cache->size);
+    assert(cache->valid[1]);
+
+    cache->readInt(cache->size);
+    assert(cache->lruBits[0]);
+
+    // Next invalid block filled in
+    assert(cache->lruBits[1]);
+
+    // Fill up set
+    for (uint32_t i = 2; i < cache->associativity; i++)
+    {
+        uint32_t memoryAddress = (i)*cache->size;
+        assert(!cache->valid[i]);
+        assert(!cache->lruBits[i]);
+        processRequest(cache, memoryAddress);
+        cache->readInt(memoryAddress);
+        assert(cache->valid[i]);
+
+        // Other bits still set
+        assert(cache->lruBits[i - 1]);
+        // New bit set
+        assert(cache->lruBits[i]);
+    }
+
+    // All bits are set as recently used, make a request to one to set just it
+    cache->readInt(0);
+    assert(cache->lruBits[0]);
+    // Others unset
+    assert(!cache->lruBits[1]);
+    assert(!cache->lruBits[2]);
+    assert(!cache->lruBits[3]);
+
+    // First unused block should be evicted
+    uint32_t evicted = cache->blockToEvict(cache->size * cache->associativity);
+    assert(evicted == 1);
+
+    // Read index 1 value twice to make it the priority keep
+    cache->readInt(cache->size);
+    cache->readInt(cache->size);
+
+    assert(cache->lruBits[1]);
+    // Others unset
+    assert(!cache->lruBits[0]);
+    assert(!cache->lruBits[2]);
+    assert(!cache->lruBits[3]);
+
+    // Use uncached address to validate eviction target
+    evicted = cache->blockToEvict(cache->size * cache->associativity);
+    assert(evicted == 0);
 
     delete cache;
 }
