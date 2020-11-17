@@ -1,4 +1,5 @@
 #include "opcodes.h"
+#include "binary.h"
 
 std::unordered_map<std::string, uint32_t> OPCODES = {
     {"lb", 0b00000000000000000000000000000011},
@@ -308,32 +309,6 @@ std::string identify(uint32_t instruction)
     throw std::runtime_error("No keyword could be identified for " + str(instruction));
 }
 
-uint32_t singleBitMask(uint8_t index)
-{
-    return 0xFFFFFFFF ^ (1 << index);
-}
-
-uint32_t getBit(uint32_t data, uint8_t index)
-{
-    return (data & (1 << index));
-}
-
-uint32_t setBit(uint32_t data, uint8_t index, bool value)
-{
-    return (data & ~(1 << index)) | (value << index);
-}
-
-uint32_t slice(uint32_t data, uint8_t start, uint8_t end)
-{
-    uint32_t bits = 0;
-    for (int i = start; i >= end; i--)
-    {
-        bits |= getBit(data, i);
-    }
-
-    return bits;
-}
-
 uint32_t getOpcode(uint32_t data)
 {
     return data & O_MASK;
@@ -411,24 +386,4 @@ uint32_t getImmediateUB(uint32_t data)
     bits = setBit(bits, 11, lower_single);
 
     return bits;
-}
-
-int twos_compliment(uint32_t data, uint8_t bit_length)
-{
-    int value = data;
-    uint8_t bit_index = bit_length - 1;
-    value += -(1 << (bit_length)) * ((int)getBit(value, bit_index) >> bit_index);
-    return value;
-}
-
-uint32_t sign_extend(uint32_t data, uint8_t sign_bit_index)
-{
-    uint32_t sign = getBit(data, sign_bit_index) >> sign_bit_index;
-
-    for (int i = sign_bit_index + 1; i < 32; i++)
-    {
-        data |= sign << i;
-    }
-
-    return data;
 }

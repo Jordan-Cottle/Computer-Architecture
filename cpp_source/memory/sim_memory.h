@@ -13,8 +13,12 @@
 
 struct MemoryInterface : SimulationDevice
 {
-    int accessTime;
-    MemoryInterface(uint32_t accessTime);
+    uint32_t accessTime;
+    uint32_t size;
+    MemoryInterface(uint32_t accessTime, uint32_t size);
+
+    bool withinBounds(uint32_t address);
+    void checkBounds(uint32_t address);
 
     virtual bool request(uint32_t address, SimulationDevice *device) = 0;
 
@@ -35,8 +39,8 @@ struct Memory : MemoryInterface
     std::vector<uint32_t> partitions;
     std::vector<bool> busy;
 
-    Memory(int accessTime, uint32_t size);
-    Memory(int accessTime, uint32_t size, std::vector<uint32_t> partitions);
+    Memory(uint32_t accessTime, uint32_t size);
+    Memory(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partitions);
 
     uint32_t partition(uint32_t address);
     bool request(uint32_t address, SimulationDevice *device);

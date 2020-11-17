@@ -18,6 +18,8 @@ struct EventQueue : printable
 
     bool empty();
 
+    uint32_t size();
+
     ulong nextTime();
 
     void tick(ulong time);

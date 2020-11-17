@@ -29,6 +29,11 @@ bool EventQueue::empty()
     return this->events.empty();
 }
 
+uint32_t EventQueue::size()
+{
+    return this->events.size();
+}
+
 ulong EventQueue::nextTime()
 {
     return this->top()->time;

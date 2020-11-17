@@ -9,7 +9,8 @@ TESTS:= fetch_test \
 	binary_test \
 	opcode_test \
 	memory_bus_test \
-	rv32i_test
+	rv32i_test \
+	cache_test
 SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1 rv32i
 BINARIES := $(addsuffix .bin, ${PROGRAMS})
@@ -20,7 +21,6 @@ SHELL = /usr/bin/python3
 .PHONY=build,clean,run,tests,cpu0,duo-core
 
 assignment: ${BINARIES} cpu0.exe duo-core.exe
-	# Both simulations complete
 	import os
 
 	# Start assignment3 part 1

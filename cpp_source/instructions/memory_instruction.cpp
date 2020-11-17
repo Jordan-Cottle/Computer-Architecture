@@ -6,6 +6,8 @@
 #include "memory_instruction.h"
 
 #include "cpu.h"
+
+#include "binary.h"
 #include "opcodes.h"
 
 MemoryInstruction::MemoryInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)

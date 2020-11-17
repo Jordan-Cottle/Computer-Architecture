@@ -23,7 +23,7 @@ std::string MemoryRequest::__str__()
     return "Memory request for address " + str(this->address) + " by " + this->device->type + " resolved at time " + str(this->completeAt);
 }
 
-MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTime), memory(memory)
+MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTime, 0), memory(memory)
 {
     this->busyFor = std::vector<uint32_t>(memory->partitions.size());
     this->requests = MinHeap<MemoryRequest *>();
