@@ -61,8 +61,9 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     }
 
     this->hits = 0;
-    this->misses = 0;
+    this->compulsoryMisses = 0;
     this->accesses = 0;
+    this->seen = std::vector<uint32_t>();
 }
 
 uint32_t Cache::tag(uint32_t address)
@@ -222,7 +223,24 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
             throw std::logic_error("Reissued requests should never result in a miss!");
         }
 
-        this->misses++;
+        // Check if this block has been seen before
+        bool seen = false;
+        uint32_t memBlock = address ^ (this->offset(address));
+        for (auto seenBlock : this->seen)
+        {
+            if (memBlock == seenBlock)
+            {
+                seen = true;
+                break;
+            }
+        }
+
+        if (!seen)
+        {
+            this->compulsoryMisses++;
+            this->seen.push_back(memBlock);
+        }
+
         // Request block from memory
         accepted = this->source->request(address, this);
         this->outstandingMiss = true;

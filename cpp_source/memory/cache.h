@@ -28,7 +28,6 @@ struct Cache : MemoryInterface
     std::vector<bool> valid;
     std::vector<uint32_t> tags;
     std::vector<bool> lruBits;
-    SimulationDevice *requestor;
 
     uint32_t tagWidth;
     uint32_t tagMask;
@@ -40,7 +39,8 @@ struct Cache : MemoryInterface
     // Statistics
     uint32_t accesses;
     uint32_t hits;
-    uint32_t misses;
+    uint32_t compulsoryMisses;
+    std::vector<uint32_t> seen;
 
     // Backing MemorySource
     MemoryInterface *source;
@@ -48,6 +48,7 @@ struct Cache : MemoryInterface
     // Request tracking data
     bool outstandingMiss;
     uint32_t addressRequested;
+    SimulationDevice *requestor;
 
     Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source);
 
