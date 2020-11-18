@@ -107,7 +107,7 @@ CacheResult *findBestConfiguration(uint32_t cacheSize, Memory *memory, std::vect
 {
     MinHeap<CacheResult *> results = MinHeap<CacheResult *>();
     // Compute best cache configuration given a fixed size of 256B
-    for (uint32_t i = 4; i < cacheSize; i *= 2)
+    for (uint32_t i = 4; i <= cacheSize; i *= 2)
     {
         uint32_t blockSize = i;
         for (uint32_t j = 1; j <= cacheSize / blockSize; j *= 2)
