@@ -1,4 +1,5 @@
 #include <fstream>
+#include <math.h>
 
 #include "cache.h"
 
@@ -30,6 +31,7 @@ struct CacheResult : printable
     uint32_t accesses;
     uint32_t hits;
     uint32_t compulsoryMisses;
+    uint32_t totalTime;
 
     Cache *cache;
 
@@ -40,6 +42,7 @@ struct CacheResult : printable
         this->compulsoryMisses = cache->compulsoryMisses;
 
         this->cache = cache;
+        this->totalTime = simulationClock.cycle;
     }
 
     float compulsoryMissRate()
@@ -55,7 +58,9 @@ struct CacheResult : printable
     std::string __str__()
     {
         return "Cache Report:\n\tHit Rate = " + str(this->hitRate()) + "\n\t" +
-               "Compulsory Miss Rate = " + str(this->compulsoryMissRate());
+               "Compulsory Miss Rate = " + str(this->compulsoryMissRate()) + "\n\t" +
+               "Total sim ticks elapsed = " + str(this->totalTime) + "\n\t" +
+               "Cache hit time = " + str(this->cache->accessTime);
     }
 };
 
@@ -74,6 +79,7 @@ void processRequest(Cache *cache, uint32_t address)
 
 CacheResult *runSimulation(Cache *cache, std::vector<uint32_t> trace)
 {
+    simulationClock.cycle = 0;
     for (auto address : trace)
     {
         processRequest(cache, address);
@@ -97,10 +103,8 @@ int main()
     std::vector<uint32_t> trace = loadTrace("memory_trace");
     std::vector<CacheResult *> results = std::vector<CacheResult *>();
 
-    constexpr ulong ACCESS_TIME = 1;
-
     // Create and write fake data to memory
-    Memory *memory = new Memory(10, 1024 * 8);
+    Memory *memory = new Memory(100, 1024 * 8);
     for (uint32_t i = 0; i < memory->size; i += 4)
     {
         memory->write(i, i);
@@ -115,8 +119,9 @@ int main()
     uint32_t cacheSize = 256;
     uint32_t blockSize = 32;
     uint32_t associativity = DIRECT_MAPPED;
+    uint32_t accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    Cache *cache = new Cache(ACCESS_TIME, cacheSize, blockSize, associativity, memory);
+    Cache *cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
     results.push_back(runSimulation(cache, trace));
 
     /*
@@ -128,8 +133,9 @@ int main()
     cacheSize = 512;
     blockSize = 32;
     associativity = DIRECT_MAPPED;
+    accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    cache = new Cache(ACCESS_TIME, cacheSize, blockSize, associativity, memory);
+    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
     results.push_back(runSimulation(cache, trace));
 
     /*
@@ -141,8 +147,9 @@ int main()
     cacheSize = 256;
     blockSize = 64;
     associativity = DIRECT_MAPPED;
+    accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    cache = new Cache(ACCESS_TIME, cacheSize, blockSize, associativity, memory);
+    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
     results.push_back(runSimulation(cache, trace));
 
     /*
@@ -154,8 +161,9 @@ int main()
     cacheSize = 256;
     blockSize = 32;
     associativity = 4;
+    accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    cache = new Cache(ACCESS_TIME, cacheSize, blockSize, associativity, memory);
+    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
     results.push_back(runSimulation(cache, trace));
 
     std::cout << "\n~~~~~~~~~~~~~~Cache trace simulation results~~~~~~~~~~~~~~\n";
