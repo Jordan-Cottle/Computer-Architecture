@@ -211,9 +211,32 @@ int main()
     results.push_back(runSimulation(cache, trace));
 
     std::cout << "\n~~~~~~~~~~~~~~Cache trace simulation results~~~~~~~~~~~~~~\n";
-    int i = 0;
+    int simulation = 0;
     for (auto result : results)
     {
-        std::cout << "Simulation " << ++i << " " << result << "\n";
+        std::cout << "Simulation " << ++simulation << " " << result << "\n";
+        delete result->cache;
+        delete result;
     }
+
+    std::cout << "Would you like to compute the best cache configuration? (y/n)";
+    std::string response;
+    std::cin >> response;
+    bool checkBest = response[0] == 'y' || response[0] == 'Y';
+
+    if (!checkBest)
+    {
+        std::cout << "Goodbye\n";
+        return 0;
+    }
+
+    std::cout << "Enter size of cache in bytes to analyze: ";
+    uint32_t size;
+    std::cin >> size;
+
+    CacheResult *bestResult = findBestConfiguration(size, memory, trace);
+    std::cout << "\n~~~~~~~~~~~~~~Best Cache configuration results~~~~~~~~~~~~~~\n";
+    std::cout << "Cache block size: " << bestResult->cache->blockSize << "\n";
+    std::cout << "Cache associativity: " << bestResult->cache->associativity << "\n";
+    std::cout << bestResult << "\n\n";
 }
