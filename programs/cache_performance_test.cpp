@@ -62,6 +62,11 @@ struct CacheResult : printable
                "Total sim ticks elapsed = " + str(this->totalTime) + "\n\t" +
                "Cache hit time = " + str(this->cache->accessTime);
     }
+
+    bool operator<(const CacheResult &other)
+    {
+        return this->totalTime < other.totalTime;
+    }
 };
 
 void processRequest(Cache *cache, uint32_t address)
@@ -96,6 +101,45 @@ CacheResult *runSimulation(Cache *cache, std::vector<uint32_t> trace)
     }
 
     return new CacheResult(cache);
+}
+
+CacheResult *findBestConfiguration(uint32_t cacheSize, Memory *memory, std::vector<uint32_t> trace)
+{
+    MinHeap<CacheResult *> results = MinHeap<CacheResult *>();
+    // Compute best cache configuration given a fixed size of 256B
+    for (uint32_t i = 4; i < cacheSize; i *= 2)
+    {
+        uint32_t blockSize = i;
+        for (uint32_t j = 1; j <= cacheSize / blockSize; j *= 2)
+        {
+            uint32_t associativity = j;
+            uint32_t accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
+
+            Cache *cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
+            results.push(runSimulation(cache, trace));
+        }
+    }
+
+    int simulation = 0;
+
+    CacheResult *best = results.top();
+    while (!results.empty())
+    {
+        CacheResult *result = results.pop();
+        std::cout << "Simulation " << ++simulation << "\n";
+        Cache *cache = result->cache;
+        std::cout << "Cache block size: " << cache->blockSize << "\n";
+        std::cout << "Cache associativity: " << cache->associativity << "\n";
+        std::cout << result << "\n\n";
+
+        if (result != best)
+        {
+            delete result->cache;
+            delete result;
+        }
+    }
+
+    return best;
 }
 
 int main()
