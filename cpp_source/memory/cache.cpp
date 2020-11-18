@@ -188,11 +188,12 @@ void Cache::loadBlock(uint32_t address)
     uint32_t blockIndex = this->blockToEvict(address);
     std::cout << "Set " << this->index(address) << " replacing block " << blockIndex % this->associativity << "\n";
 
-    // Shouldn't this take some time?
+    uint32_t memoryStart = address ^ this->offset(address);
     uint32_t start = blockIndex * this->blockSize;
     for (uint32_t i = 0; i < this->blockSize; i += 4)
     {
-        this->data->write(start + i, this->source->readUint(address + i));
+        // Shouldn't this take some time?
+        this->data->write(start + i, this->source->readUint(memoryStart + i));
     }
 
     this->valid[blockIndex] = true;
@@ -200,6 +201,12 @@ void Cache::loadBlock(uint32_t address)
 }
 
 bool Cache::request(uint32_t address, SimulationDevice *device)
+{
+    this->accesses += 1;
+    return this->request(address, device, false);
+}
+
+bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
 {
     uint32_t cacheAddress;
     this->requestor = device;
@@ -210,6 +217,11 @@ bool Cache::request(uint32_t address, SimulationDevice *device)
     }
     catch (AddressNotFound &error)
     {
+        if (reIssued)
+        {
+            throw std::logic_error("Reissued requests should never result in a miss!");
+        }
+
         this->misses++;
         // Request block from memory
         accepted = this->source->request(address, this);
@@ -229,6 +241,11 @@ bool Cache::request(uint32_t address, SimulationDevice *device)
         throw std::logic_error("Caches should only have one access at a time!");
     }
 
+    if (!reIssued)
+    {
+        this->hits += 1;
+    }
+
     return true;
 }
 
@@ -242,7 +259,7 @@ void Cache::process(Event *event)
         {
             this->loadBlock(this->addressRequested);
             this->outstandingMiss = false;
-            this->request(this->addressRequested, this->requestor); // Re trigger request
+            this->request(this->addressRequested, this->requestor, true); // Re trigger request
         }
         else
         {
