@@ -29,7 +29,7 @@ struct CacheResult : printable
 {
     uint32_t accesses;
     uint32_t hits;
-    uint32_t misses;
+    uint32_t compulsoryMisses;
 
     Cache *cache;
 
@@ -37,14 +37,14 @@ struct CacheResult : printable
     {
         this->accesses = cache->accesses;
         this->hits = cache->hits;
-        this->misses = cache->misses;
+        this->compulsoryMisses = cache->compulsoryMisses;
 
         this->cache = cache;
     }
 
-    float missRate()
+    float compulsoryMissRate()
     {
-        return this->misses / float(this->accesses);
+        return this->compulsoryMisses / float(this->accesses);
     }
 
     float hitRate()
@@ -55,7 +55,7 @@ struct CacheResult : printable
     std::string __str__()
     {
         return "Cache Report:\n\tHit Rate = " + str(this->hitRate()) + "\n\t" +
-               "Miss Rate = " + str(this->missRate());
+               "Compulsory Miss Rate = " + str(this->compulsoryMissRate());
     }
 };
 
