@@ -14,6 +14,7 @@ using namespace Simulation;
 Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 {
     this->cpu = cpu;
+    this->outstandingRequest = false;
 }
 
 void Fetch::tick()
@@ -22,22 +23,24 @@ void Fetch::tick()
 
     if (this->next->busy())
     {
-        std::cout << "Fetch waiting because next stage is busy\n";
+        // std::cout << "Fetch waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        std::cout << "Fetch continuing to work on its task\n";
+        // std::cout << "Fetch continuing to work on its task\n";
         return;
     }
-    if (!this->free())
+    if (this->outstandingRequest)
     {
-        throw std::logic_error("If fetch isn't busy it should be free!");
+        std::cout << "Fetch unit not requesting because it already has an outstanding request\n";
+        return;
     }
 
     std::cout << "Requesting new instruction from memory\n";
     Event *event = new Event("MemoryRequest", simulationClock.cycle, this);
     masterEventQueue.push(event);
+    this->outstandingRequest = true;
 
     this->_busy = true;
 }
@@ -118,6 +121,7 @@ void Fetch::process(Event *event)
 
         Event *event = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
         masterEventQueue.push(event);
+        this->outstandingRequest = false;
     }
     else if (event->type == "WorkCompleted")
     {

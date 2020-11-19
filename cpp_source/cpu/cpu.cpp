@@ -30,7 +30,6 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
 Cpu::Cpu(MemoryInterface *memory) : SimulationDevice("Cpu"),
                                     intRegister(Register<int>(REGISTER_COUNT, "Integer")),
                                     fpRegister(Register<float>(REGISTER_COUNT, "Float")),
-                                    // Default settings for cpu0.s
                                     memory(memory)
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
