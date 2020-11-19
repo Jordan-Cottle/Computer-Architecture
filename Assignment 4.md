@@ -82,3 +82,14 @@ The following data can be obtained by executing `make duo-core` to run the simul
 | ---: | :----------: | :----------: | :------ |
 | Cpu1 | 71142        | 6160         | 11.549  |
 | Cpu2 | 71132        | 6160         | 11.5474 |
+
+## Provided Cache Configuration
+
+Once set up with the caches, the CPI for the simulation improves dramatically as expected.
+
+The following data can be obtained by executing `make duo-cache` to run the simulation with the assignment-provided cache configuration.
+
+| Cpu  | Clock cycles | Instructions | CPI     |
+| ---: | :----------: | :----------: | :------ |
+| Cpu1 | 24834        | 6160         | 4.03149 |
+| Cpu2 | 24863        | 6160         | 4.0362  |
