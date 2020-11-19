@@ -62,6 +62,11 @@ struct CacheResult : printable
                "Total sim ticks elapsed = " + str(this->totalTime) + "\n\t" +
                "Cache hit time = " + str(this->cache->accessTime);
     }
+
+    bool operator<(const CacheResult &other)
+    {
+        return this->totalTime < other.totalTime;
+    }
 };
 
 void processRequest(Cache *cache, uint32_t address)
@@ -96,6 +101,45 @@ CacheResult *runSimulation(Cache *cache, std::vector<uint32_t> trace)
     }
 
     return new CacheResult(cache);
+}
+
+CacheResult *findBestConfiguration(uint32_t cacheSize, Memory *memory, std::vector<uint32_t> trace)
+{
+    MinHeap<CacheResult *> results = MinHeap<CacheResult *>();
+    // Compute best cache configuration given a fixed size of 256B
+    for (uint32_t i = 4; i <= cacheSize; i *= 2)
+    {
+        uint32_t blockSize = i;
+        for (uint32_t j = 1; j <= cacheSize / blockSize; j *= 2)
+        {
+            uint32_t associativity = j;
+            uint32_t accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
+
+            Cache *cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
+            results.push(runSimulation(cache, trace));
+        }
+    }
+
+    int simulation = 0;
+
+    CacheResult *best = results.top();
+    while (!results.empty())
+    {
+        CacheResult *result = results.pop();
+        std::cout << "Simulation " << ++simulation << "\n";
+        Cache *cache = result->cache;
+        std::cout << "Cache block size: " << cache->blockSize << "\n";
+        std::cout << "Cache associativity: " << cache->associativity << "\n";
+        std::cout << result << "\n\n";
+
+        if (result != best)
+        {
+            delete result->cache;
+            delete result;
+        }
+    }
+
+    return best;
 }
 
 int main()
@@ -167,9 +211,32 @@ int main()
     results.push_back(runSimulation(cache, trace));
 
     std::cout << "\n~~~~~~~~~~~~~~Cache trace simulation results~~~~~~~~~~~~~~\n";
-    int i = 0;
+    int simulation = 0;
     for (auto result : results)
     {
-        std::cout << "Simulation " << ++i << " " << result << "\n";
+        std::cout << "Simulation " << ++simulation << " " << result << "\n";
+        delete result->cache;
+        delete result;
     }
+
+    std::cout << "Would you like to compute the best cache configuration? (y/n)";
+    std::string response;
+    std::cin >> response;
+    bool checkBest = response[0] == 'y' || response[0] == 'Y';
+
+    if (!checkBest)
+    {
+        std::cout << "Goodbye\n";
+        return 0;
+    }
+
+    std::cout << "Enter size of cache in bytes to analyze: ";
+    uint32_t size;
+    std::cin >> size;
+
+    CacheResult *bestResult = findBestConfiguration(size, memory, trace);
+    std::cout << "\n~~~~~~~~~~~~~~Best Cache configuration results~~~~~~~~~~~~~~\n";
+    std::cout << "Cache block size: " << bestResult->cache->blockSize << "\n";
+    std::cout << "Cache associativity: " << bestResult->cache->associativity << "\n";
+    std::cout << bestResult << "\n\n";
 }
