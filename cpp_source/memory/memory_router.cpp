@@ -7,15 +7,13 @@
 
 MemoryRouter::MemoryRouter(MemoryInterface *instrutionCache, MemoryInterface *dataCache) : MemoryInterface(0, 0)
 {
-    this->memoryMap = std::unordered_map<uint32_t, MemoryInterface *>();
-
     this->instrutionCache = instrutionCache;
     this->dataCache = dataCache;
 }
 
-MemoryInterface *MemoryRouter::selectMemoryDevice(SimulationDevice *device)
+MemoryInterface *MemoryRouter::selectMemoryDevice(uint32_t address)
 {
-    if (device->type == "Fetch")
+    if (address < 0x200)
     {
         return this->instrutionCache;
     }
@@ -23,15 +21,9 @@ MemoryInterface *MemoryRouter::selectMemoryDevice(SimulationDevice *device)
     return this->dataCache;
 }
 
-MemoryInterface *MemoryRouter::selectMemoryDevice(uint32_t address)
-{
-    return this->memoryMap[address];
-}
-
 bool MemoryRouter::request(uint32_t address, SimulationDevice *device)
 {
-    MemoryInterface *memoryDevice = this->selectMemoryDevice(device);
-    this->memoryMap[address] = memoryDevice;
+    MemoryInterface *memoryDevice = this->selectMemoryDevice(address);
     return memoryDevice->request(address, device);
 }
 

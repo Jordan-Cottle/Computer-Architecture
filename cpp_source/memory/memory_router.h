@@ -13,11 +13,8 @@ struct MemoryRouter : MemoryInterface
     MemoryInterface *instrutionCache;
     MemoryInterface *dataCache;
 
-    std::unordered_map<uint32_t, MemoryInterface *> memoryMap;
-
     MemoryRouter(MemoryInterface *instrutionCache, MemoryInterface *dataCache);
 
-    MemoryInterface *selectMemoryDevice(SimulationDevice *device);
     MemoryInterface *selectMemoryDevice(uint32_t address);
 
     bool request(uint32_t address, SimulationDevice *device);
