@@ -90,9 +90,14 @@ void Cpu::tick()
     SimulationDevice::tick();
 }
 
-void Cpu::loadProgram(std::string fileName, uint32_t offset)
+void Cpu::loadProgram(std::string fileName, uint32_t offset, MemoryInterface *memory)
 {
     std::ifstream programFile(fileName, std::ios::binary);
+
+    if (memory == NULL)
+    {
+        memory = this->memory;
+    }
 
     if (!programFile)
     {
@@ -104,7 +109,7 @@ void Cpu::loadProgram(std::string fileName, uint32_t offset)
     uint32_t memAddress = offset;
     while (programFile.read((char *)&instruction, sizeof(instruction)))
     {
-        this->memory->write(memAddress, instruction);
+        memory->write(memAddress, instruction);
         memAddress += sizeof(instruction);
     }
 
