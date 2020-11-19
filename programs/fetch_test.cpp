@@ -10,13 +10,17 @@ int main()
     cpu.addPipeline(&testPipeline);
 
     cpu.loadProgram("test_program.bin");
+    RawInstruction *instruction = new RawInstruction(cpu.memory->readUint(0));
 
     assert(fetchUnit.staged() == NULL);
 
     fetchUnit.tick();
+
+    // Let memory request and work events process through the unit
+    processEvents();
+
     assert(testPipeline.staged() != NULL);
-    RawInstruction *instruction = fetchUnit.staged();
-    assert(testPipeline.staged() == instruction);
+    assert(testPipeline.staged()->data == instruction->data);
 
     testPipeline.tick();
 }

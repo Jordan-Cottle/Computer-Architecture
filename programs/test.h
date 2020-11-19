@@ -61,3 +61,12 @@ Fetch fetchUnit = Fetch(&cpu);
 Decode decodeUnit = Decode(&cpu);
 Execute executeUnit = Execute(&cpu);
 StorePipeline storeUnit = StorePipeline(&cpu);
+
+void processEvents()
+{
+    while (!Simulation::masterEventQueue.empty())
+    {
+        Simulation::simulationClock.cycle = Simulation::masterEventQueue.top()->time;
+        Simulation::masterEventQueue.tick(Simulation::simulationClock.cycle);
+    }
+}

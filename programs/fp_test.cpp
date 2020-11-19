@@ -68,7 +68,7 @@ int main()
 
     cpu.programCounter.value = 20;
     fetchUnit.stage(&instruction);
-    fetchUnit.tick();
+    fetchUnit.processInstruction();
     std::cout << cpu.programCounter << "\n";
     assert(cpu.programCounter.value == 0);
     fetchUnit.flush();
@@ -78,7 +78,7 @@ int main()
     Blt blt = Blt(&instruction);
     assert(blt.offset(&cpu) == 8);
     fetchUnit.stage(&instruction);
-    fetchUnit.tick();
+    fetchUnit.processInstruction();
     assert(cpu.programCounter.value == 8);
     std::cout << str(blt.offset(&cpu)) << "\n";
 

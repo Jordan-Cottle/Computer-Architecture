@@ -17,6 +17,9 @@ struct Fetch : Pipeline
     Fetch(Cpu *cpu);
 
     void tick();
+    void process(Event *event);
+
+    void processInstruction();
 };
 
 #endif
