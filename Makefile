@@ -37,9 +37,9 @@ cpu0: cpu0.exe CPU0.bin
 	import os
 	os.system("./cpu0.exe")
 
-duo-core: duo-core.exe CPU0.bin CPU1.bin
+duo-%: CPU0.bin CPU1.bin duo-%.exe
 	import os
-	os.system("./duo-core.exe")
+	os.system("./$@.exe")
 
 tests: ${BINARIES} ${TESTS} 
 	# All tests have been triggered
