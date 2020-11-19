@@ -21,17 +21,17 @@ void Execute::tick()
 
     if (this->free())
     {
-        std::cout << "No instruction to execute\n";
+        // std::cout << "No instruction to execute\n";
         return;
     }
     if (this->next->busy())
     {
-        std::cout << "Execute waiting because next stage is busy\n";
+        // std::cout << "Execute waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        std::cout << "Execute continuing to work on its task\n";
+        // std::cout << "Execute continuing to work on its task\n";
         return;
     }
     this->_busy = true;

@@ -23,12 +23,12 @@ void StorePipeline::tick()
 
     if (this->free())
     {
-        std::cout << "No instruction to store\n";
+        // std::cout << "No instruction to store\n";
         return;
     }
     if (this->busy())
     {
-        std::cout << "Store continuing to work on its task\n";
+        // std::cout << "Store continuing to work on its task\n";
         return;
     }
     this->_busy = true;

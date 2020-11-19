@@ -23,12 +23,12 @@ void Fetch::tick()
 
     if (this->next->busy())
     {
-        std::cout << "Fetch waiting because next stage is busy\n";
+        // std::cout << "Fetch waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        std::cout << "Fetch continuing to work on its task\n";
+        // std::cout << "Fetch continuing to work on its task\n";
         return;
     }
     if (this->outstandingRequest)
