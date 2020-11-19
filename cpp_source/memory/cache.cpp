@@ -311,16 +311,19 @@ void Cache::write(uint32_t address, uint32_t value)
 {
     this->updateLruState(address);
     this->data->write(this->cacheAddress(address), value);
+    this->source->write(address, value);
 }
 
 void Cache::write(uint32_t address, int value)
 {
     this->updateLruState(address);
     this->data->write(this->cacheAddress(address), value);
+    this->source->write(address, value);
 }
 
 void Cache::write(uint32_t address, float value)
 {
     this->updateLruState(address);
     this->data->write(this->cacheAddress(address), value);
+    this->source->write(address, value);
 }
