@@ -8,6 +8,9 @@
 MemoryRouter::MemoryRouter(MemoryInterface *instrutionCache, MemoryInterface *dataCache) : MemoryInterface(0, 0)
 {
     this->memoryMap = std::unordered_map<uint32_t, MemoryInterface *>();
+
+    this->instrutionCache = instrutionCache;
+    this->dataCache = dataCache;
 }
 
 MemoryInterface *MemoryRouter::selectMemoryDevice(SimulationDevice *device)
