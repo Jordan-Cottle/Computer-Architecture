@@ -66,4 +66,19 @@ The final determination was that a 2-way associative cache with line size 128B w
 
 This result makes sense because the 128B block size provided the lowest compulsory hit rate aside from the 256B line size (a one block cache) that had an abysmal hit rate. Without associativity the 128B block size hit rate suffers more than the 64B or 32B sizes. But with an associativity of just 2 the 128B block size becomes a fully associative cache since there are only two blocks in the cache. Combined with the pseudo-LRU policy to improve the chances of unneeded blocks being replaced, the hit rate for the 128B block size recovers enough to compete with the 64B associative version. Adding the associativity also only increases the access time by a single cycle, so the benefit from doing so massively outweighs the cost.
 
-An interesting note is that the fully associative 258B cache with 128B line size performs almost identically to the direct mapped 512B cache with line size 32B from the fixed simulations in terms of execution time even though the access times, hit rates, and compulsory miss rates are very different..
+An interesting note is that the fully associative 258B cache with 128B line size performs almost identically to the direct mapped 512B cache with line size 32B from the fixed simulations in terms of execution time even though the access times, hit rates, and compulsory miss rates are very different.
+
+# Assignment 4 Part 2
+
+For part 2 of the assignment the goal is to run the dual core simulation from the last assignment with an increased memory access day and various cache configurations. The first run will contain no cache mechanism and act like a baseline. The second run will contain a specified cache configuration. The third run will be an attempt to create an optimal cache configuration for the program being executed.
+
+## Baseline test
+
+With the memory latency updated to be 100 simulation ticks, the CPI of both cpus in the simulation takes a huge hit.
+
+The following data can be obtained by executing `make duo-core` to run the simulation with no caches configured.
+
+| Cpu  | Clock cycles | Instructions | CPI     |
+| ---: | :----------: | :----------: | :------ |
+| Cpu1 | 71142        | 6160         | 11.549  |
+| Cpu2 | 71132        | 6160         | 11.5474 |
