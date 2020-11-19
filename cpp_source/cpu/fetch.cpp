@@ -30,13 +30,20 @@ void Fetch::tick()
         std::cout << "Fetch continuing to work on its task\n";
         return;
     }
-    if (this->free())
+    if (!this->free())
     {
-        std::cout << "Fetching new instruction\n";
-        this->stage(new RawInstruction(this->cpu->memory->readUint(this->cpu->programCounter.value)));
+        throw std::logic_error("If fetch isn't busy it should be free!");
     }
-    this->_busy = true;
 
+    std::cout << "Requesting new instruction from memory\n";
+    Event *event = new Event("MemoryRequest", simulationClock.cycle, this);
+    masterEventQueue.push(event);
+
+    this->_busy = true;
+}
+
+void Fetch::processInstruction()
+{
     RawInstruction *instruction = this->staged();
 
     std::cout << "Fetch processing instruction: " << instruction << "\n";
@@ -89,7 +96,34 @@ void Fetch::tick()
         Event *complete = new Event("Complete", simulationClock.cycle + this->cpu->pipelines.size(), this->cpu);
         masterEventQueue.push(complete);
     }
+}
 
-    Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
-    masterEventQueue.push(workCompleted);
+void Fetch::process(Event *event)
+{
+    if (event->type == "MemoryRequest")
+    {
+        event->handled = true;
+        bool accepted = this->cpu->memory->request(this->cpu->programCounter.value, this);
+        if (!accepted)
+        {
+            Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
+            masterEventQueue.push(event);
+        }
+    }
+    else if (event->type == "MemoryReady")
+    {
+        event->handled = true;
+
+        this->stage(new RawInstruction(this->cpu->memory->readUint(this->cpu->programCounter.value)));
+
+        Event *event = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
+        masterEventQueue.push(event);
+    }
+    else if (event->type == "WorkCompleted")
+    {
+        event->handled = true;
+        this->processInstruction();
+    }
+
+    Pipeline::process(event);
 }
