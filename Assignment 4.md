@@ -93,3 +93,24 @@ The following data can be obtained by executing `make duo-cache` to run the simu
 | ---: | :----------: | :----------: | :------ |
 | Cpu1 | 24834        | 6160         | 4.03149 |
 | Cpu2 | 24863        | 6160         | 4.0362  |
+
+## Optimal Cache Configuration
+
+To discover the optimal cache configuration I took an approach similar to the one for discovering a better cache Part 1. The `duo-optimum.cpp` program is setup up to accept command line args for the cache configuration and report the results by writing a json file. the `find_best_cache.py` script generates a set of all reasonable cache configurations (it skips 4B, 8B, 16B cache sizes) and runs `duo-optimum` for each. It then sorts the results by average cpi and displays the first 10 one at a time. For convenience `make best-cache` will compile everything and run the tests to generate the best cache.
+
+The top results determined are as follows
+
+| Average CPI | I$ Size | I$ Associativity | I$ Access Time | I$ Hit Rate | D$ Size | D$ Associativity | D$ Access Time | D$ Hit Rate | Line Size |
+| :---------- | :-----: | :--------------: | :------------: | :---------: | :-----: | :--------------: | :------------: | :---------: | :-------- |
+| 2.50763     | 256 B   | 1                | 1              | 99.9688%    | 512 B   | 4                | 8              | 98.6111%    | 128 B     |
+| 2.50763     | 256 B   | 2                | 2              | 99.9688%    | 512 B   | 4                | 8              | 98.6111%    | 128 B     |
+| 2.553247    | 256 B   | 1                | 2              | 99.9532%    | 256 B   | 4                | 8              | 97.2778%    | 64 B      |
+| 2.553247    | 256 B   | 2                | 4              | 99.9532%    | 256 B   | 4                | 8              | 97.2778%    | 64 B      |
+| 2.553734    | 256 B   | 4                | 8              | 99.9532%    | 256 B   | 4                | 8              | 97.2778%    | 64 B      |
+| 2.644481    | 128 B   | 1                | 2              | 99.9221%    | 128 B   | 4                | 8              | 94.6111%    | 32 B      |
+| 2.645292    | 128 B   | 4                | 8              | 99.9221%    | 128 B   | 4                | 8              | 94.6111%    | 32 B      |
+| 2.645779    | 128 B   | 2                | 4              | 99.9065%    | 128 B   | 4                | 8              | 94.6111%    | 32 B      |
+| 3.12711     | 256 B   | 1                | 2              | 99.9532%    | 512 B   | 8                | 24             | 97.2778%    | 64 B      |
+| 3.12711     | 256 B   | 2                | 4              | 99.9532%    | 512 B   | 8                | 24             | 97.2778%    | 64 B      |
+
+If you want to run just the best cache, you can build the exe using `make duo-optimum.exe` and then execute `./duo-optimum.exe 256 512 128 1 4 best_results.json`. The results will be displayed in the terminal as well as the data being written to `best_results.json`.
