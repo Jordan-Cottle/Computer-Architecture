@@ -20,14 +20,27 @@ SHELL = /usr/bin/python3
 .ONESHELL:
 .PHONY=build,clean,run,tests,cpu0,duo-core
 
-assignment: ${BINARIES} cpu0.exe duo-core.exe
+assignment: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe duo-optimum.exe
 	import os
 
-	# Start assignment3 part 1
-	os.system("./cpu0.exe")
+	# Start assignment4 part 1
+	os.system("./cache_performance_test.exe")
+
 	input("Part 1 complete, press enter to continue")
-	# Start assignment3 part 2
+
+	# Start assignment4 part 2
+
+	# No Cache
 	os.system("./duo-core.exe")
+	input("No cache simulation complete, press enter to continue")
+
+	# Provided Cache
+	os.system("./duo-cache.exe")
+	input("Provided cache simulation complete, press enter to continue")
+
+	# Provided Cache
+	os.system("./duo-optimum.exe 256 512 128 1 4 best_results.json")
+	input("Optimum cache simulation complete, press enter to continue")
 
 run: ${EXE}.exe ${BINARIES}
 	import os
