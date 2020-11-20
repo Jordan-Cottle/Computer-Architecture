@@ -56,12 +56,18 @@ tests: ${BINARIES} ${TESTS}
 	main("$(basename $@).s", binary=True)
 	os.replace("$@", "../$@")
 
-%.exe: ${PROGRAM_DIR}/%.cpp
+%.exe: ${PROGRAM_DIR}/%.cpp ${BINARIES}
 	from compile import main
 	main("${SOURCE_ROOT}", "$@", "$<")
+
+best_cache: duo-optimum.exe CPU0.bin CPU1.bin
+	from find_best_cache import main
+	main()
+
 
 clean:
 	import os
 	os.system("rm -rf obj")
 	os.system("rm *.exe")
 	os.system("rm *.bin")
+	os.system("rm *.json")

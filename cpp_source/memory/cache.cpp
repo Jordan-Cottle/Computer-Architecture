@@ -154,7 +154,7 @@ uint32_t Cache::blockToEvict(uint32_t address)
     uint32_t tag = this->tag(address);
     uint32_t index = this->index(address);
     uint32_t startBlockIndex = index * this->associativity;
-    uint32_t blockIndex;
+    uint32_t blockIndex = 0;
 
     for (uint32_t i = 0; i < this->associativity; i++)
     {
