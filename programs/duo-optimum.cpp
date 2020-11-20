@@ -1,4 +1,6 @@
 #include <math.h>
+#include <string>
+#include <fstream>
 
 #include "test.h"
 using namespace Simulation;
@@ -6,7 +8,7 @@ using namespace Simulation;
 #include "cache.h"
 #include "memory_router.h"
 
-struct CacheConfig
+struct CacheConfig : printable
 {
     uint32_t size;
     uint32_t lineSize;
@@ -19,6 +21,14 @@ struct CacheConfig
         this->lineSize = lineSize;
         this->associativity = associativity;
         this->accessTime = uint32_t(ceil(log2(size / float(lineSize)))) * associativity;
+    }
+
+    std::string __str__()
+    {
+        return "Cache Config:\n\tSize: " + str(this->size) + "\n\t" +
+               "Line Size: " + str(this->lineSize) + "\n\t" +
+               "Associativity: " + str(this->associativity) + "\n\t" +
+               "Access Time: " + str(this->accessTime);
     }
 };
 
@@ -56,6 +66,16 @@ struct CacheResult : printable
         return "Cache:\n\tHit Rate = " + str(this->hitRate()) + "\n\t" +
                "Compulsory Miss Rate = " + str(this->compulsoryMissRate()) + "\n\t" +
                "Cache hit time = " + str(this->cache->accessTime);
+    }
+
+    std::string json()
+    {
+        return "{'hit_rate':" + str(this->hitRate()) + "," +
+               "'compulsory_miss_rate':" + str(this->compulsoryMissRate()) + "," +
+               "'cache_access_time':" + str(this->cache->accessTime) + "," +
+               "'cache_size':" + str(this->cache->size) + "," +
+               "'cache_block_size':" + str(this->cache->blockSize) + "," +
+               "'cache_associativity':" + str(this->cache->associativity) + "}";
     }
 
     bool operator<(const CacheResult &other)
@@ -111,12 +131,26 @@ struct SimulationResult : printable
                "Instruction " + addIndent(str(this->i1), 2) + "\n\t\t" +
                "Data " + addIndent(str(this->d1), 2);
     }
+
+    std::string json()
+    {
+        return "{'time_elapsed':" + str(this->timeElapsed) + "," +
+               "'overall_cpi':" + str(this->averageCpi) + "," +
+               "'cpu0': {" +
+               "'cpi':" + str(this->cpi0) + "," +
+               "'instruction_cache':" + addIndent(this->i0->json(), 2) + "," +
+               "'data_cache':" + addIndent(this->d0->json(), 2) + "}," +
+               "'cpu1': {" +
+               "'cpi':" + str(this->cpi1) + "," +
+               "'instruction_cache':" + addIndent(this->i1->json(), 2) + "," +
+               "'data_cache':" + addIndent(this->d1->json(), 2) + "}}";
+    }
 };
 
 Cpu *constructCpu(MemoryBus *memBus, CacheConfig iCacheConfig, CacheConfig dCacheConfig)
 {
-    Cache *instructionCache = new Cache(3, 256, 32, DIRECT_MAPPED, memBus);
-    Cache *dataCache = new Cache(4, 512, 32, DIRECT_MAPPED, memBus);
+    Cache *instructionCache = new Cache(iCacheConfig.accessTime, iCacheConfig.size, iCacheConfig.lineSize, iCacheConfig.associativity, memBus);
+    Cache *dataCache = new Cache(dCacheConfig.accessTime, dCacheConfig.size, dCacheConfig.lineSize, dCacheConfig.associativity, memBus);
 
     MemoryRouter *router = new MemoryRouter(instructionCache, dataCache);
 
@@ -130,7 +164,7 @@ Cpu *constructCpu(MemoryBus *memBus, CacheConfig iCacheConfig, CacheConfig dCach
     return cpu;
 }
 
-int main()
+SimulationResult runSimulation(CacheConfig iConfig, CacheConfig dConfig)
 {
     const int ARRAY_A_START = 0x400;
     const int ARRAY_B_START = 0x800;
@@ -141,8 +175,6 @@ int main()
     const int STACK0_START = 0x2ff;
     const int STACK1_START = 0x3ff;
 
-    std::cout << "Array length: " << ARRAY_SIZE << "\n";
-
     // Arrays for implementing/testing CPU0.s
     float ARRAY_A[ARRAY_SIZE];
     float ARRAY_B[ARRAY_SIZE];
@@ -151,8 +183,7 @@ int main()
 
     Memory *ram = new Memory(100, MEMORY_SIZE, {0x100, 0x200, 0x1400});
     MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
-    CacheConfig iConfig = CacheConfig(256, 32, DIRECT_MAPPED);
-    CacheConfig dConfig = CacheConfig(512, 32, DIRECT_MAPPED);
+
     Cpu *cpu0 = constructCpu(memBus, iConfig, dConfig);
     Cpu *cpu1 = constructCpu(memBus, iConfig, dConfig);
 
@@ -173,19 +204,6 @@ int main()
     cpu0->loadProgram("CPU0.bin", 0, ram);
     cpu1->loadProgram("CPU1.bin", 0x100, ram);
 
-    for (int i = 0; i < 0x200; i += 4)
-    {
-        uint32_t data = ram->readUint(i);
-        if (data != 0)
-        {
-            std::cout << i << ": " << RawInstruction(data).keyword() << "\n";
-        }
-        else
-        {
-            std::cout << i << ": " << data << "\n";
-        }
-    }
-
     cpu0->intRegister.write(14, STACK0_START); // Set stack pointer at bottom of stack
     cpu1->intRegister.write(14, STACK1_START); // Set stack pointer at bottom of stack
 
@@ -199,19 +217,19 @@ int main()
 
         simulationClock.tick();
     }
-    std::cout << "Program complete!\n";
+    // std::cout << "Program complete!\n";
 
-    std::cout << "Analyzing memory state\n";
+    // std::cout << "Analyzing memory state\n";
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
-        float a = ram->readFloat(ARRAY_A_START + memOffset);
-        float b = ram->readFloat(ARRAY_B_START + memOffset);
+        // float a = ram->readFloat(ARRAY_A_START + memOffset);
+        // float b = ram->readFloat(ARRAY_B_START + memOffset);
         float c = ram->readFloat(ARRAY_C_START + memOffset);
         float d = ram->readFloat(ARRAY_D_START + memOffset);
 
-        std::cout << "CPU0.s: " << str(a) << " + " << str(b) << " = " << str(c) << "\n";
-        std::cout << "CPU1.s: " << str(a) << " - " << str(b) << " = " << str(d) << "\n";
+        // std::cout << "CPU0.s: " << str(a) << " + " << str(b) << " = " << str(c) << "\n";
+        // std::cout << "CPU1.s: " << str(a) << " - " << str(b) << " = " << str(d) << "\n";
 
         // CPU0.s functionality
         ARRAY_C[i] = ARRAY_A[i] + ARRAY_B[i];
@@ -222,9 +240,30 @@ int main()
         assert(ARRAY_C[i] == c);
         assert(ARRAY_D[i] == d);
     }
-    std::cout << "Memory analysis complete\n";
+    // std::cout << "Memory analysis complete\n";
 
-    SimulationResult results = SimulationResult(cpu0, cpu1);
+    return SimulationResult(cpu0, cpu1);
+}
 
-    std::cout << results << "\n";
+int main(int argc, char *argv[])
+{
+    uint32_t iCacheSize = std::stoi(argv[1]);
+    uint32_t dCacheSize = std::stoi(argv[2]);
+    uint32_t lineSize = std::stoi(argv[3]);
+    uint32_t iAssociativity = std::stoi(argv[4]);
+    uint32_t dAssociativity = std::stoi(argv[5]);
+
+    CacheConfig iConfig = CacheConfig(iCacheSize, lineSize, iAssociativity);
+    // std::cout << "Instruction " << iConfig << "\n";
+    CacheConfig dConfig = CacheConfig(dCacheSize, lineSize, dAssociativity);
+    // std::cout << "Data " << dConfig << "\n\n\n";
+
+    SimulationResult result = runSimulation(iConfig, dConfig);
+    // std::cout << result << "\n";
+
+    std::ofstream outFile;
+
+    outFile.open(argv[6]);
+
+    outFile << findAndReplaceAll(result.json(), "'", "\"") << "\n";
 }
