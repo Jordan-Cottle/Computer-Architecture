@@ -254,12 +254,12 @@ int main(int argc, char *argv[])
     uint32_t dAssociativity = std::stoi(argv[5]);
 
     CacheConfig iConfig = CacheConfig(iCacheSize, lineSize, iAssociativity);
-    // std::cout << "Instruction " << iConfig << "\n";
+    std::cout << "Instruction " << iConfig << "\n";
     CacheConfig dConfig = CacheConfig(dCacheSize, lineSize, dAssociativity);
-    // std::cout << "Data " << dConfig << "\n\n\n";
+    std::cout << "Data " << dConfig << "\n\n\n";
 
     SimulationResult result = runSimulation(iConfig, dConfig);
-    // std::cout << result << "\n";
+    std::cout << result << "\n";
 
     std::ofstream outFile;
 
