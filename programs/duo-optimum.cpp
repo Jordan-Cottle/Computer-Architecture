@@ -89,10 +89,12 @@ struct SimulationResult : printable
     float cpi0;
     CacheResult *i0;
     CacheResult *d0;
+    uint32_t cpu0Clocks;
 
     float cpi1;
     CacheResult *i1;
     CacheResult *d1;
+    uint32_t cpu1Clocks;
 
     float averageCpi;
     ulong timeElapsed;
@@ -100,7 +102,9 @@ struct SimulationResult : printable
     SimulationResult(Cpu *cpu0, Cpu *cpu1)
     {
         this->cpi0 = cpu0->cpi();
+        this->cpu0Clocks = cpu0->clocksProcessed;
         this->cpi1 = cpu1->cpi();
+        this->cpu1Clocks = cpu1->clocksProcessed;
         this->averageCpi = (this->cpi0 + this->cpi1) / 2;
         this->timeElapsed = simulationClock.cycle;
 
@@ -123,10 +127,12 @@ struct SimulationResult : printable
         return "Simulation result:\n\tSimTicks elapsed: " + str(this->timeElapsed) + "\n\t" +
                "Average cpi: " + str(this->averageCpi) + "\n\t" +
                "Cpu 0 :\n\t\t" +
+               "Clocks: " + str(this->cpu0Clocks) + "\n\t\t" +
                "Cpi: " + str(this->cpi0) + "\n\t\t" +
                "Instruction " + addIndent(str(this->i0), 2) + "\n\t\t" +
                "Data " + addIndent(str(this->d0), 2) + "\n\t" +
                "Cpu 1:\n\t\t" +
+               "Clocks: " + str(this->cpu1Clocks) + "\n\t\t" +
                "Cpi: " + str(this->cpi1) + "\n\t\t" +
                "Instruction " + addIndent(str(this->i1), 2) + "\n\t\t" +
                "Data " + addIndent(str(this->d1), 2);
