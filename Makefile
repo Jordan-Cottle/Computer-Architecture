@@ -12,7 +12,7 @@ TESTS:= fetch_test \
 	rv32i_test \
 	cache_test
 SOURCE_ROOT := cpp_source
-PROGRAMS := test_program test_program2 fpTest CPU0 CPU1 rv32i
+PROGRAMS := test_program test_program2 fpTest CPU0 CPU1 rv32i A5_CPU0 A5_CPU1
 BINARIES := $(addsuffix .bin, ${PROGRAMS})
 PROGRAM_DIR := programs
 
