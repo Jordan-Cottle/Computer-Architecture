@@ -138,21 +138,57 @@ int main()
     pc = 40;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lb");
+    Load load = Load(&instruction);
+
+    uint32_t memoryLocation = 800;
+    testCpu->intRegister.write(1, memoryLocation + 8);
+
+    assert(load.memoryOffset == -8);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    int value = testCpu->intRegister.read(6);
+    assert(value == 0x12);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(6);
+    assert(value == (int)0xFFFFFFFA2);
 
     // LH
     pc = 44;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lh");
+    load = Load(&instruction);
+
+    memoryLocation = 700;
+    testCpu->intRegister.write(1, memoryLocation - 8);
+
+    assert(load.memoryOffset == 8);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(5);
+    assert(value == 0x1234);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(5);
+    assert(value == (int)0xFFFFA234);
 
     // LW
     pc = 48;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    Load load = Load(&instruction);
+    load = Load(&instruction);
 
-    int memoryLocation = 400;
+    memoryLocation = 400;
     testRam->write(memoryLocation, 42);
     testCpu->intRegister.write(1, memoryLocation - 16); // load has offset of 16 set as immediate
     load.execute(testCpu);
@@ -162,13 +198,49 @@ int main()
     pc = 52;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lbu");
+    load = Load(&instruction);
+
+    memoryLocation = 500;
+    testCpu->intRegister.write(1, memoryLocation + 16);
+
+    assert(load.memoryOffset == -16);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(3);
+    assert(value == 0x12);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(3);
+    assert(value == (int)0xA2);
 
     // LHU
     pc = 56;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lhu");
+    load = Load(&instruction);
+
+    memoryLocation = 400;
+    testCpu->intRegister.write(1, memoryLocation);
+
+    assert(load.memoryOffset == 0);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(4);
+    assert(value == 0x1234);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(4);
+    assert(value == (int)0xA234);
 
     // SB
     pc = 60;

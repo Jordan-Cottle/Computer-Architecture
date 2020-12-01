@@ -17,6 +17,9 @@ struct MemoryInstruction : DecodedInstruction
     int baseMemoryLocationRegisterIndex;
     int memoryOffset;
 
+    bool signExtend;
+    uint8_t width;
+
     MemoryInstruction(RawInstruction *instruction);
 
     uint32_t memoryAddress(Cpu *cpu);

@@ -13,6 +13,10 @@
 MemoryInstruction::MemoryInstruction(RawInstruction *instruction) : DecodedInstruction(instruction)
 {
     this->baseMemoryLocationRegisterIndex = getR1(instruction->data);
+
+    this->signExtend = !getBit(instruction->data, 14);
+
+    this->width = 1 << ((instruction->data & 0x3000) >> 12);
 }
 
 uint32_t MemoryInstruction::memoryAddress(Cpu *cpu)
@@ -92,6 +96,32 @@ void Load::execute(Cpu *cpu)
     {
         int data = cpu->memory->readInt(memAddress);
 
+        uint32_t mask;
+        uint8_t offset = 32 - (this->width * 8);
+        switch (this->width)
+        {
+        case 1:
+            mask = 0xFF;
+            break;
+        case 2:
+            mask = 0xFFFF;
+            break;
+        case 4:
+            mask = 0xFFFFFFFF;
+            break;
+        default:
+            throw std::logic_error("Unrecognized load width: " + str(this->width));
+        }
+
+        data = (data >> offset) & mask;
+
+        if (this->signExtend)
+        {
+            uint8_t index = (4 << this->width) - 1;
+            data = sign_extend(data, index);
+        }
+
+        std::cout << "Loading " << str(data) << " into integer register " << str(this->targetRegisterIndex) << "\n";
         cpu->intRegister.write(this->targetRegisterIndex, data);
     }
 }
