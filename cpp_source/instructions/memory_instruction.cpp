@@ -40,7 +40,7 @@ void Store::execute(Cpu *cpu)
     {
         float data = cpu->fpRegister.read(this->targetRegisterIndex);
 
-        std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
+        // std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
         cpu->memory->write(memAddress, data);
     }
     else
@@ -74,7 +74,7 @@ void Store::execute(Cpu *cpu)
         }
 
         data = data & srcMask;
-        std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
+        // std::cout << "Storing: " << str(data) << " into memory address " << str(memAddress) << "\n";
 
         // Overlay previous data so we can use full 32 bit write method
         // all this bit mangling wouldn't be necessary if templates were overridable in sub classes
@@ -157,7 +157,7 @@ void Load::execute(Cpu *cpu)
             data = sign_extend(data, index);
         }
 
-        std::cout << "Loading " << str(data) << " into integer register " << str(this->targetRegisterIndex) << "\n";
+        // std::cout << "Loading " << str(data) << " into integer register " << str(this->targetRegisterIndex) << "\n";
         cpu->intRegister.write(this->targetRegisterIndex, data);
     }
 }

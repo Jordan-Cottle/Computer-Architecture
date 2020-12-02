@@ -138,7 +138,7 @@ void Decode::tick()
 
     DecodedInstruction *decodedInstruction = this->decode(instruction);
     delete instruction; // All data has been saved to decodedInstruction
-    std::cout << "Decode processed instruction: " << decodedInstruction << "\n";
+    // std::cout << "Decode processed instruction: " << decodedInstruction << "\n";
 
     this->next->stage(decodedInstruction);
     Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
