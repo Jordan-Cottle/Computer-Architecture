@@ -47,9 +47,9 @@ struct Lui : ArithmeticInstruction
     void execute(Cpu *cpu);
 };
 
-struct Slli : ArithmeticInstruction
+struct Shift : ArithmeticInstruction
 {
-    Slli(RawInstruction *instruction);
+    Shift(RawInstruction *instruction);
 
     void execute(Cpu *cpu);
 };

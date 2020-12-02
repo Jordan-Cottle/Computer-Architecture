@@ -139,13 +139,13 @@ void Lui::execute(Cpu *cpu)
     cpu->intRegister.write(this->destinationIndex, this->leftIndex);
 }
 
-Slli::Slli(RawInstruction *instruction) : ArithmeticInstruction(instruction)
+Shift::Shift(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 {
     // Shift can be at most 31 bits (32 bit shift would result in all 0s)
     this->rightIndex = this->rightIndex & 0x1F;
 }
 
-void Slli::execute(Cpu *cpu)
+void Shift::execute(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
     // std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " << " << str(this->rightIndex) << "\n";

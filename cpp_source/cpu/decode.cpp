@@ -87,7 +87,7 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     }
     else if (op == "slli")
     {
-        return new Slli(instruction);
+        return new Shift(instruction);
     }
     else if (op == "mul")
     {

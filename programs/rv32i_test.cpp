@@ -329,7 +329,7 @@ int main()
     pc = 96;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    Slli slli = Slli(&instruction);
+    Shift slli = Shift(&instruction);
 
     testCpu->intRegister.write(1, 3);
     slli.execute(testCpu);
