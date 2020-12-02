@@ -43,7 +43,7 @@ void StorePipeline::process(Event *event)
     {
         event->handled = true;
         Store *instruction = (Store *)this->staged();
-        std::cout << "Store processing instruction: " << instruction << "\n";
+        // std::cout << "Store processing instruction: " << instruction << "\n";
         instruction->execute(this->cpu);
 
         // No further reference to instruction will be created

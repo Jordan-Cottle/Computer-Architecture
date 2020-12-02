@@ -33,11 +33,11 @@ void Fetch::tick()
     }
     if (this->outstandingRequest)
     {
-        std::cout << "Fetch unit not requesting because it already has an outstanding request\n";
+        // std::cout << "Fetch unit not requesting because it already has an outstanding request\n";
         return;
     }
 
-    std::cout << "Requesting new instruction from memory\n";
+    // std::cout << "Requesting new instruction from memory\n";
     Event *event = new Event("MemoryRequest", simulationClock.cycle, this);
     masterEventQueue.push(event);
     this->outstandingRequest = true;
@@ -49,7 +49,7 @@ void Fetch::processInstruction()
 {
     RawInstruction *instruction = this->staged();
 
-    std::cout << "Fetch processing instruction: " << instruction << "\n";
+    // std::cout << "Fetch processing instruction: " << instruction << "\n";
 
     uint32_t opcode = getOpcode(instruction->data);
     // TODO move branch predicting logic into a branch prediction unit
@@ -61,27 +61,25 @@ void Fetch::processInstruction()
         ControlInstruction branch = ControlInstruction(instruction);
         this->cpu->programCounter.jump(branch.offset(this->cpu));
 
-        std::cout << "Branch by " << this->cpu->programCounter << " predicted\n";
+        // std::cout << "Branch by " << this->cpu->programCounter << " predicted\n";
     }
     else if (opcode == 0b1101111)
     {
         this->cpu->branchSpeculated = true;
-        this->cpu->jumpedFrom = this->cpu->programCounter.value;
 
         Jump jump = Jump(instruction);
-        std::cout << "Jump by " << jump.offset(this->cpu) << " detected\n";
+        // std::cout << "Jump by " << jump.offset(this->cpu) << " detected\n";
 
         this->cpu->programCounter.jump(jump.offset(this->cpu));
     }
     else if (opcode == 0b1100111)
     {
         this->cpu->branchSpeculated = true;
-        this->cpu->jumpedFrom = this->cpu->programCounter.value;
 
         Jalr jalr = Jalr(instruction);
 
         this->cpu->programCounter.jump(jalr.offset(this->cpu));
-        std::cout << "Jalr to " << this->cpu->programCounter << " detected\n";
+        // std::cout << "Jalr to " << this->cpu->programCounter << " detected\n";
     }
     else
     {

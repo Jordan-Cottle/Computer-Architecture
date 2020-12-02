@@ -29,11 +29,35 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Store(instruction);
     }
+    else if (op == "sh")
+    {
+        return new Store(instruction);
+    }
+    else if (op == "sb")
+    {
+        return new Store(instruction);
+    }
     else if (op == "flw")
     {
         return new Load(instruction);
     }
     else if (op == "lw")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lh")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lhu")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lb")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lbu")
     {
         return new Load(instruction);
     }
@@ -63,7 +87,19 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     }
     else if (op == "slli")
     {
-        return new Slli(instruction);
+        return new Shift(instruction);
+    }
+    else if (op == "srli")
+    {
+        return new Shift(instruction);
+    }
+    else if (op == "srai")
+    {
+        return new Shift(instruction);
+    }
+    else if (op == "mul")
+    {
+        return new Multiply(instruction);
     }
     else if (op == "bne")
     {
@@ -108,10 +144,9 @@ void Decode::tick()
 
     RawInstruction *instruction = this->staged();
 
-    std::cout << "Decode processing instruction: " << instruction << "\n";
-
     DecodedInstruction *decodedInstruction = this->decode(instruction);
     delete instruction; // All data has been saved to decodedInstruction
+    // std::cout << "Decode processed instruction: " << decodedInstruction << "\n";
 
     this->next->stage(decodedInstruction);
     Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);

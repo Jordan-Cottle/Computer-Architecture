@@ -138,21 +138,57 @@ int main()
     pc = 40;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lb");
+    Load load = Load(&instruction);
+
+    uint32_t memoryLocation = 800;
+    testCpu->intRegister.write(1, memoryLocation + 8);
+
+    assert(load.memoryOffset == -8);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    int value = testCpu->intRegister.read(6);
+    assert(value == 0x12);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(6);
+    assert(value == (int)0xFFFFFFFA2);
 
     // LH
     pc = 44;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lh");
+    load = Load(&instruction);
+
+    memoryLocation = 700;
+    testCpu->intRegister.write(1, memoryLocation - 8);
+
+    assert(load.memoryOffset == 8);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(5);
+    assert(value == 0x1234);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(5);
+    assert(value == (int)0xFFFFA234);
 
     // LW
     pc = 48;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    Load load = Load(&instruction);
+    load = Load(&instruction);
 
-    int memoryLocation = 400;
+    memoryLocation = 400;
     testRam->write(memoryLocation, 42);
     testCpu->intRegister.write(1, memoryLocation - 16); // load has offset of 16 set as immediate
     load.execute(testCpu);
@@ -162,31 +198,85 @@ int main()
     pc = 52;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lbu");
+    load = Load(&instruction);
+
+    memoryLocation = 500;
+    testCpu->intRegister.write(1, memoryLocation + 16);
+
+    assert(load.memoryOffset == -16);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(3);
+    assert(value == 0x12);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(3);
+    assert(value == (int)0xA2);
 
     // LHU
     pc = 56;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "lhu");
+    load = Load(&instruction);
+
+    memoryLocation = 400;
+    testCpu->intRegister.write(1, memoryLocation);
+
+    assert(load.memoryOffset == 0);
+    assert(load.memoryAddress(testCpu) == memoryLocation);
+    assert(!load.isFp);
+
+    testCpu->memory->write(memoryLocation, 0x12345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(4);
+    assert(value == 0x1234);
+
+    testCpu->memory->write(memoryLocation, 0xA2345678);
+    load.execute(testCpu);
+    value = testCpu->intRegister.read(4);
+    assert(value == (int)0xA234);
 
     // SB
     pc = 60;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "sb");
+    Store store = Store(&instruction);
+
+    memoryLocation = 300;
+    testCpu->intRegister.write(1, memoryLocation);
+    testCpu->intRegister.write(4, 0x12345678);
+    testRam->write(memoryLocation, 0x12345678);
+
+    store.execute(testCpu);
+    assert(testRam->readUint(memoryLocation) == 0x78345678); // Only first two hex digits written
 
     // SH
     pc = 64;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "sh");
+    store = Store(&instruction);
+
+    memoryLocation = 400;
+    testCpu->intRegister.write(1, memoryLocation - 16);
+    testCpu->intRegister.write(3, 0x12345678);
+    testRam->write(memoryLocation, 0x12345678);
+
+    store.execute(testCpu);
+    assert(testRam->readUint(memoryLocation) == 0x56785678); // Only first 4 hex digits written
 
     // SW
     pc = 68;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    Store store = Store(&instruction);
+    store = Store(&instruction);
 
     memoryLocation = 500;
     testCpu->intRegister.write(1, memoryLocation + 16); // store has -16 offset set
@@ -239,23 +329,38 @@ int main()
     pc = 96;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    Slli slli = Slli(&instruction);
+    assert(instruction.keyword() == "slli");
+    Shift shift = Shift(&instruction);
 
     testCpu->intRegister.write(1, 3);
-    slli.execute(testCpu);
+    shift.execute(testCpu);
     assert(testCpu->intRegister.read(2) == 3 << 3);
 
     // SRLI
     pc = 100;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "srli");
+    shift = Shift(&instruction);
+
+    testCpu->intRegister.write(1, 0b10000);
+    shift.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == 1);
 
     // SRAI
     pc = 104;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "srai");
+    shift = Shift(&instruction);
+
+    testCpu->intRegister.write(1, -32);
+    shift.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == -1);
+
+    testCpu->intRegister.write(1, 0b00100000);
+    shift.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == 1);
 
     // ADD
     pc = 108;

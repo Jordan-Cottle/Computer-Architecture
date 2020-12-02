@@ -482,13 +482,29 @@ class Instruction(InstructionTemplate):
                 while len(value) < target_length:
                     value = "0" + value
 
+            if not all(bit == "?" for bit in instruction.immediate):
+                fixed = instruction.immediate
+            else:
+                fixed = None
+
             instruction.immediate = value
+
+            if fixed is not None:
+                merged = []
+                for fix, found in zip(fixed, instruction.immediate):
+                    if fix != "?":
+                        merged.append(fix)
+                    else:
+                        merged.append(found)
+
+                instruction.immediate = "".join(merged)
 
             print(offset, instruction.immediate)
 
         assert (
             "?" not in instruction.bits
         ), f"Not all bits of {instruction} were determined"
+        print(instruction)
         return instruction
 
     def set_bits(self, section, data):
@@ -622,6 +638,10 @@ instruction = Instruction.parse(
     "jalr x1 x1 bar", labels={"bar": 40}, current_mem_address=12
 )
 expected = f"00000001110000001000000011100111"
+assert instruction.binary == expected, f"{instruction.binary} != {expected}"
+
+instruction = Instruction.parse("srai x2 x1 5", labels={})
+expected = f"01000000010100001101000100010011"
 assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
 

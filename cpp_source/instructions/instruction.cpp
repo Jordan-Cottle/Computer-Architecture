@@ -47,6 +47,10 @@ DecodedInstruction::DecodedInstruction(RawInstruction *instruction) : RawInstruc
     {
         this->executionTime = 5;
     }
+    else if (this->keyword() == "mul")
+    {
+        this->executionTime = 2;
+    }
     else
     {
         this->executionTime = 1;

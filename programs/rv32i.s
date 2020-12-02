@@ -33,25 +33,25 @@ nop  # 36
 bar:
 
 # LB
-nop  # 40
+lb x6 -8(x1)  # 40
 
 # LH
-nop  # 44
+lh x5 8(x1)  # 44
 
 # LW
 lw x2 16(x1)  # 48
 
 # LBU
-nop  # 52
+lbu x3 -16(x1)  # 52
 
 # LHU
-nop  # 56
+lhu x4 0(x1)  # 56
 
 # SB
-nop  # 60
+sb x4 0(x1)  # 60
 
 # SH
-nop  # 64
+sh x3 16(x1)  # 64
 
 # SW
 sw x2 -16(x1)  # 68
@@ -78,10 +78,10 @@ nop  # 92
 slli x2 x1 3  # 96
 
 # SRLI
-nop  # 100
+srli x2 x1 4  # 100
 
 # SRAI
-nop  # 104
+srai x2 x1 5  # 104
 
 # ADD
 add x3 x1 x2  # 108

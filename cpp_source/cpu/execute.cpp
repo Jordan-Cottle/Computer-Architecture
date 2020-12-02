@@ -37,7 +37,7 @@ void Execute::tick()
     this->_busy = true;
 
     DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
-    std::cout << "Execute processing instruction: " << instruction << "\n";
+    // std::cout << "Execute processing instruction: " << instruction << "\n";
     Load *load = dynamic_cast<Load *>(instruction);
     if (load != NULL)
     {
@@ -60,11 +60,12 @@ void Execute::process(Event *event)
         Store *store = dynamic_cast<Store *>(instruction);
         if (store != NULL)
         {
+            // std::cout << "Execute passing along instruction: " << instruction << "\n";
             this->next->stage(instruction);
         }
         else
         {
-            std::cout << "Execute executing instruction: " << instruction << "\n";
+            // std::cout << "Execute executing instruction: " << instruction << "\n";
             instruction->execute(this->cpu);
 
             // Decoded instruction use complete. No further reference to it will be created
