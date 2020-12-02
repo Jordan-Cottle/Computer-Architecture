@@ -66,7 +66,6 @@ void Fetch::processInstruction()
     else if (opcode == 0b1101111)
     {
         this->cpu->branchSpeculated = true;
-        this->cpu->jumpedFrom = this->cpu->programCounter.value;
 
         Jump jump = Jump(instruction);
         std::cout << "Jump by " << jump.offset(this->cpu) << " detected\n";
@@ -76,7 +75,6 @@ void Fetch::processInstruction()
     else if (opcode == 0b1100111)
     {
         this->cpu->branchSpeculated = true;
-        this->cpu->jumpedFrom = this->cpu->programCounter.value;
 
         Jalr jalr = Jalr(instruction);
 
