@@ -2,9 +2,6 @@ import sys
 
 from PIL import Image
 
-data_source = sys.argv[1]
-output_path = sys.argv[2]
-
 def load_data(data_file_name):
     """ Load file and return list of integer values inside. """
 
@@ -23,5 +20,12 @@ def create_image(data):
 
     return image
 
-img = create_image(load_data(data_source))
-img.save(output_path)
+def main():
+    data_source = sys.argv[1]
+    output_path = sys.argv[2]
+
+    img = create_image(load_data(data_source))
+    img.save(output_path)
+
+if __name__ == "__main__":
+    main()
