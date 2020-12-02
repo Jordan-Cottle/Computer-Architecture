@@ -32,11 +32,10 @@ int main()
     load_binary("MAT_A_DATA", ram, MAT_A_START);
     load_binary("MAT_B_DATA", ram, MAT_B_START);
 
-    // Set up MAT C with all 1s
-    for (int i = 0; i < MAT_C_SIZE; i += 4)
+    // Set up MAT C with all -1s
+    for (int i = MAT_C_START; i < MAT_D_START; i += 1)
     {
-        uint32_t data = 0xFFFFFFFF;
-        ram->write(MAT_C_START + (i), data);
+        ram->data[i] = 0xFF;
     }
 
     cpu0.addPipeline(new Fetch(&cpu0))
