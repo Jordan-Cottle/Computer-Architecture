@@ -29,11 +29,35 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Store(instruction);
     }
+    else if (op == "sh")
+    {
+        return new Store(instruction);
+    }
+    else if (op == "sb")
+    {
+        return new Store(instruction);
+    }
     else if (op == "flw")
     {
         return new Load(instruction);
     }
     else if (op == "lw")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lh")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lhu")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lb")
+    {
+        return new Load(instruction);
+    }
+    else if (op == "lbu")
     {
         return new Load(instruction);
     }
