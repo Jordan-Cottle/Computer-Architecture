@@ -89,6 +89,14 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Shift(instruction);
     }
+    else if (op == "srli")
+    {
+        return new Shift(instruction);
+    }
+    else if (op == "srai")
+    {
+        return new Shift(instruction);
+    }
     else if (op == "mul")
     {
         return new Multiply(instruction);

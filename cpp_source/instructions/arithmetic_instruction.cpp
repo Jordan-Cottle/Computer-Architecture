@@ -143,13 +143,31 @@ Shift::Shift(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 {
     // Shift can be at most 31 bits (32 bit shift would result in all 0s)
     this->rightIndex = this->rightIndex & 0x1F;
+
+    this->rightShift = getBit(instruction->data, 14);
+    this->arithmetic = getBit(instruction->data, 30);
 }
 
 void Shift::execute(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
     // std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " << " << str(this->rightIndex) << "\n";
-    cpu->intRegister.write(this->destinationIndex, left << this->rightIndex);
+
+    int result;
+    if (this->rightShift)
+    {
+        result = left >> this->rightIndex;
+        if (this->arithmetic)
+        {
+            result = sign_extend(result, 32 - this->rightIndex);
+        }
+    }
+    else
+    {
+        result = left << this->rightIndex;
+    }
+
+    cpu->intRegister.write(this->destinationIndex, result);
 }
 
 Multiply::Multiply(RawInstruction *instruction) : ArithmeticInstruction(instruction)

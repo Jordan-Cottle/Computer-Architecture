@@ -78,10 +78,10 @@ nop  # 92
 slli x2 x1 3  # 96
 
 # SRLI
-nop  # 100
+srli x2 x1 4  # 100
 
 # SRAI
-nop  # 104
+srai x2 x1 5  # 104
 
 # ADD
 add x3 x1 x2  # 108

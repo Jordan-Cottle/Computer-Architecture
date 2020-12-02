@@ -329,23 +329,38 @@ int main()
     pc = 96;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    Shift slli = Shift(&instruction);
+    assert(instruction.keyword() == "slli");
+    Shift shift = Shift(&instruction);
 
     testCpu->intRegister.write(1, 3);
-    slli.execute(testCpu);
+    shift.execute(testCpu);
     assert(testCpu->intRegister.read(2) == 3 << 3);
 
     // SRLI
     pc = 100;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "srli");
+    shift = Shift(&instruction);
+
+    testCpu->intRegister.write(1, 0b10000);
+    shift.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == 1);
 
     // SRAI
     pc = 104;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "srai");
+    shift = Shift(&instruction);
+
+    testCpu->intRegister.write(1, -32);
+    shift.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == -1);
+
+    testCpu->intRegister.write(1, 0b00100000);
+    shift.execute(testCpu);
+    assert(testCpu->intRegister.read(2) == 1);
 
     // ADD
     pc = 108;
