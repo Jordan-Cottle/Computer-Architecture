@@ -151,3 +151,19 @@ void Slli::execute(Cpu *cpu)
     std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " << " << str(this->rightIndex) << "\n";
     cpu->intRegister.write(this->destinationIndex, left << this->rightIndex);
 }
+
+Multiply::Multiply(RawInstruction *instruction) : ArithmeticInstruction(instruction)
+{
+}
+
+void Multiply::execute(Cpu *cpu)
+{
+    int left = cpu->intRegister.read(this->leftIndex);
+    int right = cpu->intRegister.read(this->rightIndex);
+
+    int result = left * right;
+
+    std::cout << "x" + str(this->destinationIndex) << " <- " << str(left) << " * " << str(right) << "\n";
+
+    cpu->intRegister.write(this->destinationIndex, result);
+}

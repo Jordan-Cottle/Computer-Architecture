@@ -89,6 +89,10 @@ DecodedInstruction *Decode::decode(RawInstruction *instruction)
     {
         return new Slli(instruction);
     }
+    else if (op == "mul")
+    {
+        return new Multiply(instruction);
+    }
     else if (op == "bne")
     {
         return new Bne(instruction);

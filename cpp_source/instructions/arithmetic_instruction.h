@@ -54,4 +54,11 @@ struct Slli : ArithmeticInstruction
     void execute(Cpu *cpu);
 };
 
+struct Multiply : ArithmeticInstruction
+{
+    Multiply(RawInstruction *instruction);
+
+    void execute(Cpu *cpu);
+};
+
 #endif
