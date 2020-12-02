@@ -60,6 +60,7 @@ void Execute::process(Event *event)
         Store *store = dynamic_cast<Store *>(instruction);
         if (store != NULL)
         {
+            std::cout << "Execute passing along instruction: " << instruction << "\n";
             this->next->stage(instruction);
         }
         else

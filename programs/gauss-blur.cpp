@@ -1,31 +1,32 @@
 #include "test.h"
 using namespace Simulation;
 
+const int MAT_A_START = 0x400;
+const int MAT_B_START = 0x2CA4;
+const int MAT_C_START = 0x2CAD;
+const int MAT_D_START = 0x7ACD;
+const int STACK0_START = 0xA200;
+const int STACK1_START = 0xA300;
+
+const int MEM_END = 0xA300;
+
+const int MAT_A_SIZE = (MAT_B_START - MAT_A_START);
+const int MAT_B_SIZE = (MAT_C_START - MAT_B_START);
+const int MAT_C_SIZE = (MAT_D_START - MAT_C_START) / 2;
+const int MAT_D_SIZE = (0xA1DD - MAT_D_START);
+
+Memory *ram = new Memory(100, MEM_END, {0x200, 0x400, MEM_END});
+MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
+Cpu cpu0 = Cpu(memBus);
+Cpu cpu1 = Cpu(memBus);
+
 int main()
 {
-    const int MAT_A_START = 0x400;
-    const int MAT_B_START = 0x2CA4;
-    const int MAT_C_START = 0x2CAD;
-    const int MAT_D_START = 0x7ACD;
-    const int STACK0_START = 0xA200;
-    const int STACK1_START = 0xA300;
-
-    const int MEM_END = 0xA300;
-
-    const int MAT_A_SIZE = (MAT_B_START - MAT_A_START);
-    const int MAT_B_SIZE = (MAT_C_START - MAT_B_START);
-    const int MAT_C_SIZE = (MAT_D_START - MAT_C_START) / 2;
-    const int MAT_D_SIZE = (0xA1DD - MAT_D_START);
 
     std::cout << "MAT A length: " << MAT_A_SIZE << "\n";
     std::cout << "MAT B length: " << MAT_B_SIZE << "\n";
     std::cout << "MAT C length: " << MAT_C_SIZE << "\n";
     std::cout << "MAT D length: " << MAT_D_SIZE << "\n";
-
-    Memory *ram = new Memory(100, MEM_END, {0x200, 0x400, MEM_END});
-    MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
-    Cpu cpu0 = Cpu(memBus);
-    Cpu cpu1 = Cpu(memBus);
 
     // Initialize matrices in memory
     load_binary("MAT_A_DATA", ram, MAT_A_START);
@@ -53,19 +54,6 @@ int main()
 
     cpu0.intRegister.write(14, STACK0_START); // Set stack pointer at bottom of stack
     cpu1.intRegister.write(14, STACK1_START); // Set stack pointer at bottom of stack
-
-    for (int i = 0; i < 0x200; i += 4)
-    {
-        uint32_t data = ram->readUint(i);
-        if (data != 0)
-        {
-            std::cout << i << ": " << RawInstruction(data).keyword() << "\n";
-        }
-        else
-        {
-            std::cout << i << ": " << data << "\n";
-        }
-    }
 
     // Set up initial cpu tick to kick things off
     masterEventQueue.push(new Event("Tick", 0, &cpu0));
