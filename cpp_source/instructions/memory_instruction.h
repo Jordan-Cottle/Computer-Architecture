@@ -17,7 +17,6 @@ struct MemoryInstruction : DecodedInstruction
     int baseMemoryLocationRegisterIndex;
     int memoryOffset;
 
-    bool signExtend;
     uint8_t width;
 
     MemoryInstruction(RawInstruction *instruction);
@@ -38,6 +37,7 @@ struct Store : MemoryInstruction
 
 struct Load : MemoryInstruction
 {
+    bool signExtend;
     Load(RawInstruction *instruction);
 
     void execute(Cpu *cpu);

@@ -246,19 +246,37 @@ int main()
     pc = 60;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "sb");
+    Store store = Store(&instruction);
+
+    memoryLocation = 300;
+    testCpu->intRegister.write(1, memoryLocation);
+    testCpu->intRegister.write(4, 0x12345678);
+    testRam->write(memoryLocation, 0x12345678);
+
+    store.execute(testCpu);
+    assert(testRam->readUint(memoryLocation) == 0x78345678); // Only first two hex digits written
 
     // SH
     pc = 64;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    nop = Add(&instruction);
+    assert(instruction.keyword() == "sh");
+    store = Store(&instruction);
+
+    memoryLocation = 400;
+    testCpu->intRegister.write(1, memoryLocation - 16);
+    testCpu->intRegister.write(3, 0x12345678);
+    testRam->write(memoryLocation, 0x12345678);
+
+    store.execute(testCpu);
+    assert(testRam->readUint(memoryLocation) == 0x56785678); // Only first 4 hex digits written
 
     // SW
     pc = 68;
     testCpu->programCounter.value = pc;
     instruction = RawInstruction(testRam->readUint(pc));
-    Store store = Store(&instruction);
+    store = Store(&instruction);
 
     memoryLocation = 500;
     testCpu->intRegister.write(1, memoryLocation + 16); // store has -16 offset set
