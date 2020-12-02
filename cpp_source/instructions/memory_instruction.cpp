@@ -89,6 +89,7 @@ void Store::execute(Cpu *cpu)
 
         data = data | existingData;
 
+        // std::cout << "Writing: " << str(data) << " into memory address " << str(memAddress) << "\n";
         cpu->memory->write(memAddress, data);
     }
 }
