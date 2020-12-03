@@ -367,8 +367,20 @@ def split_high(num):
 
     high, low = split_bits(num)
 
+    # Manually add in one
     if low[0] == "1":
-        high, _ = split_bits(num << 1)
+        bits = []
+        carry = "1"
+        for bit in high[::-1]:
+            if bit == "1" and carry == "1":
+                bits.append("0")
+            elif bit == "1" or carry == "1":
+                bits.append("1")
+                carry = "0"
+            else:
+                bits.append("0")
+
+        high = "".join(bits[::-1])
 
     return high
 

@@ -82,5 +82,20 @@ int main()
     assert(cpu.programCounter.value == 8);
     std::cout << str(blt.offset(&cpu)) << "\n";
 
+    instruction = RawInstruction(cpu.memory->readUint(32));
+    std::cout << instruction.keyword() << "\n";
+    assert(instruction.keyword() == "lui");
+    Lui lui = Lui(&instruction);
+    lui.execute(&cpu);
+
+    instruction = RawInstruction(cpu.memory->readUint(36));
+    std::cout << instruction.keyword() << "\n";
+    assert(instruction.keyword() == "addi");
+    add = Add(&instruction);
+    add.execute(&cpu);
+
+    std::cout << str(cpu.intRegister.read(19)) << "\n";
+    assert(cpu.intRegister.read(19) == 11437);
+
     return 0;
 }
