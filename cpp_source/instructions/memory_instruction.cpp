@@ -96,7 +96,6 @@ void Load::execute(Cpu *cpu)
         int data = cpu->memory->readInt(memAddress);
 
         uint32_t mask;
-        uint8_t offset = 32 - (this->width * 8);
         switch (this->width)
         {
         case 1:
@@ -112,7 +111,7 @@ void Load::execute(Cpu *cpu)
             throw std::logic_error("Unrecognized load width: " + str(this->width));
         }
 
-        data = (data >> offset) & mask;
+        data = data & mask;
 
         if (this->signExtend)
         {

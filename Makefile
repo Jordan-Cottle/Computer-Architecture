@@ -9,9 +9,10 @@ TESTS:= fetch_test \
 	opcode_test \
 	memory_bus_test \
 	rv32i_test \
-	cache_test
+	cache_test \
+	op_test
 SOURCE_ROOT := cpp_source
-PROGRAMS := test_program test_program2 fpTest CPU0 CPU1 rv32i A5_CPU0 A5_CPU1
+PROGRAMS := test_program test_program2 fpTest CPU0 CPU1 rv32i A5_CPU0 A5_CPU1 op_test
 BINARIES := $(addsuffix .bin, ${PROGRAMS})
 PROGRAM_DIR := programs
 DATA_DIR := data
