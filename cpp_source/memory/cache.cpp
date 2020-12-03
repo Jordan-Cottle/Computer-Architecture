@@ -279,6 +279,62 @@ void Cache::process(Event *event)
     MemoryInterface::process(event);
 }
 
+bool Cache::snoop(MesiSignal signal, uint32_t address, Cache *sender)
+{
+    uint32_t blockIndex;
+    try
+    {
+        blockIndex = this->findBlock(address);
+    }
+    catch (AddressNotFound &error)
+    {
+        return false; // Cache is not tracking that address
+    }
+
+    MesiState state = this->mesiStates.at(blockIndex);
+
+    if (state == INVALID)
+    {
+        return false;
+    }
+
+    switch (signal)
+    {
+    case INVALIDATE:
+        this->mesiStates.at(blockIndex) = INVALID;
+        this->valid.at(blockIndex) = false;
+        break;
+    case MEM_READ:
+        switch (state)
+        {
+        case MODIFIED:
+            // TODO write back to memory
+        case EXCLUSIVE:
+        case SHARED:
+            this->mesiStates.at(blockIndex) = SHARED;
+            // TODO send memory to requestor
+        default:
+            break;
+        }
+        break;
+    case RWITM:
+        switch (state)
+        {
+        case MODIFIED:
+            // TODO write back to memory
+        case EXCLUSIVE:
+        case SHARED:
+            // TODO send memory to requestor
+            this->mesiStates.at(blockIndex) = INVALID;
+            this->valid.at(blockIndex) = false;
+        default:
+            break;
+        }
+    }
+
+    return true;
+}
+
 uint32_t Cache::readUint(uint32_t address)
 {
     this->updateLruState(address);

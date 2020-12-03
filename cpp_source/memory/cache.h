@@ -82,6 +82,8 @@ struct Cache : MemoryInterface
     bool request(uint32_t address, SimulationDevice *device, bool reIssued);
     void process(Event *event);
 
+    bool snoop(MesiSignal signal, uint32_t address, Cache *sender);
+
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);
     float readFloat(uint32_t address);

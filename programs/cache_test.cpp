@@ -224,6 +224,93 @@ void testReplacementPolicy()
     delete cache;
 }
 
+void testMesi()
+{
+    Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+
+    uint32_t address = 0;
+    local->loadBlock(address); // Make sure cache thinks the memory is valid
+    uint32_t block = local->findBlock(address);
+
+    assert(local->mesiStates[block] == INVALID);
+    assert(other->mesiStates[block] == INVALID);
+
+    // Test receiving invalidate events
+    bool found = local->snoop(INVALIDATE, address, other);
+    assert(!found);
+    assert(local->mesiStates[block] == INVALID);
+    assert(other->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = MODIFIED;
+    local->valid.at(block) = true;
+    found = local->snoop(INVALIDATE, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = EXCLUSIVE;
+    local->valid.at(block) = true;
+    found = local->snoop(INVALIDATE, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = SHARED;
+    local->valid.at(block) = true;
+    found = local->snoop(INVALIDATE, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    // Test receiving mem read events
+    local->mesiStates[block] = MODIFIED;
+    local->valid.at(block) = true;
+    found = local->snoop(MEM_READ, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == SHARED);
+
+    local->mesiStates[block] = EXCLUSIVE;
+    local->valid.at(block) = true;
+    found = local->snoop(MEM_READ, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == SHARED);
+
+    local->mesiStates[block] = SHARED;
+    local->valid.at(block) = true;
+    found = local->snoop(MEM_READ, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == SHARED);
+
+    local->mesiStates[block] = INVALID;
+    local->valid.at(block) = false;
+    found = local->snoop(MEM_READ, address, other);
+    assert(!found);
+    assert(local->mesiStates[block] == INVALID);
+
+    // Test receiving rwitm events
+    local->mesiStates[block] = MODIFIED;
+    local->valid.at(block) = true;
+    found = local->snoop(RWITM, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = EXCLUSIVE;
+    local->valid.at(block) = true;
+    found = local->snoop(RWITM, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = SHARED;
+    local->valid.at(block) = true;
+    found = local->snoop(RWITM, address, other);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = INVALID;
+    found = local->snoop(RWITM, address, other);
+    assert(!found);
+    assert(local->mesiStates[block] == INVALID);
+    assert(other->mesiStates[block] == INVALID);
+}
+
 void seedMemory()
 {
     // Seed memory with test data
@@ -254,6 +341,9 @@ int main()
 
     std::cout << "\nTesting cache replacement policy\n";
     testReplacementPolicy();
+
+    std::cout << "\nTesting mesi protocol\n";
+    testMesi();
 
     return 0;
 }
