@@ -94,19 +94,9 @@ float MemoryBus::readFloat(uint32_t address)
     return this->memory->readFloat(address);
 }
 
-void MemoryBus::write(uint32_t address, uint32_t value)
+void MemoryBus::write(uint32_t address, void *start, uint32_t bytes)
 {
-    this->memory->write(address, value);
-}
-
-void MemoryBus::write(uint32_t address, int value)
-{
-    this->memory->write(address, value);
-}
-
-void MemoryBus::write(uint32_t address, float value)
-{
-    this->memory->write(address, value);
+    this->memory->write(address, start, bytes);
 }
 
 std::string MemoryBus::__str__()

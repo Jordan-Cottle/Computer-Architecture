@@ -104,39 +104,18 @@ float Memory::readFloat(uint32_t address)
     return *(float *)&this->data[address];
 }
 
-void Memory::write(uint32_t address, uint32_t value)
+void Memory::write(uint32_t address, void *start, uint32_t bytes)
 {
     this->checkBounds(address);
+    this->checkBounds(address + bytes - 1);
     this->busy[this->partition(address)] = false;
 
-    uint8_t *start = (uint8_t *)&value;
-    for (uint32_t i = 0; i < sizeof(value); i++)
+    uint8_t *begin = (uint8_t *)start;
+    for (uint32_t i = 0; i < bytes; i++)
     {
-        this->data[address + i] = *(start + i);
-    }
-}
-
-void Memory::write(uint32_t address, int value)
-{
-    this->checkBounds(address);
-    this->busy[this->partition(address)] = false;
-
-    uint8_t *start = (uint8_t *)&value;
-    for (uint32_t i = 0; i < sizeof(value); i++)
-    {
-        this->data[address + i] = *(start + i);
-    }
-}
-
-void Memory::write(uint32_t address, float value)
-{
-    this->checkBounds(address);
-    this->busy[this->partition(address)] = false;
-
-    uint8_t *start = (uint8_t *)&value;
-    for (uint32_t i = 0; i < sizeof(value); i++)
-    {
-        this->data[address + i] = *(start + i);
+        uint8_t byte = *(begin + i);
+        OUT << "Writing " << str(byte) << " into address " << str(address + i) << "\n";
+        this->data[address + i] = byte;
     }
 }
 

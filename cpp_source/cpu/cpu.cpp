@@ -109,7 +109,7 @@ void Cpu::loadProgram(std::string fileName, uint32_t offset, MemoryInterface *me
     uint32_t memAddress = offset;
     while (programFile.read((char *)&instruction, sizeof(instruction)))
     {
-        memory->write(memAddress, instruction);
+        memory->write(memAddress, (void *)&instruction, sizeof(instruction));
         memAddress += sizeof(instruction);
     }
 

@@ -120,7 +120,8 @@ void testMemoryAccess()
     for (uint32_t i = 0; i < cache->size; i += 4)
     {
         processRequest(cache, i);
-        cache->write(i, -int(i));
+        int data = -int(i);
+        cache->write(i, (void *)&data, sizeof(data));
     }
 
     // Assert that every block has valid data, cache fully saturated
@@ -136,7 +137,7 @@ void testMemoryAccess()
     {
         uint32_t outOfCacheAddress = i + cache->size;
         processRequest(cache, outOfCacheAddress);
-        cache->write(outOfCacheAddress, outOfCacheAddress);
+        cache->write(outOfCacheAddress, (void *)&outOfCacheAddress, sizeof(outOfCacheAddress));
 
         // Assert that value was updated even though cache was full
         assert(cache->readUint(outOfCacheAddress) == outOfCacheAddress);
@@ -231,7 +232,7 @@ void seedMemory()
         int datum = i;
         mockData[i] = datum;
         uint32_t memAddress = i * sizeof(int);
-        memory->write(memAddress, datum);
+        memory->write(memAddress, (void *)&datum, sizeof(datum));
     }
 }
 
