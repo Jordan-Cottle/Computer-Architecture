@@ -27,9 +27,7 @@ struct MemoryInterface : SimulationDevice
     virtual uint32_t readUint(uint32_t address) = 0;
     virtual int readInt(uint32_t address) = 0;
     virtual float readFloat(uint32_t address) = 0;
-    virtual void write(uint32_t address, uint32_t value) = 0;
-    virtual void write(uint32_t address, int value) = 0;
-    virtual void write(uint32_t address, float value) = 0;
+    virtual void write(uint32_t address, void *start, uint32_t bytes) = 0;
 };
 
 struct Memory : MemoryInterface
@@ -47,9 +45,7 @@ struct Memory : MemoryInterface
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);
     float readFloat(uint32_t address);
-    void write(uint32_t address, uint32_t value);
-    void write(uint32_t address, int value);
-    void write(uint32_t address, float value);
+    void write(uint32_t address, void *start, uint32_t bytes);
 
     std::string __str__();
 };

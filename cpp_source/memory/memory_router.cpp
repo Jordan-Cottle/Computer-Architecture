@@ -42,17 +42,7 @@ float MemoryRouter::readFloat(uint32_t address)
     return this->selectMemoryDevice(address)->readFloat(address);
 }
 
-void MemoryRouter::write(uint32_t address, uint32_t value)
+void MemoryRouter::write(uint32_t address, void *start, uint32_t bytes)
 {
-    this->selectMemoryDevice(address)->write(address, value);
-}
-
-void MemoryRouter::write(uint32_t address, int value)
-{
-    this->selectMemoryDevice(address)->write(address, value);
-}
-
-void MemoryRouter::write(uint32_t address, float value)
-{
-    this->selectMemoryDevice(address)->write(address, value);
+    this->selectMemoryDevice(address)->write(address, start, bytes);
 }

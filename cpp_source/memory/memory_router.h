@@ -22,9 +22,7 @@ struct MemoryRouter : MemoryInterface
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);
     float readFloat(uint32_t address);
-    void write(uint32_t address, uint32_t value);
-    void write(uint32_t address, int value);
-    void write(uint32_t address, float value);
+    void write(uint32_t address, void *start, uint32_t bytes);
 };
 
 #endif

@@ -25,7 +25,8 @@ int main()
     // Initialize array in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        cpu.memory->write(ARRAY_START + (i * sizeof(INITIAL)), INITIAL + i * OFFSET);
+        float data = INITIAL + i * OFFSET;
+        cpu.memory->write(ARRAY_START + (i * sizeof(INITIAL)), (void *)&data, sizeof(data));
     }
 
     cpu.addPipeline(new Fetch(&cpu))

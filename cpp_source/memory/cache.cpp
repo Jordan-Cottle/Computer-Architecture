@@ -194,7 +194,8 @@ void Cache::loadBlock(uint32_t address)
     for (uint32_t i = 0; i < this->blockSize; i += 4)
     {
         // Shouldn't this take some time?
-        this->data->write(start + i, this->source->readUint(memoryStart + i));
+        uint32_t data = this->source->readUint(memoryStart + i);
+        this->data->write(start + i, (void *)&data, sizeof(data));
     }
 
     this->valid[blockIndex] = true;
@@ -307,23 +308,9 @@ float Cache::readFloat(uint32_t address)
     return this->data->readFloat(this->cacheAddress(address));
 }
 
-void Cache::write(uint32_t address, uint32_t value)
+void Cache::write(uint32_t address, void *start, uint32_t bytes)
 {
     this->updateLruState(address);
-    this->data->write(this->cacheAddress(address), value);
-    this->source->write(address, value);
-}
-
-void Cache::write(uint32_t address, int value)
-{
-    this->updateLruState(address);
-    this->data->write(this->cacheAddress(address), value);
-    this->source->write(address, value);
-}
-
-void Cache::write(uint32_t address, float value)
-{
-    this->updateLruState(address);
-    this->data->write(this->cacheAddress(address), value);
-    this->source->write(address, value);
+    this->data->write(this->cacheAddress(address), start, bytes);
+    this->source->write(address, start, bytes);
 }

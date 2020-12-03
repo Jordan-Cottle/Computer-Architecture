@@ -5,7 +5,7 @@ using namespace Simulation;
 
 int main()
 {
-    cpu.memory->write(0, PI);
+    cpu.memory->write(0, (void *)&PI, sizeof(PI));
     MemoryBus bus = MemoryBus(BUS_ARBITRATION_TIME, (Memory *)cpu.memory);
 
     // Bus should accept all memory requests
@@ -43,7 +43,7 @@ int main()
     // Pipeline received the memory read
     assert(testPipeline.lastEvent->type == "MemoryReady");
     // Write a value to memory through the bus
-    bus.write(0, PI);
+    bus.write(0, (void *)&PI, sizeof(PI));
     assert(cpu.memory->readFloat(0) == PI);
 
     // Finish processing events in this cycle
