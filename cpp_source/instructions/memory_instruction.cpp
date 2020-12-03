@@ -50,7 +50,7 @@ void Store::execute(Cpu *cpu)
             throw std::runtime_error("Stores to register 0 have no effect!");
         }
 
-        int data = cpu->intRegister.read(this->targetRegisterIndex);
+        uint32_t data = cpu->intRegister.read(this->targetRegisterIndex);
 
         uint8_t offset = 32 - (this->width * 8);
         uint32_t srcMask;
