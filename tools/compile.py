@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import os
+import time
 from concurrent.futures import ProcessPoolExecutor
 
 from tools import (
@@ -52,6 +53,8 @@ def compile_cpp(path):
     os.makedirs(output_dir, exist_ok=True)
 
     if needs_compile(cpp_file):
+        stat = os.stat(cpp_file.full_path)
+        os.utime(cpp_file.full_path, (stat.st_atime, time.time()))
         execute(f"{GCC} -c -o {cpp_file.object_name} {cpp_file.full_path}")
 
     return cpp_file.object_name
