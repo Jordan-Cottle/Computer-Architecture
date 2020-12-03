@@ -8,6 +8,11 @@
 #define __MISC__
 
 #include <string>
+#include <iostream>
+
+#define OUT   \
+    if (true) \
+    std::cout
 
 struct printable
 {

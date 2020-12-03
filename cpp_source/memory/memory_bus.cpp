@@ -52,19 +52,19 @@ void MemoryBus::process(Event *event)
     {
         event->handled = true;
         MemoryRequest *request = this->requests.top();
-        // std::cout << "Processing " << str(request) << "\n";
+        OUT << "Processing " << str(request) << "\n";
 
         bool accepted = this->memory->request(request->address, request->device);
         if (accepted)
         {
-            // std::cout << "Memory accepted " << request << "\n";
+            OUT << "Memory accepted " << request << "\n";
             this->busyFor[this->port(request->address)] -= this->accessTime;
             this->requests.pop();
             delete request;
         }
         else
         {
-            // std::cout << "Memory rejected " << request << "\n";
+            OUT << "Memory rejected " << request << "\n";
             // Update request expected to complete time
             this->requests.pop();
             request->completeAt += this->accessTime;

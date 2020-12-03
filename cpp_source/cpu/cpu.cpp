@@ -68,11 +68,11 @@ void Cpu::tick()
 {
     if (this->complete)
     {
-        // std::cout << "Cpu ignoring tick because it is set to complete\n";
+        OUT << "Cpu ignoring tick because it is set to complete\n";
         return;
     }
 
-    // std::cout << "Cpu cycle " << this->clocksProcessed << ": " << this->programCounter << "\n";
+    OUT << "Cpu cycle " << this->clocksProcessed << ": " << this->programCounter << "\n";
     // Work pipelines backwards
     // This allows allows each stage to set the instruction into the next stage with worrying
     // about the instruction being boosted all the way through the pipeline in a single cycle
@@ -113,7 +113,7 @@ void Cpu::loadProgram(std::string fileName, uint32_t offset, MemoryInterface *me
         memAddress += sizeof(instruction);
     }
 
-    // std::cout << "Program of size " << instruction - 4 << " loaded!\n";
+    OUT << "Program of size " << instruction - 4 << " loaded!\n";
 
     this->programCounter.value = offset;
 }
