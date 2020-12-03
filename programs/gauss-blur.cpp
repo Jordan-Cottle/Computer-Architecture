@@ -58,6 +58,7 @@ int main()
     masterEventQueue.push(new Event("Tick", 0, &cpu0));
     masterEventQueue.push(new Event("Tick", 0, &cpu1));
 
+    std::cout << "Thinking... (This should take a minute or two)\n";
     while (!cpu0.complete || !cpu1.complete)
     {
         masterEventQueue.tick(simulationClock.cycle);
@@ -65,6 +66,15 @@ int main()
         simulationClock.tick();
     }
     std::cout << "Program complete!\n";
+
+    std::ofstream outfile;
+    outfile.open("output.txt");
+
+    for (uint32_t i = MAT_D_START; i < 0xA1DD; i++)
+    {
+        uint8_t data = ram->data[i];
+        outfile << str(data) << "\n";
+    }
 
     std::cout << "Cpu1 clock cycles: " << cpu0.clocksProcessed << "\n";
     std::cout << "Cpu1 instructions processed: " << cpu0.instructionsProcessed << "\n";
