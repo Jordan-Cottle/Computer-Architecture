@@ -199,8 +199,8 @@ SimulationResult runSimulation(CacheConfig iConfig, CacheConfig dConfig)
         int memOffset = i * sizeof(float);
         float a = get_random();
         float b = get_random();
-        ram->write(ARRAY_A_START + memOffset, a);
-        ram->write(ARRAY_B_START + memOffset, b);
+        ram->write(ARRAY_A_START + memOffset, (void *)&a, sizeof(a));
+        ram->write(ARRAY_B_START + memOffset, (void *)&b, sizeof(b));
 
         // Initialize arrays for implementing/testing CPU0.s
         ARRAY_A[i] = a;
