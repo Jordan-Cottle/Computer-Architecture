@@ -30,6 +30,7 @@ assignment5: ${BINARIES} gauss-blur.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
 
 	# Create the image files
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py ${DATA_DIR}/MAT_A_DATA.txt original.png")
+	os.system("${VPY} ${TOOLS_DIR}/make_image.py convolution.txt convolution.png")
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py output.txt output.png")
 
 assignment4: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe duo-optimum.exe
