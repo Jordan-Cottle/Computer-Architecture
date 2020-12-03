@@ -1,12 +1,11 @@
 #! /usr/bin/env python
 
 import os
-import time
+from concurrent.futures import ProcessPoolExecutor
 
 from tools import (
     CPP_DIR,
     HEADERS,
-    OBJ_DIR,
     PROJECT_ROOT,
     SourceFile,
     execute,
@@ -62,30 +61,19 @@ def build(name, objects, source_name):
     execute(f"{GCC} -o {name} {source_name} {' '.join(objects)}")
 
 
-def touch_files():
-    finished = time.time()
-    for file in find_files(CPP_DIR, ".cpp"):
-        os.utime(file, (finished, finished))
-
-    for file in find_files(CPP_DIR, ".h"):
-        os.utime(file, (finished, finished))
-
-    for file in find_files(OBJ_DIR, ".o"):
-        os.utime(file, (finished, finished))
-
-
 def main(project_dir, output_name, source_name=None):
     objects = []
-    for cpp_file in find_files(f"{project_dir}", ".cpp"):
-        object_file = compile_cpp(cpp_file)
-        objects.append(object_file)
+    with ProcessPoolExecutor(8) as executor:
+        results = executor.map(compile_cpp, find_files(project_dir, ".cpp"))
 
-    touch_files()
+    for result in results:
+        objects.append(result)
+
     if source_name is None:
         source_name = os.path.splitext(output_name)[0]
         source_name = f"{source_name}.cpp"
 
-    build(output_name, find_files(OBJ_DIR, ".o"), source_name)
+    build(output_name, objects, source_name)
 
 
 if __name__ == "__main__":

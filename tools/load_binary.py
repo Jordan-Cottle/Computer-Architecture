@@ -2,6 +2,7 @@ import sys
 import os
 import struct
 
+
 def main(file_name, bit_length=32, base=10):
 
     with open(file_name, "r") as data_file:
@@ -15,6 +16,7 @@ def main(file_name, bit_length=32, base=10):
             value = struct.pack(STRUCT_SIZE[bit_length], num)
             output_file.write(value)
             print(value.hex())
+
 
 if __name__ == "__main__":
     file_name = sys.argv[1]

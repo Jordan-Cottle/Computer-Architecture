@@ -68,13 +68,21 @@ int main()
     std::cout << "Program complete!\n";
 
     std::ofstream outfile;
-    outfile.open("output.txt");
+    outfile.open("convolution.txt");
+    for (uint32_t i = MAT_C_START; i < MAT_D_START; i += 2)
+    {
+        uint16_t data = *(uint16_t *)&ram->data[i];
+        outfile << str(data) << "\n";
+    }
+    outfile.close();
 
+    outfile.open("output.txt");
     for (uint32_t i = MAT_D_START; i < 0xA1DD; i++)
     {
         uint8_t data = ram->data[i];
         outfile << str(data) << "\n";
     }
+    outfile.close();
 
     std::cout << "Cpu1 clock cycles: " << cpu0.clocksProcessed << "\n";
     std::cout << "Cpu1 instructions processed: " << cpu0.instructionsProcessed << "\n";

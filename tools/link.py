@@ -528,6 +528,7 @@ class Instruction(InstructionTemplate):
         updated[section.slice] = data[::-1]
         self.bits = updated[::-1]
 
+
 with open(f"{os.getcwd()}/data/opcodes.txt", "r") as opcode_file:
     data = opcode_file.readlines()
 
@@ -557,14 +558,18 @@ for instruction in INSTRUCTIONS.values():
 
 
 def test():
-    instruction = InstructionTemplate(f"foo {R_FIELDS}", "1234567r1r2rR3R4Rfffd2d3do1o2o3o")
+    instruction = InstructionTemplate(
+        f"foo {R_FIELDS}", "1234567r1r2rR3R4Rfffd2d3do1o2o3o"
+    )
     assert instruction.opcode == "o1o2o3o", instruction.opcode
     assert instruction.rd == "d2d3d", instruction.rd
     assert instruction.rs1 == "R3R4R", instruction.rs1
     assert instruction.rs2 == "r1r2r", instruction.rs2
     assert instruction.funct7 == "1234567", instruction.funct7
 
-    instruction = InstructionTemplate(f"foo {I_FIELDS}", "BA9876543210R3R4Rfffd2d3do1o2o3o")
+    instruction = InstructionTemplate(
+        f"foo {I_FIELDS}", "BA9876543210R3R4Rfffd2d3do1o2o3o"
+    )
     assert instruction.opcode == "o1o2o3o", instruction.opcode
     assert instruction.rd == "d2d3d", instruction.rd
     assert instruction.rs1 == "R3R4R", instruction.rs1
@@ -577,7 +582,9 @@ def test():
     assert instruction.opcode == "o1o2o3o", instruction.opcode
     assert instruction.rd == "d2d3d", instruction.rd
 
-    instruction = InstructionTemplate(f"beq {B_FIELDS}", "?????????????????000?????0001111")
+    instruction = InstructionTemplate(
+        f"beq {B_FIELDS}", "?????????????????000?????0001111"
+    )
     instruction.immediate = "CBA987654321"
 
     assert instruction.immediate == "CBA987654321", instruction.immediate
@@ -630,15 +637,21 @@ def test():
     expected = f"11111111001010011100101011100011"
     assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
-    instruction = Instruction.parse("jal	foo", labels={"foo": 12}, current_mem_address=24)
+    instruction = Instruction.parse(
+        "jal	foo", labels={"foo": 12}, current_mem_address=24
+    )
     expected = f"11111111010111111111000011101111"
     assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
-    instruction = Instruction.parse("jal	foo", labels={"foo": 24}, current_mem_address=12)
+    instruction = Instruction.parse(
+        "jal	foo", labels={"foo": 24}, current_mem_address=12
+    )
     expected = f"00000000110000000000000011101111"
     assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
-    instruction = Instruction.parse("jal	foo", labels={"foo": 0}, current_mem_address=20)
+    instruction = Instruction.parse(
+        "jal	foo", labels={"foo": 0}, current_mem_address=20
+    )
     expected = f"11111110110111111111000011101111"
     assert instruction.binary == expected, f"{instruction.binary} != {expected}"
 
