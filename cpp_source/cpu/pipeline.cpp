@@ -3,7 +3,7 @@
     Created: 10/03/2020
 */
 
-#include <iostream>
+#include "misc.h"
 
 #include "pipeline.h"
 #include "simulation.h"
@@ -30,7 +30,7 @@ void Pipeline::stage(RawInstruction *instruction)
 {
     if (!this->free())
     {
-        // std::cout << "WARNING: " << this << "is not free!!\n";
+        OUT << "WARNING: " << this << "is not free!!\n";
         return;
     }
 

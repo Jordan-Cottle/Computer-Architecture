@@ -3,7 +3,7 @@
 import os
 import time
 
-from file_utils import (
+from tools import (
     CPP_DIR,
     HEADERS,
     OBJ_DIR,
@@ -19,7 +19,7 @@ INCLUDE_DISPLAY = "\n\t".join(INCLUDE_DIRS)
 print(f"Including the follow directories in compile commands:\n\t{INCLUDE_DISPLAY}")
 
 INCLUDE_FLAGS = [f"-iquote {directory}" for directory in INCLUDE_DIRS]
-FLAGS = ["-Wall", "-g"] + INCLUDE_FLAGS
+FLAGS = ["-Wall", "-g", "-O2"] + INCLUDE_FLAGS
 GCC = f"g++ {' '.join(FLAGS)}"
 
 

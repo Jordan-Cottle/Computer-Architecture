@@ -51,8 +51,8 @@ int main()
     {
         float expected = (INITIAL + i * OFFSET) + VALUE_ADDED;
         float actual = cpu.memory->readFloat(ARRAY_START + (i * sizeof(INITIAL)));
-        // std::cout << "Expected: " << expected << "\n";
-        // std::cout << "Actual: " << actual << "\n";
+        OUT << "Expected: " << expected << "\n";
+        OUT << "Actual: " << actual << "\n";
         assert(actual == expected);
     }
 

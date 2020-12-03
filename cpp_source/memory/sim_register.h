@@ -7,7 +7,6 @@
 #define __REGISTER__
 
 #include <vector>
-#include <iostream>
 
 #include "misc.h"
 

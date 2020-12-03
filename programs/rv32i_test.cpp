@@ -92,7 +92,6 @@ int main()
     testCpu->intRegister.write(2, 10);
     testCpu->branchSpeculated = true;
     bne.execute(testCpu);
-    std::cout << testCpu->programCounter.value << "\n";
     assert(testCpu->programCounter.value == pc + 4);
 
     // BLT  # 24

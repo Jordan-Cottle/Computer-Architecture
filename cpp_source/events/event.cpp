@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "event.h"
 
 Event ::Event(std::string type, ulong time, SimulationDevice *device) : EnumeratedObject(type), device(device)

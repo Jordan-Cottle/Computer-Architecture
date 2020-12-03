@@ -20,12 +20,9 @@ def create_image(data):
 
     return image
 
-def main():
-    data_source = sys.argv[1]
-    output_path = sys.argv[2]
-
+def main(data_source, output_path):
     img = create_image(load_data(data_source))
     img.save(output_path)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1], sys.argv[2])

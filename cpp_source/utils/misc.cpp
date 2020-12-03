@@ -1,5 +1,4 @@
 #include "misc.h"
-#include <iostream>
 
 std::string str(printable *obj)
 {

@@ -1,4 +1,3 @@
-EXE := duo-core
 TESTS:= fetch_test \
 	fp_test \
 	decode_test \
@@ -15,12 +14,24 @@ SOURCE_ROOT := cpp_source
 PROGRAMS := test_program test_program2 fpTest CPU0 CPU1 rv32i A5_CPU0 A5_CPU1
 BINARIES := $(addsuffix .bin, ${PROGRAMS})
 PROGRAM_DIR := programs
+DATA_DIR := data
+TOOLS_DIR := tools
+
+VPY := ./.venv/bin/python
 
 SHELL = /usr/bin/python3
 .ONESHELL:
-.PHONY=build,clean,run,tests,cpu0,duo-core
+.PHONY=build,clean,run,tests,cpu0,duo-core,assignment4,assignment5,best_cache
 
-assignment: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe duo-optimum.exe
+assignment5: ${BINARIES} gauss-blur.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
+	import os
+	os.system("./gauss-blur.exe")
+
+	# Create the image files
+	os.system("${VPY} ${TOOLS_DIR}/make_image.py ${DATA_DIR}/MAT_A_DATA.txt original.png")
+	os.system("${VPY} ${TOOLS_DIR}/make_image.py output.txt output.png")
+
+assignment4: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe duo-optimum.exe
 	import os
 
 	# Start assignment4 part 1
@@ -42,9 +53,22 @@ assignment: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe du
 	os.system("./duo-optimum.exe 256 512 128 1 4 best_results.json")
 	input("Optimum cache simulation complete, press enter to continue")
 
-run: ${EXE}.exe ${BINARIES}
+.venv: # Set up the ${VPY} virtual environtment
 	import os
-	os.system("./$<")
+	os.system("python -m venv .venv")
+	os.system("${VPY} -m pip install -r requirements.txt")
+
+%.png: .venv  # Convert .txt data files into actual .png files
+	import os
+	os.system("${VPY} ${TOOLS_DIR}/make_image.py ${DATA_DIR}/$(basename $@).txt $@")
+
+%.dat: data/%.txt  # Converty .txt files into binart .dat files for the simulations
+	from tools.load_binary import main
+
+	try:
+	  main("$<", 8)
+	except ValueError: # Try with base 16 and full word length
+	  main("$<", 32, 16)
 
 cpu0: cpu0.exe CPU0.bin
 	import os
@@ -54,7 +78,7 @@ duo-%: CPU0.bin CPU1.bin duo-%.exe
 	import os
 	os.system("./$@.exe")
 
-tests: ${BINARIES} ${TESTS} 
+tests: ${BINARIES} ${TESTS}
 	# All tests have been triggered
 
 %_test: %_test.exe ${BINARIES}
@@ -63,24 +87,26 @@ tests: ${BINARIES} ${TESTS}
 
 %.bin: ${PROGRAM_DIR}/%.s
 	import os
-	os.chdir("${PROGRAM_DIR}")
-	
-	from link import main
-	main("$(basename $@).s", binary=True)
-	os.replace("$@", "../$@")
+	from tools.link import main
+
+	main("${PROGRAM_DIR}/$(basename $@).s", binary=True)
+	os.replace("${PROGRAM_DIR}/$@", "$@")
 
 %.exe: ${PROGRAM_DIR}/%.cpp ${BINARIES}
-	from compile import main
+	from tools.compile import main
 	main("${SOURCE_ROOT}", "$@", "$<")
 
-best_cache: duo-optimum.exe CPU0.bin CPU1.bin
-	from find_best_cache import main
+best_cache: duo-optimum.exe ${BINARIES} memory_trace.dat
+	from tools.find_best_cache import main
 	main()
-
 
 clean:
 	import os
 	os.system("rm -rf obj")
+	os.system("rm -rf .venv")
 	os.system("rm *.exe")
 	os.system("rm *.bin")
 	os.system("rm *.json")
+	os.system("rm *.png")
+	os.system("rm *.jpg")
+	os.system("rm *.dat")

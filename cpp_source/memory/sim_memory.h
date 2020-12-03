@@ -7,7 +7,6 @@
 #define __MEMORY__
 
 #include <vector>
-#include <iostream>
 
 #include "device.h"
 

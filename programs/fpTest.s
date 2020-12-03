@@ -8,5 +8,5 @@ foo:
     blt x0 x1 yeet
     nop
 yeet:
-    nop
-    nop
+    lui	a1, %hi(11437)
+	addi	a1, a1, %lo(11437)

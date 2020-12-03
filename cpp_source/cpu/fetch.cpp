@@ -23,21 +23,21 @@ void Fetch::tick()
 
     if (this->next->busy())
     {
-        // std::cout << "Fetch waiting because next stage is busy\n";
+        OUT << "Fetch waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        // std::cout << "Fetch continuing to work on its task\n";
+        OUT << "Fetch continuing to work on its task\n";
         return;
     }
     if (this->outstandingRequest)
     {
-        // std::cout << "Fetch unit not requesting because it already has an outstanding request\n";
+        OUT << "Fetch unit not requesting because it already has an outstanding request\n";
         return;
     }
 
-    // std::cout << "Requesting new instruction from memory\n";
+    OUT << "Requesting new instruction from memory\n";
     Event *event = new Event("MemoryRequest", simulationClock.cycle, this);
     masterEventQueue.push(event);
     this->outstandingRequest = true;
@@ -49,7 +49,7 @@ void Fetch::processInstruction()
 {
     RawInstruction *instruction = this->staged();
 
-    // std::cout << "Fetch processing instruction: " << instruction << "\n";
+    OUT << "Fetch processing instruction: " << instruction << "\n";
 
     uint32_t opcode = getOpcode(instruction->data);
     // TODO move branch predicting logic into a branch prediction unit
@@ -61,14 +61,14 @@ void Fetch::processInstruction()
         ControlInstruction branch = ControlInstruction(instruction);
         this->cpu->programCounter.jump(branch.offset(this->cpu));
 
-        // std::cout << "Branch by " << this->cpu->programCounter << " predicted\n";
+        OUT << "Branch by " << this->cpu->programCounter << " predicted\n";
     }
     else if (opcode == 0b1101111)
     {
         this->cpu->branchSpeculated = true;
 
         Jump jump = Jump(instruction);
-        // std::cout << "Jump by " << jump.offset(this->cpu) << " detected\n";
+        OUT << "Jump by " << jump.offset(this->cpu) << " detected\n";
 
         this->cpu->programCounter.jump(jump.offset(this->cpu));
     }
@@ -79,7 +79,7 @@ void Fetch::processInstruction()
         Jalr jalr = Jalr(instruction);
 
         this->cpu->programCounter.jump(jalr.offset(this->cpu));
-        // std::cout << "Jalr to " << this->cpu->programCounter << " detected\n";
+        OUT << "Jalr to " << this->cpu->programCounter << " detected\n";
     }
     else
     {

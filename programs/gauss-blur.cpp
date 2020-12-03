@@ -29,14 +29,13 @@ int main()
     std::cout << "MAT D length: " << MAT_D_SIZE << "\n";
 
     // Initialize matrices in memory
-    load_binary("MAT_A_DATA", ram, MAT_A_START);
-    load_binary("MAT_B_DATA", ram, MAT_B_START);
+    load_binary("MAT_A_DATA.dat", ram, MAT_A_START);
+    load_binary("MAT_B_DATA.dat", ram, MAT_B_START);
 
-    // Set up MAT C with all 1s
-    for (int i = 0; i < MAT_C_SIZE; i += 4)
+    // Set up MAT C with all -1s
+    for (int i = MAT_C_START; i < MAT_D_START; i += 1)
     {
-        uint32_t data = 0xFFFFFFFF;
-        ram->write(MAT_C_START + (i), data);
+        ram->data[i] = 0xFF;
     }
 
     cpu0.addPipeline(new Fetch(&cpu0))
@@ -59,6 +58,7 @@ int main()
     masterEventQueue.push(new Event("Tick", 0, &cpu0));
     masterEventQueue.push(new Event("Tick", 0, &cpu1));
 
+    std::cout << "Thinking... (This should take a minute or two)\n";
     while (!cpu0.complete || !cpu1.complete)
     {
         masterEventQueue.tick(simulationClock.cycle);
@@ -66,6 +66,15 @@ int main()
         simulationClock.tick();
     }
     std::cout << "Program complete!\n";
+
+    std::ofstream outfile;
+    outfile.open("output.txt");
+
+    for (uint32_t i = MAT_D_START; i < 0xA1DD; i++)
+    {
+        uint8_t data = ram->data[i];
+        outfile << str(data) << "\n";
+    }
 
     std::cout << "Cpu1 clock cycles: " << cpu0.clocksProcessed << "\n";
     std::cout << "Cpu1 instructions processed: " << cpu0.instructionsProcessed << "\n";

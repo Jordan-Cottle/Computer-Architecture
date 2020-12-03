@@ -23,12 +23,12 @@ void StorePipeline::tick()
 
     if (this->free())
     {
-        // std::cout << "No instruction to store\n";
+        OUT << "No instruction to store\n";
         return;
     }
     if (this->busy())
     {
-        // std::cout << "Store continuing to work on its task\n";
+        OUT << "Store continuing to work on its task\n";
         return;
     }
     this->_busy = true;
@@ -43,7 +43,7 @@ void StorePipeline::process(Event *event)
     {
         event->handled = true;
         Store *instruction = (Store *)this->staged();
-        // std::cout << "Store processing instruction: " << instruction << "\n";
+        OUT << "Store processing instruction: " << instruction << "\n";
         instruction->execute(this->cpu);
 
         // No further reference to instruction will be created

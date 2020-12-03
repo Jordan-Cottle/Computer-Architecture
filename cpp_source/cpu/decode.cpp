@@ -127,17 +127,17 @@ void Decode::tick()
 
     if (this->free())
     {
-        // std::cout << "No instruction to decode\n";
+        OUT << "No instruction to decode\n";
         return;
     }
     if (this->next->busy())
     {
-        // std::cout << "Decode waiting because next stage is busy\n";
+        OUT << "Decode waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        // std::cout << "Decode continuing to work on its task\n";
+        OUT << "Decode continuing to work on its task\n";
         return;
     }
     this->_busy = true;
@@ -146,7 +146,7 @@ void Decode::tick()
 
     DecodedInstruction *decodedInstruction = this->decode(instruction);
     delete instruction; // All data has been saved to decodedInstruction
-    // std::cout << "Decode processed instruction: " << decodedInstruction << "\n";
+    OUT << "Decode processed instruction: " << decodedInstruction << "\n";
 
     this->next->stage(decodedInstruction);
     Event *workCompleted = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);

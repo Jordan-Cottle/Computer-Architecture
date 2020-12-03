@@ -40,7 +40,7 @@ void Store::execute(Cpu *cpu)
     {
         float data = cpu->fpRegister.read(this->targetRegisterIndex);
 
-        // std::cout << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
+        OUT << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
         cpu->memory->write(memAddress, data);
     }
     else
@@ -50,7 +50,7 @@ void Store::execute(Cpu *cpu)
             throw std::runtime_error("Stores to register 0 have no effect!");
         }
 
-        int data = cpu->intRegister.read(this->targetRegisterIndex);
+        uint32_t data = cpu->intRegister.read(this->targetRegisterIndex);
 
         uint8_t offset = 32 - (this->width * 8);
         uint32_t srcMask;
@@ -74,7 +74,7 @@ void Store::execute(Cpu *cpu)
         }
 
         data = data & srcMask;
-        // std::cout << "Storing: " << str(data) << " into memory address " << str(memAddress) << "\n";
+        OUT << "Storing: " << str(data) << " into memory address " << str(memAddress) << "\n";
 
         // Overlay previous data so we can use full 32 bit write method
         // all this bit mangling wouldn't be necessary if templates were overridable in sub classes
@@ -89,7 +89,7 @@ void Store::execute(Cpu *cpu)
 
         data = data | existingData;
 
-        // std::cout << "Writing: " << str(data) << " into memory address " << str(memAddress) << "\n";
+        OUT << "Writing: " << str(data) << " into memory address " << str(memAddress) << "\n";
         cpu->memory->write(memAddress, data);
     }
 }
@@ -158,7 +158,7 @@ void Load::execute(Cpu *cpu)
             data = sign_extend(data, index);
         }
 
-        // std::cout << "Loading " << str(data) << " into integer register " << str(this->targetRegisterIndex) << "\n";
+        OUT << "Loading " << str(data) << " into integer register " << str(this->targetRegisterIndex) << "\n";
         cpu->intRegister.write(this->targetRegisterIndex, data);
     }
 }

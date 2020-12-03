@@ -2,7 +2,6 @@
 #ifndef __HEAP__
 #define __HEAP__
 
-#include <iostream>
 #include <cstdarg>
 #include <vector>
 

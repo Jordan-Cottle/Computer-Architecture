@@ -72,7 +72,7 @@ void processEvents()
     }
 }
 
-void load_binary(std::string fileName, MemoryInterface *memory, uint32_t startAddress)
+void load_binary(std::string fileName, Memory *memory, uint32_t startAddress)
 {
 
     std::ifstream dataFile(fileName, std::ios::binary);
@@ -82,31 +82,10 @@ void load_binary(std::string fileName, MemoryInterface *memory, uint32_t startAd
         throw std::runtime_error("Cannot open " + fileName);
     }
 
-    uint8_t byte_count = 0;
-    uint32_t word = 0;
     uint8_t data;
     uint32_t memAddress = startAddress;
     while (dataFile.read((char *)&data, sizeof(data)))
     {
-        if (byte_count == 4)
-        {
-            memory->write(memAddress, word);
-            memAddress += 4;
-            word = 0;
-            byte_count = 0;
-        }
-
-        word |= data << (byte_count * 8);
-        byte_count += 1;
-    }
-
-    if (byte_count != 0)
-    {
-        while (byte_count != 4)
-        {
-            word = (word << 8);
-            byte_count += 1;
-        }
-        memory->write(memAddress, word);
+        memory->data[memAddress++] = data;
     }
 }

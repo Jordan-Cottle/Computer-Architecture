@@ -130,7 +130,7 @@ void Cache::updateLruState(uint32_t address)
         throw std::logic_error("Updates to lru state can only be applied to blocks that are in the cache!");
     }
 
-    // std::cout << "Address " << address << " at cache block " << blockIndex << " in set " << index << " has been used\n";
+    OUT << "Address " << address << " at cache block " << blockIndex << " in set " << index << " has been used\n";
 
     // Set bit if not set
     if (!this->lruBits[blockIndex])
@@ -166,7 +166,7 @@ uint32_t Cache::blockToEvict(uint32_t address)
         }
         else if (this->tags[blockIndex] == tag)
         {
-            // std::cout << "Cache reloading block " << blockIndex << "\n";
+            OUT << "Cache reloading block " << blockIndex << "\n";
             return blockIndex;
         }
     }
@@ -187,7 +187,7 @@ uint32_t Cache::blockToEvict(uint32_t address)
 void Cache::loadBlock(uint32_t address)
 {
     uint32_t blockIndex = this->blockToEvict(address);
-    // std::cout << "Set " << this->index(address) << " replacing block " << blockIndex % this->associativity << "\n";
+    OUT << "Set " << this->index(address) << " replacing block " << blockIndex % this->associativity << "\n";
 
     uint32_t memoryStart = address ^ this->offset(address);
     uint32_t start = blockIndex * this->blockSize;

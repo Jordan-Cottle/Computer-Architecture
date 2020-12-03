@@ -223,9 +223,7 @@ SimulationResult runSimulation(CacheConfig iConfig, CacheConfig dConfig)
 
         simulationClock.tick();
     }
-    // std::cout << "Program complete!\n";
 
-    // std::cout << "Analyzing memory state\n";
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);
@@ -233,9 +231,6 @@ SimulationResult runSimulation(CacheConfig iConfig, CacheConfig dConfig)
         // float b = ram->readFloat(ARRAY_B_START + memOffset);
         float c = ram->readFloat(ARRAY_C_START + memOffset);
         float d = ram->readFloat(ARRAY_D_START + memOffset);
-
-        // std::cout << "CPU0.s: " << str(a) << " + " << str(b) << " = " << str(c) << "\n";
-        // std::cout << "CPU1.s: " << str(a) << " - " << str(b) << " = " << str(d) << "\n";
 
         // CPU0.s functionality
         ARRAY_C[i] = ARRAY_A[i] + ARRAY_B[i];
@@ -246,7 +241,6 @@ SimulationResult runSimulation(CacheConfig iConfig, CacheConfig dConfig)
         assert(ARRAY_C[i] == c);
         assert(ARRAY_D[i] == d);
     }
-    // std::cout << "Memory analysis complete\n";
 
     return SimulationResult(cpu0, cpu1);
 }
