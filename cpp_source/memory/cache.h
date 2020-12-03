@@ -11,6 +11,21 @@
 constexpr uint32_t DIRECT_MAPPED = 1;
 constexpr uint32_t FULLY_ASSOCIATIVE = 0;
 
+enum MesiState
+{
+    MODIFIED,
+    EXCLUSIVE,
+    SHARED,
+    INVALID
+};
+
+enum MesiSignal
+{
+    MEM_READ,
+    RWITM,
+    INVALIDATE
+};
+
 struct AddressNotFound : std::runtime_error
 {
     uint32_t address;
@@ -28,6 +43,7 @@ struct Cache : MemoryInterface
     std::vector<bool> valid;
     std::vector<uint32_t> tags;
     std::vector<bool> lruBits;
+    std::vector<MesiState> mesiStates;
 
     uint32_t tagWidth;
     uint32_t tagMask;

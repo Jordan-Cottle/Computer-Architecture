@@ -29,6 +29,12 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     this->valid = std::vector<bool>(blocks);
     this->tags = std::vector<uint32_t>(blocks);
     this->lruBits = std::vector<bool>(blocks);
+    this->mesiStates = std::vector<MesiState>(blocks);
+
+    for (uint32_t i = 0; i < blocks; i++)
+    {
+        mesiStates.at(i) = INVALID;
+    }
 
     this->blockSize = blockSize;
 
