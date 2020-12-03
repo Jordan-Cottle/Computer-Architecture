@@ -10,8 +10,8 @@
 #include <string>
 #include <iostream>
 
-#define OUT   \
-    if (true) \
+#define OUT    \
+    if (false) \
     std::cout
 
 struct printable

@@ -29,8 +29,8 @@ int main()
     std::cout << "MAT D length: " << MAT_D_SIZE << "\n";
 
     // Initialize matrices in memory
-    load_binary("MAT_A_DATA", ram, MAT_A_START);
-    load_binary("MAT_B_DATA", ram, MAT_B_START);
+    load_binary("MAT_A_DATA.dat", ram, MAT_A_START);
+    load_binary("MAT_B_DATA.dat", ram, MAT_B_START);
 
     // Set up MAT C with all -1s
     for (int i = MAT_C_START; i < MAT_D_START; i += 1)

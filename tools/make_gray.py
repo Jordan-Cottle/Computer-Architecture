@@ -2,7 +2,7 @@ import sys
 
 from PIL import Image, ImageOps
 
-from make_image import create_image
+from tools import create_image
 
 def main():
     source = sys.argv[1]

@@ -144,7 +144,7 @@ CacheResult *findBestConfiguration(uint32_t cacheSize, Memory *memory, std::vect
 
 int main()
 {
-    std::vector<uint32_t> trace = loadTrace("memory_trace");
+    std::vector<uint32_t> trace = loadTrace("memory_trace.dat");
     std::vector<CacheResult *> results = std::vector<CacheResult *>();
 
     // Create and write fake data to memory

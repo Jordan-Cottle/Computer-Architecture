@@ -3,7 +3,7 @@
 import os
 import time
 
-from file_utils import (
+from tools import (
     CPP_DIR,
     HEADERS,
     OBJ_DIR,
