@@ -71,6 +71,7 @@ struct Cache : MemoryInterface
     uint32_t tag(uint32_t address);
     uint32_t index(uint32_t address);
     uint32_t offset(uint32_t address);
+    uint32_t findBlock(uint32_t address);
     uint32_t cacheAddress(uint32_t address);
 
     void updateLruState(uint32_t address);

@@ -87,54 +87,37 @@ uint32_t Cache::offset(uint32_t address)
     return this->offsetMask & address;
 }
 
-uint32_t Cache::cacheAddress(uint32_t address)
+uint32_t Cache::findBlock(uint32_t address)
 {
     uint32_t tag = this->tag(address);
     uint32_t index = this->index(address);
-    uint32_t offset = this->offset(address);
-
     uint32_t startBlockIndex = index * this->associativity;
 
     for (uint32_t i = 0; i < this->associativity; i++)
     {
         uint32_t blockIndex = startBlockIndex + i;
-        if (!this->valid[blockIndex])
+        if (this->valid[blockIndex] && this->tags[blockIndex] == tag)
         {
-            continue;
-        }
-
-        if (this->tags[blockIndex] == tag)
-        {
-            return ((blockIndex * this->blockSize) + offset);
+            return blockIndex;
         }
     }
 
     throw AddressNotFound(address);
 }
 
+uint32_t Cache::cacheAddress(uint32_t address)
+{
+    uint32_t offset = this->offset(address);
+
+    uint32_t blockIndex = this->findBlock(address);
+    return ((blockIndex * this->blockSize) + offset);
+}
+
 void Cache::updateLruState(uint32_t address)
 {
     // Get actual block index of location in cache
-    uint32_t tag = this->tag(address);
     uint32_t index = this->index(address);
-    uint32_t startBlockIndex = index * this->associativity;
-    uint32_t blockIndex;
-
-    bool found = false;
-    for (uint32_t i = 0; i < this->associativity; i++)
-    {
-        blockIndex = startBlockIndex + i;
-        if (this->tags[blockIndex] == tag)
-        {
-            found = true;
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        throw std::logic_error("Updates to lru state can only be applied to blocks that are in the cache!");
-    }
+    uint32_t blockIndex = this->findBlock(address);
 
     OUT << "Address " << address << " at cache block " << blockIndex << " in set " << index << " has been used\n";
 
