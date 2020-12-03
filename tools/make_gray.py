@@ -4,6 +4,7 @@ from PIL import Image, ImageOps
 
 from tools import create_image
 
+
 def main():
     source = sys.argv[1]
     output_path = sys.argv[2]
@@ -27,6 +28,7 @@ def main():
 
     output.save(output_path)
     print(*data, sep="\n")
+
 
 if __name__ == "__main__":
     main()
