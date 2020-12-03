@@ -65,7 +65,7 @@ uint32_t Memory::partition(uint32_t address)
     return i;
 }
 
-bool Memory::request(uint32_t address, SimulationDevice *device)
+bool Memory::request(uint32_t address, SimulationDevice *device, bool read)
 {
     this->checkBounds(address);
     uint32_t partition = this->partition(address);
@@ -77,7 +77,16 @@ bool Memory::request(uint32_t address, SimulationDevice *device)
 
     this->busy[partition] = true;
 
-    Event *event = new Event("MemoryReady", simulationClock.cycle + this->accessTime, device);
+    Event *event;
+    if (read)
+    {
+        event = new Event("MemoryReadReady", simulationClock.cycle + this->accessTime, device);
+    }
+    else
+    {
+        event = new Event("MemoryWriteReady", simulationClock.cycle + this->accessTime, device);
+    }
+
     masterEventQueue.push(event);
 
     return true;

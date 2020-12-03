@@ -20,7 +20,7 @@ void testEventHandling()
     // Compulsory miss, cache reads from main memory
     assert(masterEventQueue.size() == 1);
     Event *nextEvent = masterEventQueue.pop();
-    assert(nextEvent->type == "MemoryReady");
+    assert(nextEvent->type == "MemoryReadReady");
     assert(nextEvent->time == (ulong)memory->accessTime); // Long delay for cache miss
     assert(nextEvent->device == cache);
 
@@ -30,7 +30,7 @@ void testEventHandling()
     // Internal cache reading from its own memory for a read hit
     assert(masterEventQueue.size() == 1);
     nextEvent = masterEventQueue.pop();
-    assert(nextEvent->type == "MemoryReady");                          // Same event type
+    assert(nextEvent->type == "MemoryReadReady");                      // Same event type
     assert(nextEvent->time == memory->accessTime + cache->accessTime); // Scheduled after cache access time
     assert(nextEvent->device == cache);                                // Passed back to cache (this is the actual cache read)
 
@@ -40,7 +40,7 @@ void testEventHandling()
     // Test pipeline now gets its message after memDelay + cacheDelay
     assert(masterEventQueue.size() == 1);
     nextEvent = masterEventQueue.pop();
-    assert(nextEvent->type == "MemoryReady");         // Same event type
+    assert(nextEvent->type == "MemoryReadReady");     // Same event type
     assert(nextEvent->time == simulationClock.cycle); // Scheduled for same time as cache internal read
     assert(nextEvent->device == &testPipeline);       // Passed back to original requesting device
 

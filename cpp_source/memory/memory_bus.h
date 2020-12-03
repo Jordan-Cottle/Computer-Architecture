@@ -14,8 +14,9 @@ struct MemoryRequest : printable
     uint32_t address;
     SimulationDevice *device;
     uint32_t completeAt;
+    bool read;
 
-    MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt);
+    MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt, bool read);
 
     bool operator<(const MemoryRequest &);
     std::string __str__();
@@ -32,7 +33,7 @@ struct MemoryBus : MemoryInterface
     MemoryBus(int accessTime, Memory *memory);
 
     uint32_t port(uint32_t address);
-    bool request(uint32_t address, SimulationDevice *device);
+    bool request(uint32_t address, SimulationDevice *device, bool read = true);
     void process(Event *event);
 
     uint32_t readUint(uint32_t address);

@@ -191,13 +191,13 @@ void Cache::loadBlock(uint32_t address)
     this->tags[blockIndex] = this->tag(address);
 }
 
-bool Cache::request(uint32_t address, SimulationDevice *device)
+bool Cache::request(uint32_t address, SimulationDevice *device, bool read)
 {
     this->accesses += 1;
-    return this->request(address, device, false);
+    return this->request(address, device, read, false);
 }
 
-bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
+bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool reIssued)
 {
     uint32_t cacheAddress;
     this->requestor = device;
@@ -232,7 +232,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
         }
 
         // Request block from memory
-        accepted = this->source->request(address, this);
+        accepted = this->source->request(address, this, read);
         this->outstandingMiss = true;
         this->addressRequested = address;
         if (!accepted)
@@ -242,7 +242,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
         return accepted;
     }
 
-    accepted = this->data->request(cacheAddress, this);
+    accepted = this->data->request(cacheAddress, this, read);
 
     if (!accepted)
     {
@@ -259,7 +259,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
 
 void Cache::process(Event *event)
 {
-    if (event->type == "MemoryReady")
+    if (event->type == "MemoryReadReady" || event->type == "MemoryWriteReady")
     {
         event->handled = true;
 
@@ -267,7 +267,7 @@ void Cache::process(Event *event)
         {
             this->loadBlock(this->addressRequested);
             this->outstandingMiss = false;
-            this->request(this->addressRequested, this->requestor, true); // Re trigger request
+            this->request(this->addressRequested, this->requestor, event->type == "MemoryReadReady", true); // Re trigger request
         }
         else
         {

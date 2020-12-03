@@ -25,7 +25,7 @@ int main()
 
     masterEventQueue.tick(0);
     std::cout << masterEventQueue << "\n";
-    assert(masterEventQueue.top()->type == "MemoryReady");
+    assert(masterEventQueue.top()->type == "MemoryWriteReady");
     assert(masterEventQueue.top()->time == (ulong)cpu.memory->accessTime);
     assert(masterEventQueue.top()->device == &storeUnit);
 

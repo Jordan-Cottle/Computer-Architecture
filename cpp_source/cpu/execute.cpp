@@ -85,7 +85,7 @@ void Execute::process(Event *event)
             masterEventQueue.push(event);
         }
     }
-    else if (event->type == "MemoryReady")
+    else if (event->type == "MemoryReadReady")
     {
         event->handled = true;
         Event *event = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);

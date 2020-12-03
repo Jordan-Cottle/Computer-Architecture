@@ -31,7 +31,7 @@ int main()
     accepted = memory.request(0, &testPipeline);
     assert(!accepted);
 
-    assert(masterEventQueue.events.top()->type == "MemoryReady");
+    assert(masterEventQueue.events.top()->type == "MemoryReadReady");
     assert(masterEventQueue.events.top()->time == (ulong)memory.accessTime);
     assert(masterEventQueue.events.top()->device == &testPipeline);
 

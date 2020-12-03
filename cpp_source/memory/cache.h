@@ -78,8 +78,8 @@ struct Cache : MemoryInterface
     uint32_t blockToEvict(uint32_t index);
     void loadBlock(uint32_t address);
 
-    bool request(uint32_t address, SimulationDevice *device);
-    bool request(uint32_t address, SimulationDevice *device, bool reIssued);
+    bool request(uint32_t address, SimulationDevice *device, bool read = true);
+    bool request(uint32_t address, SimulationDevice *device, bool read, bool reIssued);
     void process(Event *event);
 
     bool snoop(MesiSignal signal, uint32_t address, Cache *sender);
