@@ -59,6 +59,24 @@ void MemoryBus::broadcast(MesiEvent *mesiEvent)
     }
 }
 
+bool MemoryBus::trackedByOtherCache(uint32_t address, Cache *local)
+{
+    for (auto cache : this->caches)
+    {
+        if (cache == local)
+        {
+            continue;
+        }
+
+        if (cache->state(address) != INVALID)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 uint32_t MemoryBus::port(uint32_t address)
 {
     return this->memory->partition(address);

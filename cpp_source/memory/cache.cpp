@@ -337,6 +337,11 @@ bool Cache::snoop(MesiEvent *mesiEvent)
     return true;
 }
 
+MesiState Cache::state(uint32_t address)
+{
+    return this->mesiStates.at(this->findBlock(address));
+}
+
 uint32_t Cache::readUint(uint32_t address)
 {
     this->updateLruState(address);

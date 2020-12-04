@@ -68,6 +68,7 @@ struct Cache : MemoryInterface
     void process(Event *event);
 
     bool snoop(MesiEvent *mesiEvent);
+    MesiState state(uint32_t address);
 
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);
