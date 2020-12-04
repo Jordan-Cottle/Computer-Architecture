@@ -281,12 +281,12 @@ void Cache::process(Event *event)
     MemoryInterface::process(event);
 }
 
-bool Cache::snoop(MesiSignal signal, uint32_t address, Cache *sender)
+bool Cache::snoop(MesiEvent *mesiEvent)
 {
     uint32_t blockIndex;
     try
     {
-        blockIndex = this->findBlock(address);
+        blockIndex = this->findBlock(mesiEvent->address);
     }
     catch (AddressNotFound &error)
     {
@@ -300,7 +300,7 @@ bool Cache::snoop(MesiSignal signal, uint32_t address, Cache *sender)
         return false;
     }
 
-    switch (signal)
+    switch (mesiEvent->signal)
     {
     case INVALIDATE:
         this->mesiStates.at(blockIndex) = INVALID;

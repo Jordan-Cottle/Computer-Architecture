@@ -9,6 +9,34 @@
 #include "sim_memory.h"
 #include "heap.h"
 
+enum MesiState
+{
+    MODIFIED,
+    EXCLUSIVE,
+    SHARED,
+    INVALID
+};
+
+enum MesiSignal
+{
+    MEM_READ,
+    RWITM,
+    INVALIDATE
+};
+
+struct Cache;
+
+// Forgive me for how I am going to use this
+struct MesiEvent : std::runtime_error
+{
+    MesiSignal signal;
+    uint32_t address;
+    Cache *originator;
+    bool read;
+
+    MesiEvent(MesiSignal signal, uint32_t address, Cache *originator, bool read);
+};
+
 struct MemoryRequest : printable
 {
     uint32_t address;
@@ -36,6 +64,7 @@ struct MemoryBus : MemoryInterface
     MemoryBus(int accessTime, Memory *memory);
 
     void linkCache(Cache *cache);
+    void broadcast(MesiEvent *mesiEvent);
 
     uint32_t port(uint32_t address);
     bool request(uint32_t address, SimulationDevice *device, bool read = true);

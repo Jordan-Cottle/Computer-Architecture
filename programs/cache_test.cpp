@@ -249,75 +249,80 @@ void testMesiStateChange()
     assert(other->mesiStates[block] == INVALID);
 
     // Test receiving invalidate events
-    bool found = local->snoop(INVALIDATE, address, other);
+    MesiEvent *mesiEvent = new MesiEvent(INVALIDATE, address, other, false);
+    bool found = local->snoop(mesiEvent);
     assert(!found);
     assert(local->mesiStates[block] == INVALID);
     assert(other->mesiStates[block] == INVALID);
 
     local->mesiStates[block] = MODIFIED;
     local->valid.at(block) = true;
-    found = local->snoop(INVALIDATE, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == INVALID);
 
     local->mesiStates[block] = EXCLUSIVE;
     local->valid.at(block) = true;
-    found = local->snoop(INVALIDATE, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == INVALID);
 
     local->mesiStates[block] = SHARED;
     local->valid.at(block) = true;
-    found = local->snoop(INVALIDATE, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == INVALID);
 
     // Test receiving mem read events
+    mesiEvent->signal = MEM_READ;
+    mesiEvent->read = true;
     local->mesiStates[block] = MODIFIED;
     local->valid.at(block) = true;
-    found = local->snoop(MEM_READ, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == SHARED);
 
     local->mesiStates[block] = EXCLUSIVE;
     local->valid.at(block) = true;
-    found = local->snoop(MEM_READ, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == SHARED);
 
     local->mesiStates[block] = SHARED;
     local->valid.at(block) = true;
-    found = local->snoop(MEM_READ, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == SHARED);
 
     local->mesiStates[block] = INVALID;
     local->valid.at(block) = false;
-    found = local->snoop(MEM_READ, address, other);
+    found = local->snoop(mesiEvent);
     assert(!found);
     assert(local->mesiStates[block] == INVALID);
 
     // Test receiving rwitm events
+    mesiEvent->signal = RWITM;
+    mesiEvent->read = true;
     local->mesiStates[block] = MODIFIED;
     local->valid.at(block) = true;
-    found = local->snoop(RWITM, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == INVALID);
 
     local->mesiStates[block] = EXCLUSIVE;
     local->valid.at(block) = true;
-    found = local->snoop(RWITM, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == INVALID);
 
     local->mesiStates[block] = SHARED;
     local->valid.at(block) = true;
-    found = local->snoop(RWITM, address, other);
+    found = local->snoop(mesiEvent);
     assert(found);
     assert(local->mesiStates[block] == INVALID);
 
     local->mesiStates[block] = INVALID;
-    found = local->snoop(RWITM, address, other);
+    found = local->snoop(mesiEvent);
     assert(!found);
     assert(local->mesiStates[block] == INVALID);
     assert(other->mesiStates[block] == INVALID);

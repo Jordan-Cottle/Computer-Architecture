@@ -16,6 +16,14 @@ MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, uint32_
     this->read = read;
 }
 
+MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator, bool read) : std::runtime_error("A mesi event went unhandled!")
+{
+    this->signal = signal;
+    this->address = address;
+    this->originator = originator;
+    this->read = read;
+}
+
 bool MemoryRequest::operator<(const MemoryRequest &other)
 {
     return this->completeAt < other.completeAt;
@@ -38,6 +46,19 @@ void MemoryBus::linkCache(Cache *cache)
     this->caches.push_back(cache);
 }
 
+void MemoryBus::broadcast(MesiEvent *mesiEvent)
+{
+    for (auto cache : this->caches)
+    {
+        if (cache == mesiEvent->originator)
+        {
+            continue;
+        }
+
+        cache->snoop(mesiEvent);
+    }
+}
+
 uint32_t MemoryBus::port(uint32_t address)
 {
     return this->memory->partition(address);
@@ -48,6 +69,7 @@ bool MemoryBus::request(uint32_t address, SimulationDevice *device, bool read)
     uint32_t port = this->port(address);
     this->busyFor[port] += this->accessTime;
     uint32_t completeAt = simulationClock.cycle + this->busyFor[port];
+
     this->requests.push(new MemoryRequest(address, device, completeAt, read));
     Event *event = new Event("ProcessRequest", completeAt, this);
     masterEventQueue.push(event);

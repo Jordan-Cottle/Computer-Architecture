@@ -11,21 +11,6 @@
 constexpr uint32_t DIRECT_MAPPED = 1;
 constexpr uint32_t FULLY_ASSOCIATIVE = 0;
 
-enum MesiState
-{
-    MODIFIED,
-    EXCLUSIVE,
-    SHARED,
-    INVALID
-};
-
-enum MesiSignal
-{
-    MEM_READ,
-    RWITM,
-    INVALIDATE
-};
-
 struct AddressNotFound : std::runtime_error
 {
     uint32_t address;
@@ -82,7 +67,7 @@ struct Cache : MemoryInterface
     bool request(uint32_t address, SimulationDevice *device, bool read, bool reIssued);
     void process(Event *event);
 
-    bool snoop(MesiSignal signal, uint32_t address, Cache *sender);
+    bool snoop(MesiEvent *mesiEvent);
 
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);
