@@ -15,7 +15,7 @@ def main(file_name, bit_length=32, base=10):
         for num in data:
             value = struct.pack(STRUCT_SIZE[bit_length], num)
             output_file.write(value)
-            print(value.hex())
+            # print(value.hex())
 
 
 if __name__ == "__main__":
