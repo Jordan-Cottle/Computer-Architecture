@@ -8,12 +8,12 @@ int main()
     for (int i = 0; i < 32; i++)
     {
         int num = 1 << i;
-        memory.write(0, (void *)&num, sizeof(num));
+        memory.write(0, MFMT(num));
         assert(memory.readInt(0) == num);
     }
 
     float num = .1f;
-    memory.write(4, (void *)&num, sizeof(num));
+    memory.write(4, MFMT(num));
     assert(memory.readFloat(4) == num);
 
     uint32_t partition = memory.partition(0);

@@ -10,6 +10,8 @@
 
 #include "device.h"
 
+#define MFMT(val) (void *)&val, sizeof(val)
+
 struct MemoryInterface : SimulationDevice
 {
     uint32_t accessTime;

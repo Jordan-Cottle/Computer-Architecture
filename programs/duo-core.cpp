@@ -31,8 +31,8 @@ int main()
         int memOffset = i * sizeof(float);
         float a = get_random();
         float b = get_random();
-        ram->write(ARRAY_A_START + memOffset, (void *)&a, sizeof(a));
-        ram->write(ARRAY_B_START + memOffset, (void *)&b, sizeof(b));
+        ram->write(ARRAY_A_START + memOffset, MFMT(a));
+        ram->write(ARRAY_B_START + memOffset, MFMT(b));
 
         // Initialize arrays for implementing/testing CPU0.s
         ARRAY_A[i] = a;

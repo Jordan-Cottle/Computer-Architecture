@@ -41,7 +41,7 @@ void Store::execute(Cpu *cpu)
         float data = cpu->fpRegister.read(this->targetRegisterIndex);
 
         OUT << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
-        cpu->memory->write(memAddress, (void *)&data, sizeof(data));
+        cpu->memory->write(memAddress, MFMT(data));
     }
     else
     {
