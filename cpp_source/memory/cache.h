@@ -6,7 +6,7 @@
 #ifndef __CACHE__
 #define __CACHE__
 
-#include "sim_memory.h"
+#include "memory_bus.h"
 
 constexpr uint32_t DIRECT_MAPPED = 1;
 constexpr uint32_t FULLY_ASSOCIATIVE = 0;
@@ -59,14 +59,14 @@ struct Cache : MemoryInterface
     std::vector<uint32_t> seen;
 
     // Backing MemorySource
-    MemoryInterface *source;
+    MemoryBus *source;
 
     // Request tracking data
     bool outstandingMiss;
     uint32_t addressRequested;
     SimulationDevice *requestor;
 
-    Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source);
+    Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source);
 
     uint32_t tag(uint32_t address);
     uint32_t index(uint32_t address);

@@ -103,7 +103,7 @@ CacheResult *runSimulation(Cache *cache, std::vector<uint32_t> trace)
     return new CacheResult(cache);
 }
 
-CacheResult *findBestConfiguration(uint32_t cacheSize, Memory *memory, std::vector<uint32_t> trace)
+CacheResult *findBestConfiguration(uint32_t cacheSize, MemoryBus *memBus, std::vector<uint32_t> trace)
 {
     MinHeap<CacheResult *> results = MinHeap<CacheResult *>();
     // Compute best cache configuration given a fixed size of 256B
@@ -115,7 +115,7 @@ CacheResult *findBestConfiguration(uint32_t cacheSize, Memory *memory, std::vect
             uint32_t associativity = j;
             uint32_t accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-            Cache *cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
+            Cache *cache = new Cache(accessTime, cacheSize, blockSize, associativity, memBus);
             results.push(runSimulation(cache, trace));
         }
     }
@@ -154,6 +154,8 @@ int main()
         memory->write(i, (void *)&i, sizeof(i));
     }
 
+    MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
+
     /*
     Simulation 1:
     Cache Size: 256B
@@ -165,7 +167,7 @@ int main()
     uint32_t associativity = DIRECT_MAPPED;
     uint32_t accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    Cache *cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
+    Cache *cache = new Cache(accessTime, cacheSize, blockSize, associativity, memBus);
     results.push_back(runSimulation(cache, trace));
 
     /*
@@ -179,7 +181,7 @@ int main()
     associativity = DIRECT_MAPPED;
     accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
+    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memBus);
     results.push_back(runSimulation(cache, trace));
 
     /*
@@ -193,7 +195,7 @@ int main()
     associativity = DIRECT_MAPPED;
     accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
+    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memBus);
     results.push_back(runSimulation(cache, trace));
 
     /*
@@ -207,7 +209,7 @@ int main()
     associativity = 4;
     accessTime = uint32_t(ceil(log2(cacheSize / float(blockSize)))) * associativity;
 
-    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memory);
+    cache = new Cache(accessTime, cacheSize, blockSize, associativity, memBus);
     results.push_back(runSimulation(cache, trace));
 
     std::cout << "\n~~~~~~~~~~~~~~Cache trace simulation results~~~~~~~~~~~~~~\n";
@@ -234,7 +236,7 @@ int main()
     uint32_t size;
     std::cin >> size;
 
-    CacheResult *bestResult = findBestConfiguration(size, memory, trace);
+    CacheResult *bestResult = findBestConfiguration(size, memBus, trace);
     std::cout << "\n~~~~~~~~~~~~~~Best Cache configuration results~~~~~~~~~~~~~~\n";
     std::cout << "Cache block size: " << bestResult->cache->blockSize << "\n";
     std::cout << "Cache associativity: " << bestResult->cache->associativity << "\n";

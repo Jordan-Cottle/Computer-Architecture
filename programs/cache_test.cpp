@@ -10,18 +10,30 @@ constexpr uint32_t BLOCK_SIZE = 16;
 constexpr uint32_t ASSOCIATIVITY = DIRECT_MAPPED;
 
 Memory *memory = new Memory(CACHE_DELAY * 10, CACHE_SIZE * 4);
+MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
 std::vector<int> mockData = std::vector<int>(memory->size / 4);
 
 void testEventHandling()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
     cache->request(0, &testPipeline);
 
-    // Compulsory miss, cache reads from main memory
+    // Compulsory miss, cache reads from memory through memBus
     assert(masterEventQueue.size() == 1);
     Event *nextEvent = masterEventQueue.pop();
+    std::cout << nextEvent << "\n";
+    assert(nextEvent->type == "ProcessRequest");
+    assert(nextEvent->time == (ulong)memBus->accessTime); // Arbitration delay
+    assert(nextEvent->device == memBus);
+
+    simulationClock.cycle = nextEvent->time;
+    nextEvent->device->process(nextEvent);
+
+    assert(masterEventQueue.size() == 1);
+    nextEvent = masterEventQueue.pop();
+    std::cout << nextEvent << "\n";
     assert(nextEvent->type == "MemoryReadReady");
-    assert(nextEvent->time == (ulong)memory->accessTime); // Long delay for cache miss
+    assert(nextEvent->time == (ulong)memory->accessTime + memBus->accessTime); // Long delay for cache miss
     assert(nextEvent->device == cache);
 
     simulationClock.cycle = nextEvent->time;
@@ -30,9 +42,9 @@ void testEventHandling()
     // Internal cache reading from its own memory for a read hit
     assert(masterEventQueue.size() == 1);
     nextEvent = masterEventQueue.pop();
-    assert(nextEvent->type == "MemoryReadReady");                      // Same event type
-    assert(nextEvent->time == memory->accessTime + cache->accessTime); // Scheduled after cache access time
-    assert(nextEvent->device == cache);                                // Passed back to cache (this is the actual cache read)
+    assert(nextEvent->type == "MemoryReadReady");                                           // Same event type
+    assert(nextEvent->time == memory->accessTime + cache->accessTime + memBus->accessTime); // Scheduled after cache access time
+    assert(nextEvent->device == cache);                                                     // Passed back to cache (this is the actual cache read)
 
     simulationClock.cycle = nextEvent->time; // Update sim time to event time
     nextEvent->device->process(nextEvent);
@@ -51,7 +63,7 @@ void testEventHandling()
 
 void testAdressing()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
 
     for (uint32_t i = 0; i < CACHE_SIZE; i++)
     {
@@ -69,7 +81,7 @@ void testAdressing()
 
 void testBlockLoad()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
     // Ensure cache is blank to start
     for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
     {
@@ -115,7 +127,7 @@ void processRequest(Cache *cache, uint32_t address)
 
 void testMemoryAccess()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
     // Fill up cache
     for (uint32_t i = 0; i < cache->size; i += 4)
     {
@@ -148,7 +160,7 @@ void testMemoryAccess()
 
 void testReplacementPolicy()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, 4, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, 4, memBus);
 
     // All bits start off unset
     for (auto bit : cache->lruBits)
@@ -226,8 +238,8 @@ void testReplacementPolicy()
 
 void testMesi()
 {
-    Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
-    Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
 
     uint32_t address = 0;
     local->loadBlock(address); // Make sure cache thinks the memory is valid

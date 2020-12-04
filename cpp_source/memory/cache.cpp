@@ -15,7 +15,7 @@ AddressNotFound::AddressNotFound(uint32_t address) : std::runtime_error("Memory 
     this->address = address;
 }
 
-Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source) : MemoryInterface(accessTime, size)
+Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source) : MemoryInterface(accessTime, size)
 {
     this->source = source;
     this->outstandingMiss = false;
