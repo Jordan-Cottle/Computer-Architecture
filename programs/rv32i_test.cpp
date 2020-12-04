@@ -148,13 +148,13 @@ int main()
     assert(!load.isFp);
 
     uint32_t data = 0x12345678;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     int value = testCpu->intRegister.read(6);
     assert(value == 0x78);
 
     data = 0x123456A8;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     value = testCpu->intRegister.read(6);
     assert(value == (int)0xFFFFFFFA8);
@@ -174,13 +174,13 @@ int main()
     assert(!load.isFp);
 
     data = 0x12345678;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     value = testCpu->intRegister.read(5);
     assert(value == 0x5678);
 
     data = 0x1234A678;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     value = testCpu->intRegister.read(5);
     assert(value == (int)0xFFFFA678);
@@ -193,7 +193,7 @@ int main()
 
     memoryLocation = 400;
     data = 42;
-    testRam->write(memoryLocation, (void *)&data, sizeof(data));
+    testRam->write(memoryLocation, MFMT(data));
     testCpu->intRegister.write(1, memoryLocation - 16); // load has offset of 16 set as immediate
     load.execute(testCpu);
     assert(testCpu->intRegister.read(2) == 42);
@@ -213,13 +213,13 @@ int main()
     assert(!load.isFp);
 
     data = 0x12345678;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     value = testCpu->intRegister.read(3);
     assert(value == 0x78);
 
     data = 0x123456A8;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     value = testCpu->intRegister.read(3);
     assert(value == (int)0xA8);
@@ -239,13 +239,13 @@ int main()
     assert(!load.isFp);
 
     data = 0x12345678;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     value = testCpu->intRegister.read(4);
     assert(value == 0x5678);
 
     data = 0x1234A678;
-    testCpu->memory->write(memoryLocation, (void *)&data, sizeof(data));
+    testCpu->memory->write(memoryLocation, MFMT(data));
     load.execute(testCpu);
     value = testCpu->intRegister.read(4);
     assert(value == (int)0xA678);
@@ -262,7 +262,7 @@ int main()
     testCpu->intRegister.write(4, 0x12345678);
 
     data = 0x87654321;
-    testRam->write(memoryLocation, (void *)&data, sizeof(data));
+    testRam->write(memoryLocation, MFMT(data));
 
     store.execute(testCpu);
     assert(testRam->readUint(memoryLocation) == 0x87654378); // Only first two hex digits written
@@ -280,7 +280,7 @@ int main()
     testCpu->intRegister.write(3, 0x12345678);
 
     data = 0x87654321;
-    testRam->write(memoryLocation, (void *)&data, sizeof(data));
+    testRam->write(memoryLocation, MFMT(data));
 
     store.execute(testCpu);
     assert(testRam->readUint(memoryLocation) == 0x87655678); // Only first 4 hex digits written

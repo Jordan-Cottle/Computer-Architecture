@@ -6,7 +6,7 @@
 #ifndef __CACHE__
 #define __CACHE__
 
-#include "sim_memory.h"
+#include "memory_bus.h"
 
 constexpr uint32_t DIRECT_MAPPED = 1;
 constexpr uint32_t FULLY_ASSOCIATIVE = 0;
@@ -28,6 +28,7 @@ struct Cache : MemoryInterface
     std::vector<bool> valid;
     std::vector<uint32_t> tags;
     std::vector<bool> lruBits;
+    std::vector<MesiState> mesiStates;
 
     uint32_t tagWidth;
     uint32_t tagMask;
@@ -43,27 +44,32 @@ struct Cache : MemoryInterface
     std::vector<uint32_t> seen;
 
     // Backing MemorySource
-    MemoryInterface *source;
+    MemoryBus *source;
 
     // Request tracking data
     bool outstandingMiss;
     uint32_t addressRequested;
     SimulationDevice *requestor;
 
-    Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source);
+    Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source);
 
     uint32_t tag(uint32_t address);
     uint32_t index(uint32_t address);
     uint32_t offset(uint32_t address);
+    uint32_t findBlock(uint32_t address);
     uint32_t cacheAddress(uint32_t address);
 
     void updateLruState(uint32_t address);
     uint32_t blockToEvict(uint32_t index);
     void loadBlock(uint32_t address);
 
-    bool request(uint32_t address, SimulationDevice *device);
-    bool request(uint32_t address, SimulationDevice *device, bool reIssued);
+    bool request(uint32_t address, SimulationDevice *device, bool read = true);
+    bool request(uint32_t address, SimulationDevice *device, bool read, bool reIssued);
     void process(Event *event);
+
+    bool snoop(MesiEvent *mesiEvent);
+    MesiState state(uint32_t address);
+    void setState(uint32_t address, MesiState state);
 
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);

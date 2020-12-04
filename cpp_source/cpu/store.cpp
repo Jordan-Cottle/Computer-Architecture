@@ -53,14 +53,14 @@ void StorePipeline::process(Event *event)
     {
         event->handled = true;
         Store *store = (Store *)this->staged();
-        bool accepted = this->cpu->memory->request(store->memoryAddress(this->cpu), this);
+        bool accepted = this->cpu->memory->request(store->memoryAddress(this->cpu), this, false);
         if (!accepted)
         {
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
             masterEventQueue.push(event);
         }
     }
-    else if (event->type == "MemoryReady")
+    else if (event->type == "MemoryWriteReady")
     {
         event->handled = true;
         Event *event = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);

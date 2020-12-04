@@ -9,17 +9,47 @@
 #include "sim_memory.h"
 #include "heap.h"
 
+enum MesiState
+{
+    MODIFIED,
+    EXCLUSIVE,
+    SHARED,
+    INVALID
+};
+
+enum MesiSignal
+{
+    MEM_READ,
+    RWITM,
+    INVALIDATE
+};
+
+struct Cache;
+
+// Forgive me for how I am going to use this
+struct MesiEvent
+{
+    MesiSignal signal;
+    uint32_t address;
+    Cache *originator;
+
+    MesiEvent(MesiSignal signal, uint32_t address, Cache *originator);
+};
+
 struct MemoryRequest : printable
 {
     uint32_t address;
     SimulationDevice *device;
     uint32_t completeAt;
+    bool read;
 
-    MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt);
+    MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt, bool read);
 
     bool operator<(const MemoryRequest &);
     std::string __str__();
 };
+
+struct Cache;
 
 // Use Memory Interface to keep it compatible with cpu0.s simulation
 struct MemoryBus : MemoryInterface
@@ -28,11 +58,16 @@ struct MemoryBus : MemoryInterface
 
     MinHeap<MemoryRequest *> requests;
     std::vector<uint32_t> busyFor;
+    std::vector<Cache *> caches;
 
     MemoryBus(int accessTime, Memory *memory);
 
+    void linkCache(Cache *cache);
+    void broadcast(MesiEvent *mesiEvent);
+    Cache *trackedBy(uint32_t address, Cache *local);
+
     uint32_t port(uint32_t address);
-    bool request(uint32_t address, SimulationDevice *device);
+    bool request(uint32_t address, SimulationDevice *device, bool read = true);
     void process(Event *event);
 
     uint32_t readUint(uint32_t address);

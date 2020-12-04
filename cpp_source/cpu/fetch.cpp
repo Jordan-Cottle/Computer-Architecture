@@ -111,7 +111,7 @@ void Fetch::process(Event *event)
             masterEventQueue.push(event);
         }
     }
-    else if (event->type == "MemoryReady")
+    else if (event->type == "MemoryReadReady")
     {
         event->handled = true;
 

@@ -4,13 +4,23 @@
 */
 #include "memory_bus.h"
 
+#include "cache.h"
+
 #include "simulation.h"
 using namespace Simulation;
 
-MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt) : device(device)
+MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt, bool read) : device(device)
 {
     this->address = address;
     this->completeAt = completeAt;
+    this->read = read;
+}
+
+MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
+{
+    this->signal = signal;
+    this->address = address;
+    this->originator = originator;
 }
 
 bool MemoryRequest::operator<(const MemoryRequest &other)
@@ -27,6 +37,43 @@ MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTim
 {
     this->busyFor = std::vector<uint32_t>(memory->partitions.size());
     this->requests = MinHeap<MemoryRequest *>();
+    this->caches = std::vector<Cache *>();
+}
+
+void MemoryBus::linkCache(Cache *cache)
+{
+    this->caches.push_back(cache);
+}
+
+void MemoryBus::broadcast(MesiEvent *mesiEvent)
+{
+    for (auto cache : this->caches)
+    {
+        if (cache == mesiEvent->originator)
+        {
+            continue;
+        }
+
+        cache->snoop(mesiEvent);
+    }
+}
+
+Cache *MemoryBus::trackedBy(uint32_t address, Cache *local)
+{
+    for (auto cache : this->caches)
+    {
+        if (cache == local)
+        {
+            continue;
+        }
+
+        if (cache->state(address) != INVALID)
+        {
+            return cache;
+        }
+    }
+
+    return NULL;
 }
 
 uint32_t MemoryBus::port(uint32_t address)
@@ -34,12 +81,13 @@ uint32_t MemoryBus::port(uint32_t address)
     return this->memory->partition(address);
 }
 
-bool MemoryBus::request(uint32_t address, SimulationDevice *device)
+bool MemoryBus::request(uint32_t address, SimulationDevice *device, bool read)
 {
     uint32_t port = this->port(address);
     this->busyFor[port] += this->accessTime;
     uint32_t completeAt = simulationClock.cycle + this->busyFor[port];
-    this->requests.push(new MemoryRequest(address, device, completeAt));
+
+    this->requests.push(new MemoryRequest(address, device, completeAt, read));
     Event *event = new Event("ProcessRequest", completeAt, this);
     masterEventQueue.push(event);
 
@@ -54,7 +102,8 @@ void MemoryBus::process(Event *event)
         MemoryRequest *request = this->requests.top();
         OUT << "Processing " << str(request) << "\n";
 
-        bool accepted = this->memory->request(request->address, request->device);
+        bool accepted = this->memory->request(request->address, request->device, request->read);
+
         if (accepted)
         {
             OUT << "Memory accepted " << request << "\n";

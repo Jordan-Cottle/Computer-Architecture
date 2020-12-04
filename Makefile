@@ -33,7 +33,7 @@ assignment5: ${BINARIES} gauss-blur.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py convolution.txt convolution.png")
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py output.txt output.png")
 
-assignment4: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe duo-optimum.exe
+assignment4: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe duo-optimum.exe memory_trace.dat
 	import os
 
 	# Start assignment4 part 1
@@ -112,3 +112,5 @@ clean:
 	os.system("rm *.png")
 	os.system("rm *.jpg")
 	os.system("rm *.dat")
+	os.system("rm output.txt")
+	os.system("rm convolution.txt")

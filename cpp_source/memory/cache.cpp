@@ -15,7 +15,7 @@ AddressNotFound::AddressNotFound(uint32_t address) : std::runtime_error("Memory 
     this->address = address;
 }
 
-Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryInterface *source) : MemoryInterface(accessTime, size)
+Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source) : MemoryInterface(accessTime, size)
 {
     this->source = source;
     this->outstandingMiss = false;
@@ -29,6 +29,12 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     this->valid = std::vector<bool>(blocks);
     this->tags = std::vector<uint32_t>(blocks);
     this->lruBits = std::vector<bool>(blocks);
+    this->mesiStates = std::vector<MesiState>(blocks);
+
+    for (uint32_t i = 0; i < blocks; i++)
+    {
+        mesiStates.at(i) = INVALID;
+    }
 
     this->blockSize = blockSize;
 
@@ -64,6 +70,8 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     this->compulsoryMisses = 0;
     this->accesses = 0;
     this->seen = std::vector<uint32_t>();
+
+    this->source->linkCache(this);
 }
 
 uint32_t Cache::tag(uint32_t address)
@@ -81,54 +89,37 @@ uint32_t Cache::offset(uint32_t address)
     return this->offsetMask & address;
 }
 
-uint32_t Cache::cacheAddress(uint32_t address)
+uint32_t Cache::findBlock(uint32_t address)
 {
     uint32_t tag = this->tag(address);
     uint32_t index = this->index(address);
-    uint32_t offset = this->offset(address);
-
     uint32_t startBlockIndex = index * this->associativity;
 
     for (uint32_t i = 0; i < this->associativity; i++)
     {
         uint32_t blockIndex = startBlockIndex + i;
-        if (!this->valid[blockIndex])
+        if (this->valid[blockIndex] && this->tags[blockIndex] == tag)
         {
-            continue;
-        }
-
-        if (this->tags[blockIndex] == tag)
-        {
-            return ((blockIndex * this->blockSize) + offset);
+            return blockIndex;
         }
     }
 
     throw AddressNotFound(address);
 }
 
+uint32_t Cache::cacheAddress(uint32_t address)
+{
+    uint32_t offset = this->offset(address);
+
+    uint32_t blockIndex = this->findBlock(address);
+    return ((blockIndex * this->blockSize) + offset);
+}
+
 void Cache::updateLruState(uint32_t address)
 {
     // Get actual block index of location in cache
-    uint32_t tag = this->tag(address);
     uint32_t index = this->index(address);
-    uint32_t startBlockIndex = index * this->associativity;
-    uint32_t blockIndex;
-
-    bool found = false;
-    for (uint32_t i = 0; i < this->associativity; i++)
-    {
-        blockIndex = startBlockIndex + i;
-        if (this->tags[blockIndex] == tag)
-        {
-            found = true;
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        throw std::logic_error("Updates to lru state can only be applied to blocks that are in the cache!");
-    }
+    uint32_t blockIndex = this->findBlock(address);
 
     OUT << "Address " << address << " at cache block " << blockIndex << " in set " << index << " has been used\n";
 
@@ -202,13 +193,13 @@ void Cache::loadBlock(uint32_t address)
     this->tags[blockIndex] = this->tag(address);
 }
 
-bool Cache::request(uint32_t address, SimulationDevice *device)
+bool Cache::request(uint32_t address, SimulationDevice *device, bool read)
 {
     this->accesses += 1;
-    return this->request(address, device, false);
+    return this->request(address, device, read, false);
 }
 
-bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
+bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool reIssued)
 {
     uint32_t cacheAddress;
     this->requestor = device;
@@ -217,7 +208,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
     {
         cacheAddress = this->cacheAddress(address);
     }
-    catch (AddressNotFound &error)
+    catch (AddressNotFound &error) // MISS
     {
         if (reIssued)
         {
@@ -243,17 +234,60 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
         }
 
         // Request block from memory
-        accepted = this->source->request(address, this);
+        accepted = this->source->request(address, this, read);
         this->outstandingMiss = true;
         this->addressRequested = address;
         if (!accepted)
         {
             throw std::logic_error("Caches do not handle downstream rejecting it's memory request properly!");
         }
+
+        if (read)
+        {
+            // read miss
+            if (this->source->trackedBy(address, this) != NULL)
+            {
+                // TODO: Get from that cache
+                this->setState(address, SHARED);
+            }
+            else
+            {
+                this->setState(address, EXCLUSIVE);
+            }
+            this->source->broadcast(new MesiEvent(MEM_READ, address, this));
+        }
+        else
+        {
+            // write miss
+            Cache *tracking = this->source->trackedBy(address, this);
+            if (tracking == NULL)
+            {
+                // No other cache watching this address
+                this->setState(address, MODIFIED);
+            }
+            else
+            {
+                switch (tracking->state(address))
+                {
+                case EXCLUSIVE:
+                case SHARED:
+                    this->source->broadcast(new MesiEvent(RWITM, address, this));
+                    this->setState(address, MODIFIED);
+                    break;
+                case MODIFIED:
+                    // TODO handle handle delayed memory request sequence
+                    this->source->broadcast(new MesiEvent(RWITM, address, this));
+                    this->setState(address, MODIFIED);
+                    break;
+                default:
+                    throw std::logic_error("Write miss not handled yet!");
+                }
+            }
+        }
         return accepted;
     }
 
-    accepted = this->data->request(cacheAddress, this);
+    accepted = this->data->request(cacheAddress, this, read);
 
     if (!accepted)
     {
@@ -262,15 +296,33 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool reIssued)
 
     if (!reIssued)
     {
+        // HIT
         this->hits += 1;
+        if (!read)
+        {
+            // write hit
+            switch (this->state(address))
+            {
+            case SHARED:
+                this->source->broadcast(new MesiEvent(INVALIDATE, address, this));
+            case EXCLUSIVE:
+                this->setState(address, MODIFIED);
+                break;
+            case INVALID:
+                throw std::logic_error("Cannot have a write hit with an invalid mesi state!");
+                break;
+            default:
+                break;
+            }
+        }
     }
 
-    return true;
+    return accepted;
 }
 
 void Cache::process(Event *event)
 {
-    if (event->type == "MemoryReady")
+    if (event->type == "MemoryReadReady" || event->type == "MemoryWriteReady")
     {
         event->handled = true;
 
@@ -278,7 +330,7 @@ void Cache::process(Event *event)
         {
             this->loadBlock(this->addressRequested);
             this->outstandingMiss = false;
-            this->request(this->addressRequested, this->requestor, true); // Re trigger request
+            this->request(this->addressRequested, this->requestor, event->type == "MemoryReadReady", true); // Re trigger request
         }
         else
         {
@@ -288,6 +340,95 @@ void Cache::process(Event *event)
     }
 
     MemoryInterface::process(event);
+}
+
+bool Cache::snoop(MesiEvent *mesiEvent)
+{
+    uint32_t blockIndex;
+    try
+    {
+        blockIndex = this->findBlock(mesiEvent->address);
+    }
+    catch (AddressNotFound &error)
+    {
+        return false; // Cache is not tracking that address
+    }
+
+    MesiState state = this->mesiStates.at(blockIndex);
+
+    if (state == INVALID)
+    {
+        return false;
+    }
+
+    switch (mesiEvent->signal)
+    {
+    case INVALIDATE:
+        this->mesiStates.at(blockIndex) = INVALID;
+        this->valid.at(blockIndex) = false;
+        break;
+    case MEM_READ:
+        switch (state)
+        {
+        case MODIFIED:
+            // TODO write back to memory
+        case EXCLUSIVE:
+        case SHARED:
+            this->mesiStates.at(blockIndex) = SHARED;
+            // TODO send memory to requestor
+        default:
+            break;
+        }
+        break;
+    case RWITM:
+        switch (state)
+        {
+        case MODIFIED:
+            // TODO write back to memory
+        case EXCLUSIVE:
+        case SHARED:
+            // TODO send memory to requestor
+            this->mesiStates.at(blockIndex) = INVALID;
+            this->valid.at(blockIndex) = false;
+        default:
+            break;
+        }
+    }
+
+    return true;
+}
+
+MesiState Cache::state(uint32_t address)
+{
+    try
+    {
+        return this->mesiStates.at(this->findBlock(address));
+    }
+    catch (AddressNotFound &err)
+    {
+        return INVALID;
+    }
+}
+
+void Cache::setState(uint32_t address, MesiState state)
+{
+    uint32_t index;
+    try
+    {
+        index = this->findBlock(address);
+    }
+    catch (AddressNotFound &err) // State setting associated with miss
+    {
+        // Find out what block will be evicted and set state preemptively
+        index = this->blockToEvict(address);
+    }
+
+    this->mesiStates.at(index) = state;
+
+    if (this->mesiStates.at(index) == INVALID)
+    {
+        this->valid.at(index) = false;
+    }
 }
 
 uint32_t Cache::readUint(uint32_t address)

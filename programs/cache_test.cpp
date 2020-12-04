@@ -10,18 +10,30 @@ constexpr uint32_t BLOCK_SIZE = 16;
 constexpr uint32_t ASSOCIATIVITY = DIRECT_MAPPED;
 
 Memory *memory = new Memory(CACHE_DELAY * 10, CACHE_SIZE * 4);
+MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
 std::vector<int> mockData = std::vector<int>(memory->size / 4);
 
 void testEventHandling()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
     cache->request(0, &testPipeline);
 
-    // Compulsory miss, cache reads from main memory
+    // Compulsory miss, cache reads from memory through memBus
     assert(masterEventQueue.size() == 1);
     Event *nextEvent = masterEventQueue.pop();
-    assert(nextEvent->type == "MemoryReady");
-    assert(nextEvent->time == (ulong)memory->accessTime); // Long delay for cache miss
+    std::cout << nextEvent << "\n";
+    assert(nextEvent->type == "ProcessRequest");
+    assert(nextEvent->time == (ulong)memBus->accessTime); // Arbitration delay
+    assert(nextEvent->device == memBus);
+
+    simulationClock.cycle = nextEvent->time;
+    nextEvent->device->process(nextEvent);
+
+    assert(masterEventQueue.size() == 1);
+    nextEvent = masterEventQueue.pop();
+    std::cout << nextEvent << "\n";
+    assert(nextEvent->type == "MemoryReadReady");
+    assert(nextEvent->time == (ulong)memory->accessTime + memBus->accessTime); // Long delay for cache miss
     assert(nextEvent->device == cache);
 
     simulationClock.cycle = nextEvent->time;
@@ -30,9 +42,9 @@ void testEventHandling()
     // Internal cache reading from its own memory for a read hit
     assert(masterEventQueue.size() == 1);
     nextEvent = masterEventQueue.pop();
-    assert(nextEvent->type == "MemoryReady");                          // Same event type
-    assert(nextEvent->time == memory->accessTime + cache->accessTime); // Scheduled after cache access time
-    assert(nextEvent->device == cache);                                // Passed back to cache (this is the actual cache read)
+    assert(nextEvent->type == "MemoryReadReady");                                           // Same event type
+    assert(nextEvent->time == memory->accessTime + cache->accessTime + memBus->accessTime); // Scheduled after cache access time
+    assert(nextEvent->device == cache);                                                     // Passed back to cache (this is the actual cache read)
 
     simulationClock.cycle = nextEvent->time; // Update sim time to event time
     nextEvent->device->process(nextEvent);
@@ -40,7 +52,7 @@ void testEventHandling()
     // Test pipeline now gets its message after memDelay + cacheDelay
     assert(masterEventQueue.size() == 1);
     nextEvent = masterEventQueue.pop();
-    assert(nextEvent->type == "MemoryReady");         // Same event type
+    assert(nextEvent->type == "MemoryReadReady");     // Same event type
     assert(nextEvent->time == simulationClock.cycle); // Scheduled for same time as cache internal read
     assert(nextEvent->device == &testPipeline);       // Passed back to original requesting device
 
@@ -51,7 +63,7 @@ void testEventHandling()
 
 void testAdressing()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
 
     for (uint32_t i = 0; i < CACHE_SIZE; i++)
     {
@@ -69,7 +81,7 @@ void testAdressing()
 
 void testBlockLoad()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
     // Ensure cache is blank to start
     for (uint32_t i = 0; i < CACHE_SIZE; i += 4)
     {
@@ -100,9 +112,9 @@ void testBlockLoad()
     delete cache;
 }
 
-void processRequest(Cache *cache, uint32_t address)
+void processRequest(Cache *cache, uint32_t address, bool read = true, SimulationDevice *requestor = &testPipeline)
 {
-    cache->request(address, &testPipeline);
+    cache->request(address, requestor, read);
     assert(masterEventQueue.size() == 1);
 
     // Cycle through entire event chain for request
@@ -115,7 +127,7 @@ void processRequest(Cache *cache, uint32_t address)
 
 void testMemoryAccess()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
     // Fill up cache
     for (uint32_t i = 0; i < cache->size; i += 4)
     {
@@ -148,7 +160,7 @@ void testMemoryAccess()
 
 void testReplacementPolicy()
 {
-    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, 4, memory);
+    Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, 4, memBus);
 
     // All bits start off unset
     for (auto bit : cache->lruBits)
@@ -224,6 +236,196 @@ void testReplacementPolicy()
     delete cache;
 }
 
+void testMesiStateChange()
+{
+    Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+
+    uint32_t address = 0;
+    local->loadBlock(address); // Make sure cache thinks the memory is valid
+    uint32_t block = local->findBlock(address);
+
+    assert(local->mesiStates[block] == INVALID);
+    assert(other->mesiStates[block] == INVALID);
+
+    // Test receiving invalidate events
+    MesiEvent *mesiEvent = new MesiEvent(INVALIDATE, address, other);
+    bool found = local->snoop(mesiEvent);
+    assert(!found);
+    assert(local->mesiStates[block] == INVALID);
+    assert(other->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = MODIFIED;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = EXCLUSIVE;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = SHARED;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    // Test receiving mem read events
+    mesiEvent->signal = MEM_READ;
+    local->mesiStates[block] = MODIFIED;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == SHARED);
+
+    local->mesiStates[block] = EXCLUSIVE;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == SHARED);
+
+    local->mesiStates[block] = SHARED;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == SHARED);
+
+    local->mesiStates[block] = INVALID;
+    local->valid.at(block) = false;
+    found = local->snoop(mesiEvent);
+    assert(!found);
+    assert(local->mesiStates[block] == INVALID);
+
+    // Test receiving rwitm events
+    mesiEvent->signal = RWITM;
+    local->mesiStates[block] = MODIFIED;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = EXCLUSIVE;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = SHARED;
+    local->valid.at(block) = true;
+    found = local->snoop(mesiEvent);
+    assert(found);
+    assert(local->mesiStates[block] == INVALID);
+
+    local->mesiStates[block] = INVALID;
+    found = local->snoop(mesiEvent);
+    assert(!found);
+    assert(local->mesiStates[block] == INVALID);
+    assert(other->mesiStates[block] == INVALID);
+}
+
+void testMesiSignalGeneration()
+{
+    memBus->caches.clear();
+    Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+
+    // Assert caches are registered with membus
+    assert(memBus->caches.size() == 2);
+    assert(memBus->caches.at(0) == local);
+    assert(memBus->caches.at(1) == other);
+
+    uint32_t address = 0;
+    uint32_t index = local->index(address);
+
+    // Both caches start in invalid
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == INVALID);
+
+    // Local cache reads an address I -> E
+    processRequest(local, address);
+    assert(local->mesiStates[index] == EXCLUSIVE);
+    assert(other->mesiStates[index] == INVALID);
+    local->readUint(address);
+
+    // Other cache reads same address E -> S (I -> S)
+    processRequest(other, address);
+    assert(local->mesiStates[index] == SHARED);
+    assert(other->mesiStates[index] == SHARED);
+    other->readUint(address);
+
+    // Local cache writes same address S -> M (S -> I)
+    processRequest(local, address, false);
+    assert(local->mesiStates[index] == MODIFIED);
+    assert(other->mesiStates[index] == INVALID);
+
+    int val = -42;
+    local->write(address, MFMT(val));
+
+    bool errorHit = false;
+    try
+    {
+        other->readInt(address);
+    }
+    catch (AddressNotFound &error)
+    {
+        errorHit = true;
+    }
+    assert(errorHit); // Invalidated cache should not respond to reads/writes (without going through a proper request)
+
+    // Other cache reads same address M -> S (I -> S)
+    processRequest(other, address);
+    assert(local->mesiStates[index] == SHARED);
+    assert(other->mesiStates[index] == SHARED);
+    assert(other->readInt(address) == val);
+
+    // Invalidate both caches
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == INVALID);
+
+    // Write miss, no other caches
+    address += sizeof(val);
+    val = 77;
+    processRequest(local, address, false);
+    assert(local->mesiStates[index] == MODIFIED);
+    assert(other->mesiStates[index] == INVALID);
+    local->write(address, MFMT(val));
+
+    // Write miss, other cache in M
+    // assert(memory->readInt(address) != val);
+    processRequest(other, address, false);
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == MODIFIED);
+    assert(memory->readInt(address) == val);
+    val = 42;
+    other->write(address, MFMT(val));
+    // assert(memory->readInt(address) != val);
+
+    // Other cache reads from its own modified state
+    processRequest(other, address);
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == MODIFIED);
+    assert(other->readInt(address) == val);
+
+    // Reset and read from local to set local to exclusive
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    processRequest(local, address);
+    assert(local->mesiStates[index] == EXCLUSIVE);
+    assert(other->mesiStates[index] == INVALID);
+    assert(local->readInt(address) == val);
+
+    // Write miss, other cache in E/S
+    val = 23;
+    processRequest(other, address, false);
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == MODIFIED);
+    other->write(address, MFMT(val));
+    // assert(memory->readInt(address) != val);
+}
+
 void seedMemory()
 {
     // Seed memory with test data
@@ -254,6 +456,10 @@ int main()
 
     std::cout << "\nTesting cache replacement policy\n";
     testReplacementPolicy();
+
+    std::cout << "\nTesting mesi protocol\n";
+    testMesiStateChange();
+    testMesiSignalGeneration();
 
     return 0;
 }

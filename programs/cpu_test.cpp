@@ -26,7 +26,7 @@ int main()
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         float data = INITIAL + i * OFFSET;
-        cpu.memory->write(ARRAY_START + (i * sizeof(INITIAL)), (void *)&data, sizeof(data));
+        cpu.memory->write(ARRAY_START + (i * sizeof(INITIAL)), MFMT(data));
     }
 
     cpu.addPipeline(new Fetch(&cpu))

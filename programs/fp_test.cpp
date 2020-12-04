@@ -9,7 +9,7 @@ using namespace Simulation;
 int main()
 {
     const int RAM_LOCATION = 124;
-    cpu.memory->write(RAM_LOCATION, (void *)&PI, sizeof(PI));
+    cpu.memory->write(RAM_LOCATION, MFMT(PI));
     cpu.fpRegister.write(2, E);
 
     // Read/write from ram[124] (offsets in program are set to +/- 4)

@@ -10,6 +10,8 @@
 
 #include "device.h"
 
+#define MFMT(val) (void *)&val, sizeof(val)
+
 struct MemoryInterface : SimulationDevice
 {
     uint32_t accessTime;
@@ -19,7 +21,7 @@ struct MemoryInterface : SimulationDevice
     bool withinBounds(uint32_t address);
     void checkBounds(uint32_t address);
 
-    virtual bool request(uint32_t address, SimulationDevice *device) = 0;
+    virtual bool request(uint32_t address, SimulationDevice *device, bool read = true) = 0;
 
     // I was using templates for this
     // But supporting using RAM directly and a Memory bus on the same cpu interface was impossible
@@ -40,7 +42,7 @@ struct Memory : MemoryInterface
     Memory(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partitions);
 
     uint32_t partition(uint32_t address);
-    bool request(uint32_t address, SimulationDevice *device);
+    bool request(uint32_t address, SimulationDevice *device, bool read = true);
 
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);
