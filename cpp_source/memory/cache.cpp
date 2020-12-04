@@ -268,7 +268,25 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
 
     if (!reIssued)
     {
+        // HIT
         this->hits += 1;
+        if (!read)
+        {
+            // write hit
+            switch (this->state(address))
+            {
+            case SHARED:
+                this->source->broadcast(new MesiEvent(INVALIDATE, address, this, false));
+            case EXCLUSIVE:
+                this->setState(address, MODIFIED);
+                break;
+            case INVALID:
+                throw std::logic_error("Cannot have a write hit with an invalid mesi state!");
+                break;
+            default:
+                break;
+            }
+        }
     }
 
     return accepted;
@@ -366,14 +384,22 @@ MesiState Cache::state(uint32_t address)
 
 void Cache::setState(uint32_t address, MesiState state)
 {
+    uint32_t index;
     try
     {
-        this->mesiStates.at(this->findBlock(address)) = state;
+        index = this->findBlock(address);
     }
     catch (AddressNotFound &err) // State setting associated with miss
     {
         // Find out what block will be evicted and set state preemptively
-        this->mesiStates.at(this->blockToEvict(address)) = state;
+        index = this->blockToEvict(address);
+    }
+
+    this->mesiStates.at(index) = state;
+
+    if (this->mesiStates.at(index) == INVALID)
+    {
+        this->valid.at(index) = false;
     }
 }
 

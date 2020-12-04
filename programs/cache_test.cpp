@@ -357,6 +357,31 @@ void testMesiSignalGeneration()
     assert(local->mesiStates[index] == SHARED);
     assert(other->mesiStates[index] == SHARED);
     other->readUint(address);
+
+    // Local cache writes same address S -> M (S -> I)
+    processRequest(local, address, false);
+    assert(local->mesiStates[index] == MODIFIED);
+    assert(other->mesiStates[index] == INVALID);
+
+    int val = -42;
+    local->write(address, MFMT(val));
+
+    bool errorHit = false;
+    try
+    {
+        other->readInt(address);
+    }
+    catch (AddressNotFound &error)
+    {
+        errorHit = true;
+    }
+    assert(errorHit); // Invalidated cache should not respond to reads/writes (without going through a proper request)
+
+    // Other cache reads same address M -> S (I -> S)
+    processRequest(other, address);
+    assert(local->mesiStates[index] == SHARED);
+    assert(other->mesiStates[index] == SHARED);
+    assert(other->readInt(address) == val);
 }
 
 void seedMemory()
