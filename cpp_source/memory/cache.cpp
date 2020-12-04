@@ -256,6 +256,34 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
             }
             this->source->broadcast(new MesiEvent(MEM_READ, address, this));
         }
+        else
+        {
+            // write miss
+            Cache *tracking = this->source->trackedBy(address, this);
+            if (tracking == NULL)
+            {
+                // No other cache watching this address
+                this->setState(address, MODIFIED);
+            }
+            else
+            {
+                switch (tracking->state(address))
+                {
+                case EXCLUSIVE:
+                case SHARED:
+                    this->source->broadcast(new MesiEvent(RWITM, address, this));
+                    this->setState(address, MODIFIED);
+                    break;
+                case MODIFIED:
+                    // TODO handle handle delayed memory request sequence
+                    this->source->broadcast(new MesiEvent(RWITM, address, this));
+                    this->setState(address, MODIFIED);
+                    break;
+                default:
+                    throw std::logic_error("Write miss not handled yet!");
+                }
+            }
+        }
         return accepted;
     }
 

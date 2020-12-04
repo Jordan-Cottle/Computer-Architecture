@@ -380,6 +380,50 @@ void testMesiSignalGeneration()
     assert(local->mesiStates[index] == SHARED);
     assert(other->mesiStates[index] == SHARED);
     assert(other->readInt(address) == val);
+
+    // Invalidate both caches
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == INVALID);
+
+    // Write miss, no other caches
+    address += sizeof(val);
+    val = 77;
+    processRequest(local, address, false);
+    assert(local->mesiStates[index] == MODIFIED);
+    assert(other->mesiStates[index] == INVALID);
+    local->write(address, MFMT(val));
+
+    // Write miss, other cache in M
+    // assert(memory->readInt(address) != val);
+    processRequest(other, address, false);
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == MODIFIED);
+    assert(memory->readInt(address) == val);
+    val = 42;
+    other->write(address, MFMT(val));
+    // assert(memory->readInt(address) != val);
+
+    // Other cache reads from its own modified state
+    processRequest(other, address);
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == MODIFIED);
+    assert(other->readInt(address) == val);
+
+    // Reset and read from local to set local to exclusive
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    processRequest(local, address);
+    assert(local->mesiStates[index] == EXCLUSIVE);
+    assert(other->mesiStates[index] == INVALID);
+    assert(local->readInt(address) == val);
+
+    // Write miss, other cache in E/S
+    val = 23;
+    processRequest(other, address, false);
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == MODIFIED);
+    other->write(address, MFMT(val));
+    // assert(memory->readInt(address) != val);
 }
 
 void seedMemory()
