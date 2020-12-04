@@ -66,7 +66,7 @@ def build(name, objects, source_name):
 
 def main(project_dir, output_name, source_name=None):
     objects = []
-    with ProcessPoolExecutor(8) as executor:
+    with ProcessPoolExecutor(os.cpu_count() * 2) as executor:
         results = executor.map(compile_cpp, find_files(project_dir, ".cpp"))
 
     for result in results:
