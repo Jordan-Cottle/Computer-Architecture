@@ -112,9 +112,9 @@ void testBlockLoad()
     delete cache;
 }
 
-void processRequest(Cache *cache, uint32_t address)
+void processRequest(Cache *cache, uint32_t address, bool read = true, SimulationDevice *requestor = &testPipeline)
 {
-    cache->request(address, &testPipeline);
+    cache->request(address, requestor, read);
     assert(masterEventQueue.size() == 1);
 
     // Cycle through entire event chain for request
@@ -345,6 +345,18 @@ void testMesiSignalGeneration()
     // Both caches start in invalid
     assert(local->mesiStates[index] == INVALID);
     assert(other->mesiStates[index] == INVALID);
+
+    // Local cache reads an address I -> E
+    processRequest(local, address);
+    assert(local->mesiStates[index] == EXCLUSIVE);
+    assert(other->mesiStates[index] == INVALID);
+    local->readUint(address);
+
+    // Other cache reads same address E -> S (I -> S)
+    processRequest(other, address);
+    assert(local->mesiStates[index] == SHARED);
+    assert(other->mesiStates[index] == SHARED);
+    other->readUint(address);
 }
 
 void seedMemory()

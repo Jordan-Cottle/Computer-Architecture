@@ -208,7 +208,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
     {
         cacheAddress = this->cacheAddress(address);
     }
-    catch (AddressNotFound &error)
+    catch (AddressNotFound &error) // MISS
     {
         if (reIssued)
         {
@@ -241,6 +241,21 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         {
             throw std::logic_error("Caches do not handle downstream rejecting it's memory request properly!");
         }
+
+        if (read)
+        {
+            // read miss
+            if (this->source->trackedByOtherCache(address, this))
+            {
+                // TODO: Get from that cache
+                this->setState(address, SHARED);
+            }
+            else
+            {
+                this->setState(address, EXCLUSIVE);
+            }
+            this->source->broadcast(new MesiEvent(MEM_READ, address, this, true));
+        }
         return accepted;
     }
 
@@ -256,7 +271,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         this->hits += 1;
     }
 
-    return true;
+    return accepted;
 }
 
 void Cache::process(Event *event)
@@ -339,7 +354,27 @@ bool Cache::snoop(MesiEvent *mesiEvent)
 
 MesiState Cache::state(uint32_t address)
 {
-    return this->mesiStates.at(this->findBlock(address));
+    try
+    {
+        return this->mesiStates.at(this->findBlock(address));
+    }
+    catch (AddressNotFound &err)
+    {
+        return INVALID;
+    }
+}
+
+void Cache::setState(uint32_t address, MesiState state)
+{
+    try
+    {
+        this->mesiStates.at(this->findBlock(address)) = state;
+    }
+    catch (AddressNotFound &err) // State setting associated with miss
+    {
+        // Find out what block will be evicted and set state preemptively
+        this->mesiStates.at(this->blockToEvict(address)) = state;
+    }
 }
 
 uint32_t Cache::readUint(uint32_t address)

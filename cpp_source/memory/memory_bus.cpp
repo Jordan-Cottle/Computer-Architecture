@@ -16,7 +16,7 @@ MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, uint32_
     this->read = read;
 }
 
-MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator, bool read) : std::runtime_error("A mesi event went unhandled!")
+MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator, bool read)
 {
     this->signal = signal;
     this->address = address;
@@ -104,6 +104,7 @@ void MemoryBus::process(Event *event)
         OUT << "Processing " << str(request) << "\n";
 
         bool accepted = this->memory->request(request->address, request->device, request->read);
+
         if (accepted)
         {
             OUT << "Memory accepted " << request << "\n";

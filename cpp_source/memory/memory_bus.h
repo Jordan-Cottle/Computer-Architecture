@@ -27,7 +27,7 @@ enum MesiSignal
 struct Cache;
 
 // Forgive me for how I am going to use this
-struct MesiEvent : std::runtime_error
+struct MesiEvent
 {
     MesiSignal signal;
     uint32_t address;
