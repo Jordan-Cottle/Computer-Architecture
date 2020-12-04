@@ -70,6 +70,8 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     this->compulsoryMisses = 0;
     this->accesses = 0;
     this->seen = std::vector<uint32_t>();
+
+    this->source->linkCache(this);
 }
 
 uint32_t Cache::tag(uint32_t address)

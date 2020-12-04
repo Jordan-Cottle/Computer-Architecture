@@ -236,7 +236,7 @@ void testReplacementPolicy()
     delete cache;
 }
 
-void testMesi()
+void testMesiStateChange()
 {
     Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
     Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
@@ -323,6 +323,25 @@ void testMesi()
     assert(other->mesiStates[block] == INVALID);
 }
 
+void testMesiSignalGeneration()
+{
+    memBus->caches.clear();
+    Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+
+    // Assert caches are registered with membus
+    assert(memBus->caches.size() == 2);
+    assert(memBus->caches.at(0) == local);
+    assert(memBus->caches.at(1) == other);
+
+    uint32_t address = 0;
+    uint32_t index = local->index(address);
+
+    // Both caches start in invalid
+    assert(local->mesiStates[index] == INVALID);
+    assert(other->mesiStates[index] == INVALID);
+}
+
 void seedMemory()
 {
     // Seed memory with test data
@@ -355,7 +374,8 @@ int main()
     testReplacementPolicy();
 
     std::cout << "\nTesting mesi protocol\n";
-    testMesi();
+    testMesiStateChange();
+    testMesiSignalGeneration();
 
     return 0;
 }

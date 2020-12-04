@@ -4,6 +4,8 @@
 */
 #include "memory_bus.h"
 
+#include "cache.h"
+
 #include "simulation.h"
 using namespace Simulation;
 
@@ -28,6 +30,12 @@ MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTim
 {
     this->busyFor = std::vector<uint32_t>(memory->partitions.size());
     this->requests = MinHeap<MemoryRequest *>();
+    this->caches = std::vector<Cache *>();
+}
+
+void MemoryBus::linkCache(Cache *cache)
+{
+    this->caches.push_back(cache);
 }
 
 uint32_t MemoryBus::port(uint32_t address)

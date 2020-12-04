@@ -22,6 +22,8 @@ struct MemoryRequest : printable
     std::string __str__();
 };
 
+struct Cache;
+
 // Use Memory Interface to keep it compatible with cpu0.s simulation
 struct MemoryBus : MemoryInterface
 {
@@ -29,8 +31,11 @@ struct MemoryBus : MemoryInterface
 
     MinHeap<MemoryRequest *> requests;
     std::vector<uint32_t> busyFor;
+    std::vector<Cache *> caches;
 
     MemoryBus(int accessTime, Memory *memory);
+
+    void linkCache(Cache *cache);
 
     uint32_t port(uint32_t address);
     bool request(uint32_t address, SimulationDevice *device, bool read = true);
