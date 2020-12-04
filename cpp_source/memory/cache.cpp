@@ -254,7 +254,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
             {
                 this->setState(address, EXCLUSIVE);
             }
-            this->source->broadcast(new MesiEvent(MEM_READ, address, this, true));
+            this->source->broadcast(new MesiEvent(MEM_READ, address, this));
         }
         return accepted;
     }
@@ -276,7 +276,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
             switch (this->state(address))
             {
             case SHARED:
-                this->source->broadcast(new MesiEvent(INVALIDATE, address, this, false));
+                this->source->broadcast(new MesiEvent(INVALIDATE, address, this));
             case EXCLUSIVE:
                 this->setState(address, MODIFIED);
                 break;

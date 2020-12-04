@@ -16,12 +16,11 @@ MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, uint32_
     this->read = read;
 }
 
-MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator, bool read)
+MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
 {
     this->signal = signal;
     this->address = address;
     this->originator = originator;
-    this->read = read;
 }
 
 bool MemoryRequest::operator<(const MemoryRequest &other)

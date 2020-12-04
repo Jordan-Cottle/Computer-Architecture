@@ -32,9 +32,8 @@ struct MesiEvent
     MesiSignal signal;
     uint32_t address;
     Cache *originator;
-    bool read;
 
-    MesiEvent(MesiSignal signal, uint32_t address, Cache *originator, bool read);
+    MesiEvent(MesiSignal signal, uint32_t address, Cache *originator);
 };
 
 struct MemoryRequest : printable

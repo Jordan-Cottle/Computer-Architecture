@@ -249,7 +249,7 @@ void testMesiStateChange()
     assert(other->mesiStates[block] == INVALID);
 
     // Test receiving invalidate events
-    MesiEvent *mesiEvent = new MesiEvent(INVALIDATE, address, other, false);
+    MesiEvent *mesiEvent = new MesiEvent(INVALIDATE, address, other);
     bool found = local->snoop(mesiEvent);
     assert(!found);
     assert(local->mesiStates[block] == INVALID);
@@ -275,7 +275,6 @@ void testMesiStateChange()
 
     // Test receiving mem read events
     mesiEvent->signal = MEM_READ;
-    mesiEvent->read = true;
     local->mesiStates[block] = MODIFIED;
     local->valid.at(block) = true;
     found = local->snoop(mesiEvent);
@@ -302,7 +301,6 @@ void testMesiStateChange()
 
     // Test receiving rwitm events
     mesiEvent->signal = RWITM;
-    mesiEvent->read = true;
     local->mesiStates[block] = MODIFIED;
     local->valid.at(block) = true;
     found = local->snoop(mesiEvent);
