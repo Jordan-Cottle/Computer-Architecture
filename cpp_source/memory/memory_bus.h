@@ -64,7 +64,7 @@ struct MemoryBus : MemoryInterface
 
     void linkCache(Cache *cache);
     void broadcast(MesiEvent *mesiEvent);
-    bool trackedByOtherCache(uint32_t address, Cache *local);
+    Cache *trackedBy(uint32_t address, Cache *local);
 
     uint32_t port(uint32_t address);
     bool request(uint32_t address, SimulationDevice *device, bool read = true);

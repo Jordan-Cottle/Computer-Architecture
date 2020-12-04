@@ -245,7 +245,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         if (read)
         {
             // read miss
-            if (this->source->trackedByOtherCache(address, this))
+            if (this->source->trackedBy(address, this) != NULL)
             {
                 // TODO: Get from that cache
                 this->setState(address, SHARED);
