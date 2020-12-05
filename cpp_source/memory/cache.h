@@ -17,6 +17,13 @@ struct AddressNotFound : std::runtime_error
     AddressNotFound(uint32_t address);
 };
 
+struct WriteBack : std::runtime_error
+{
+    uint32_t address;
+    Cache *cache;
+    WriteBack(uint32_t address, Cache *cache);
+};
+
 struct Cache : MemoryInterface
 {
     // Configurable attributes
@@ -50,6 +57,10 @@ struct Cache : MemoryInterface
     bool outstandingMiss;
     uint32_t addressRequested;
     SimulationDevice *requestor;
+
+    // Active write back request
+    uint32_t writeBackAddress;
+    MesiState writeBackState;
 
     Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source);
 
