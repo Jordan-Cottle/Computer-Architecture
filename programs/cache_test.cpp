@@ -10,7 +10,7 @@ constexpr uint32_t BLOCK_SIZE = 16;
 constexpr uint32_t ASSOCIATIVITY = DIRECT_MAPPED;
 
 Memory *memory = new Memory(CACHE_DELAY * 10, CACHE_SIZE * 4);
-MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
+MemoryBus *memBus;
 std::vector<int> mockData = std::vector<int>(memory->size / 4);
 
 void testEventHandling()
@@ -22,12 +22,17 @@ void testEventHandling()
     assert(masterEventQueue.size() == 1);
     Event *nextEvent = masterEventQueue.pop();
     std::cout << nextEvent << "\n";
-    assert(nextEvent->type == "ProcessRequest");
+    assert(nextEvent->type == "ProcessRequests");
     assert(nextEvent->time == (ulong)memBus->accessTime); // Arbitration delay
     assert(nextEvent->device == memBus);
 
     simulationClock.cycle = nextEvent->time;
     nextEvent->device->process(nextEvent);
+
+    // Bus keeps doing it's thing,  don't process it's event since we don't need any more bus interactions
+    nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "ProcessRequests");
+    assert(nextEvent->time == simulationClock.cycle + memBus->accessTime);
 
     assert(masterEventQueue.size() == 1);
     nextEvent = masterEventQueue.pop();
@@ -115,10 +120,13 @@ void testBlockLoad()
 void processRequest(Cache *cache, uint32_t address, bool read = true, SimulationDevice *requestor = &testPipeline)
 {
     cache->request(address, requestor, read);
-    assert(masterEventQueue.size() == 1);
 
-    // Cycle through entire event chain for request
-    while (!masterEventQueue.empty())
+    // Trigger membus process event request
+    simulationClock.cycle = masterEventQueue.top()->time;
+    masterEventQueue.tick(simulationClock.cycle);
+
+    // Keep cycling events until only membus periodic event remains
+    while (masterEventQueue.size() > 1)
     {
         simulationClock.cycle = masterEventQueue.top()->time;
         masterEventQueue.tick(simulationClock.cycle);
@@ -133,7 +141,8 @@ void testMemoryAccess()
     {
         processRequest(cache, i);
         int data = -int(i);
-        cache->write(i, (void *)&data, sizeof(data));
+        std::cout << "Setting " << str(data) << " into cache at " << str(i) << "\n";
+        cache->write(i, MFMT(data));
     }
 
     // Assert that every block has valid data, cache fully saturated
@@ -436,6 +445,14 @@ void seedMemory()
         uint32_t memAddress = i * sizeof(int);
         memory->write(memAddress, (void *)&datum, sizeof(datum));
     }
+    memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
+}
+
+void cleanup()
+{
+    masterEventQueue.events.clear();
+    delete memBus;
+    memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
 }
 
 int main()
@@ -444,22 +461,31 @@ int main()
 
     std::cout << "\nTesting cache event handling system\n";
     testEventHandling();
+    cleanup();
 
     std::cout << "\nTesting cache address processing system\n";
     testAdressing();
+    cleanup();
 
     std::cout << "\nTesting block loading procedure\n";
     testBlockLoad();
+    cleanup();
 
     std::cout << "\nTesting cache memory addressing system\n";
     testMemoryAccess();
+    cleanup();
 
     std::cout << "\nTesting cache replacement policy\n";
     testReplacementPolicy();
+    cleanup();
 
-    std::cout << "\nTesting mesi protocol\n";
+    std::cout << "\nTesting mesi state changes\n";
     testMesiStateChange();
+    cleanup();
+
+    std::cout << "\nTesting mesi signal generation\n";
     testMesiSignalGeneration();
+    cleanup();
 
     return 0;
 }
