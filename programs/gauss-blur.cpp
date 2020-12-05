@@ -15,13 +15,18 @@ const int MAT_B_SIZE = (MAT_C_START - MAT_B_START);
 const int MAT_C_SIZE = (MAT_D_START - MAT_C_START) / 2;
 const int MAT_D_SIZE = (0xA1DD - MAT_D_START);
 
-Memory *ram = new Memory(100, MEM_END, {0x200, 0x400, MEM_END});
-MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
-Cpu cpu0 = Cpu(memBus);
-Cpu cpu1 = Cpu(memBus);
+Memory *ram;
+MemoryBus *memBus;
+Cpu *cpu0;
+Cpu *cpu1;
 
 int main()
 {
+
+    ram = new Memory(100, MEM_END, {0x200, 0x400, MEM_END});
+    memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
+    cpu0 = new Cpu(memBus);
+    cpu1 = new Cpu(memBus);
 
     std::cout << "MAT A length: " << MAT_A_SIZE << "\n";
     std::cout << "MAT B length: " << MAT_B_SIZE << "\n";
@@ -38,28 +43,28 @@ int main()
         ram->data[i] = 0xFF;
     }
 
-    cpu0.addPipeline(new Fetch(&cpu0))
-        ->addPipeline(new Decode(&cpu0))
-        ->addPipeline(new Execute(&cpu0))
-        ->addPipeline(new StorePipeline(&cpu0));
+    cpu0->addPipeline(new Fetch(cpu0))
+        ->addPipeline(new Decode(cpu0))
+        ->addPipeline(new Execute(cpu0))
+        ->addPipeline(new StorePipeline(cpu0));
 
-    cpu1.addPipeline(new Fetch(&cpu1))
-        ->addPipeline(new Decode(&cpu1))
-        ->addPipeline(new Execute(&cpu1))
-        ->addPipeline(new StorePipeline(&cpu1));
+    cpu1->addPipeline(new Fetch(cpu1))
+        ->addPipeline(new Decode(cpu1))
+        ->addPipeline(new Execute(cpu1))
+        ->addPipeline(new StorePipeline(cpu1));
 
-    cpu0.loadProgram("A5_CPU0.bin");
-    cpu1.loadProgram("A5_CPU1.bin", 0x200);
+    cpu0->loadProgram("A5_CPU0.bin");
+    cpu1->loadProgram("A5_CPU1.bin", 0x200);
 
-    cpu0.intRegister.write(14, STACK0_START); // Set stack pointer at bottom of stack
-    cpu1.intRegister.write(14, STACK1_START); // Set stack pointer at bottom of stack
+    cpu0->intRegister.write(14, STACK0_START); // Set stack pointer at bottom of stack
+    cpu1->intRegister.write(14, STACK1_START); // Set stack pointer at bottom of stack
 
     // Set up initial cpu tick to kick things off
-    masterEventQueue.push(new Event("Tick", 0, &cpu0));
-    masterEventQueue.push(new Event("Tick", 0, &cpu1));
+    masterEventQueue.push(new Event("Tick", 0, cpu0));
+    masterEventQueue.push(new Event("Tick", 0, cpu1));
 
     std::cout << "Thinking... (This should take a minute or two)\n";
-    while (!cpu0.complete || !cpu1.complete)
+    while (!cpu0->complete || !cpu1->complete)
     {
         masterEventQueue.tick(simulationClock.cycle);
 
@@ -84,10 +89,10 @@ int main()
     }
     outfile.close();
 
-    std::cout << "Cpu1 clock cycles: " << cpu0.clocksProcessed << "\n";
-    std::cout << "Cpu1 instructions processed: " << cpu0.instructionsProcessed << "\n";
-    std::cout << "Cpu1 cpi: " << cpu0.cpi() << "\n";
-    std::cout << "Cpu2 clock cycles: " << cpu1.clocksProcessed << "\n";
-    std::cout << "Cpu2 instructions processed: " << cpu1.instructionsProcessed << "\n";
-    std::cout << "Cpu2 cpi: " << cpu1.cpi() << "\n";
+    std::cout << "Cpu1 clock cycles: " << cpu0->clocksProcessed << "\n";
+    std::cout << "Cpu1 instructions processed: " << cpu0->instructionsProcessed << "\n";
+    std::cout << "Cpu1 cpi: " << cpu0->cpi() << "\n";
+    std::cout << "Cpu2 clock cycles: " << cpu1->clocksProcessed << "\n";
+    std::cout << "Cpu2 instructions processed: " << cpu1->instructionsProcessed << "\n";
+    std::cout << "Cpu2 cpi: " << cpu1->cpi() << "\n";
 }

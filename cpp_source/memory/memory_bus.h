@@ -6,6 +6,8 @@
 #ifndef __MEMORY_BUS__
 #define __MEMORY_BUS__
 
+#include <deque>
+
 #include "sim_memory.h"
 #include "heap.h"
 
@@ -40,12 +42,11 @@ struct MemoryRequest : printable
 {
     uint32_t address;
     SimulationDevice *device;
-    uint32_t completeAt;
     bool read;
+    bool requested;
 
-    MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt, bool read);
+    MemoryRequest(uint32_t address, SimulationDevice *device, bool read);
 
-    bool operator<(const MemoryRequest &);
     std::string __str__();
 };
 
@@ -56,8 +57,7 @@ struct MemoryBus : MemoryInterface
 {
     Memory *memory;
 
-    MinHeap<MemoryRequest *> requests;
-    std::vector<uint32_t> busyFor;
+    std::vector<std::deque<MemoryRequest *> *> requests;
     std::vector<Cache *> caches;
 
     MemoryBus(int accessTime, Memory *memory);
@@ -69,6 +69,7 @@ struct MemoryBus : MemoryInterface
     uint32_t port(uint32_t address);
     bool request(uint32_t address, SimulationDevice *device, bool read = true);
     void process(Event *event);
+    void clearRequest(uint32_t address);
 
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);

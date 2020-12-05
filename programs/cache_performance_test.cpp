@@ -72,10 +72,13 @@ struct CacheResult : printable
 void processRequest(Cache *cache, uint32_t address)
 {
     cache->request(address, &testPipeline);
-    assert(masterEventQueue.size() == 1);
 
-    // Cycle through entire event chain for request
-    while (!masterEventQueue.empty())
+    // Trigger membus process event request
+    simulationClock.cycle = masterEventQueue.top()->time;
+    masterEventQueue.tick(simulationClock.cycle);
+
+    // Keep cycling events until only membus periodic event remains
+    while (masterEventQueue.size() > 1)
     {
         simulationClock.cycle = masterEventQueue.top()->time;
         masterEventQueue.tick(simulationClock.cycle);
@@ -85,6 +88,8 @@ void processRequest(Cache *cache, uint32_t address)
 CacheResult *runSimulation(Cache *cache, std::vector<uint32_t> trace)
 {
     simulationClock.cycle = 0;
+    masterEventQueue.events.clear();
+    masterEventQueue.push(new Event("ProcessRequests", 0, cache->source));
     for (auto address : trace)
     {
         processRequest(cache, address);
