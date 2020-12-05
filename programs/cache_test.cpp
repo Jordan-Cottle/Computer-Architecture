@@ -126,10 +126,20 @@ void processRequest(Cache *cache, uint32_t address, bool read = true, Simulation
     masterEventQueue.tick(simulationClock.cycle);
 
     // Keep cycling events until only membus periodic event remains
-    while (masterEventQueue.size() > 1)
+    int count = 0;
+    while (count < 3)
     {
         simulationClock.cycle = masterEventQueue.top()->time;
         masterEventQueue.tick(simulationClock.cycle);
+
+        if (masterEventQueue.size() == 1)
+        {
+            count += 1;
+        }
+        else
+        {
+            count = 0;
+        }
     }
 }
 
@@ -446,6 +456,12 @@ void testMesiSignalGeneration()
     assert(other->mesiStates[index] == MODIFIED);
     assert(other->readInt(address) == val);
 
+    // Read from local to trigger write back
+    processRequest(local, address);
+    assert(local->mesiStates[index] == SHARED);
+    assert(other->mesiStates[index] == SHARED);
+    assert(local->readInt(address) == val);
+
     // Reset and read from local to set local to exclusive
     memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
     processRequest(local, address);
@@ -453,13 +469,13 @@ void testMesiSignalGeneration()
     assert(other->mesiStates[index] == INVALID);
     assert(local->readInt(address) == val);
 
-    // Write miss, other cache in E/S
+    // Write miss from other, local cache in E/S
     val = 23;
     processRequest(other, address, false);
     assert(local->mesiStates[index] == INVALID);
     assert(other->mesiStates[index] == MODIFIED);
     other->write(address, MFMT(val));
-    // assert(memory->readInt(address) != val);
+    assert(memory->readInt(address) != val); // No write back yet
 }
 
 void seedMemory()
