@@ -402,9 +402,9 @@ void testMesiSignalGeneration()
     assert(local->mesiStates[index] == MODIFIED);
     assert(other->mesiStates[index] == INVALID);
     local->write(address, MFMT(val));
+    assert(memory->readInt(address) != val);
 
     // Write miss, other cache in M
-    // assert(memory->readInt(address) != val);
     processRequest(other, address, false);
     assert(local->mesiStates[index] == INVALID);
     assert(other->mesiStates[index] == MODIFIED);

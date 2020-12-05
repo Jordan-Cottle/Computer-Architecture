@@ -454,5 +454,4 @@ void Cache::write(uint32_t address, void *start, uint32_t bytes)
 {
     this->updateLruState(address);
     this->data->write(this->cacheAddress(address), start, bytes);
-    this->source->write(address, start, bytes);
 }
