@@ -345,6 +345,22 @@ void Cache::process(Event *event)
             masterEventQueue.push(memoryReady);
         }
     }
+    else if (event->type == "WriteBack")
+    {
+        event->handled = true;
+        uint32_t address = this->writeBackAddress;
+        uint32_t blockIndex = this->findBlock(address);
+        uint32_t cacheStart = blockIndex * this->blockSize;
+
+        uint32_t memoryStart = address ^ this->offset(address);
+        for (uint32_t i = 0; i < this->blockSize; i += 4)
+        {
+            uint32_t data = this->data->readUint(cacheStart + i);
+            this->source->write(memoryStart + i, MFMT(data));
+        }
+
+        this->setState(address, this->writeBackState);
+    }
 
     MemoryInterface::process(event);
 }
@@ -378,7 +394,8 @@ bool Cache::snoop(MesiEvent *mesiEvent)
         switch (state)
         {
         case MODIFIED:
-            this->mesiStates.at(blockIndex) = SHARED;
+            this->writeBackAddress = mesiEvent->address;
+            this->writeBackState = SHARED;
             throw new WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:
@@ -391,8 +408,8 @@ bool Cache::snoop(MesiEvent *mesiEvent)
         switch (state)
         {
         case MODIFIED:
-            this->mesiStates.at(blockIndex) = INVALID;
-            this->valid.at(blockIndex) = false;
+            this->writeBackAddress = mesiEvent->address;
+            this->writeBackState = INVALID;
             throw new WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:

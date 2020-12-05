@@ -51,6 +51,7 @@ void MemoryBus::linkCache(Cache *cache)
 
 void MemoryBus::broadcast(MesiEvent *mesiEvent)
 {
+    WriteBack *writeBackRequest = NULL;
     for (auto cache : this->caches)
     {
         if (cache == mesiEvent->originator)
@@ -58,8 +59,61 @@ void MemoryBus::broadcast(MesiEvent *mesiEvent)
             continue;
         }
 
-        cache->snoop(mesiEvent);
+        try
+        {
+            cache->snoop(mesiEvent);
+        }
+        catch (WriteBack *writeBack)
+        {
+            if (writeBackRequest != NULL)
+            {
+                throw std::logic_error("Only one write back should be needed per broadcast!!");
+            }
+
+            Event *event = new Event("WriteBack", simulationClock.cycle + this->memory->accessTime, cache, HIGH);
+            masterEventQueue.push(event);
+            writeBackRequest = writeBack;
+        }
     }
+
+    if (writeBackRequest != NULL)
+    {
+        // Reschedule write back ahead of current memory request
+        if (mesiEvent->address != writeBackRequest->address)
+        {
+            throw std::logic_error("The write back should be associated with the same address as the mesi event!");
+        }
+
+        // Get first request in queue, it should be the one that triggered this mesi event
+        uint32_t port = this->port(writeBackRequest->address);
+        auto requstQueue = this->requests.at(port);
+        auto request = requstQueue->front();
+
+        // Validate assumptions about the context here
+        if (request->requested)
+        {
+            throw std::logic_error("A write back should never be triggered for a request that is already progress!");
+        }
+
+        if (request->address != writeBackRequest->address)
+        {
+            throw std::logic_error("The write back address should match request that is in progress!");
+        }
+
+        if (request->device == writeBackRequest->cache)
+        {
+            throw std::logic_error("The cache making a write back should NOT be the cache making the original request!");
+        }
+
+        // Block the original request
+        request->requested = false;
+
+        MemoryRequest *writeBack = new MemoryRequest(writeBackRequest->address, writeBackRequest->cache, false);
+
+        // Write back request should go first
+        requstQueue->push_front(writeBack);
+    }
+    delete mesiEvent;
 }
 
 Cache *MemoryBus::trackedBy(uint32_t address, Cache *local)
