@@ -168,7 +168,7 @@ void testMemoryAccess()
     {
         uint32_t outOfCacheAddress = i + cache->size;
         processRequest(cache, outOfCacheAddress);
-        cache->write(outOfCacheAddress, (void *)&outOfCacheAddress, sizeof(outOfCacheAddress));
+        cache->write(outOfCacheAddress, MFMT(outOfCacheAddress));
 
         // Assert that value was updated even though cache was full
         assert(cache->readUint(outOfCacheAddress) == outOfCacheAddress);
@@ -486,7 +486,7 @@ void seedMemory()
         int datum = i;
         mockData[i] = datum;
         uint32_t memAddress = i * sizeof(int);
-        memory->write(memAddress, (void *)&datum, sizeof(datum));
+        memory->write(memAddress, MFMT(datum));
     }
     memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
 }

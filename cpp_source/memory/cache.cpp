@@ -193,7 +193,7 @@ void Cache::loadBlock(uint32_t address)
     {
         // Shouldn't this take some time?
         uint32_t data = this->source->readUint(memoryStart + i);
-        this->data->write(start + i, (void *)&data, sizeof(data));
+        this->data->write(start + i, MFMT(data));
     }
 
     this->valid[blockIndex] = true;
