@@ -123,7 +123,7 @@ void Memory::write(uint32_t address, void *start, uint32_t bytes)
     for (uint32_t i = 0; i < bytes; i++)
     {
         uint8_t byte = *(begin + i);
-        OUT << "Writing " << str(byte) << " into address " << str(address + i) << "\n";
+        DEBUG << "Writing " << str(byte) << " into address " << str(address + i) << "\n";
         this->data[address + i] = byte;
     }
 }

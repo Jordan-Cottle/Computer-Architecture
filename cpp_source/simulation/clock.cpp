@@ -12,7 +12,9 @@ Clock::Clock()
 
 ulong Clock::tick()
 {
-    return ++this->cycle;
+    this->cycle += 1;
+    DEBUG << "Simulation cycle: " << str(this->cycle) << "\n";
+    return this->cycle;
 }
 
 std::string Clock::__str__()

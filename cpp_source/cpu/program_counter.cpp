@@ -33,7 +33,7 @@ bool ProgramCounter::operator==(int value)
 void ProgramCounter::jump(int destination)
 {
     assert(destination % this->step == 0);
-    OUT << "Jumping a distance of " << str(destination) << "\n";
+    DEBUG << "Jumping a distance of " << str(destination) << "\n";
     this->value += destination;
 }
 

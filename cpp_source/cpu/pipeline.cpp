@@ -30,7 +30,7 @@ void Pipeline::stage(RawInstruction *instruction)
 {
     if (!this->free())
     {
-        OUT << "WARNING: " << this << "is not free!!\n";
+        WARNING << this << "is not free!!\n";
         return;
     }
 
