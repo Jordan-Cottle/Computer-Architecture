@@ -184,6 +184,11 @@ public:
     {
         return this->items.size();
     }
+
+    void clear()
+    {
+        this->items = std::vector<T>();
+    }
 };
 
 #endif
