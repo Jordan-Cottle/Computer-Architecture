@@ -38,7 +38,7 @@ void Add::execute(Cpu *cpu)
 
         float right = cpu->fpRegister.read(this->rightIndex);
 
-        OUT << "F" + str(this->destinationIndex) << " <- " << str(left) << " + " << str(right) << "\n";
+        INFO << "F" + str(this->destinationIndex) << " <- " << str(left) << " + " << str(right) << "\n";
         cpu->fpRegister.write(this->destinationIndex, left + right);
     }
     else
@@ -47,7 +47,7 @@ void Add::execute(Cpu *cpu)
 
         int right = this->immediate ? this->rightIndex : cpu->intRegister.read(this->rightIndex);
 
-        OUT << "x" + str(this->destinationIndex) << " <- " << str(left) << " + " << str(right) << "\n";
+        INFO << "x" + str(this->destinationIndex) << " <- " << str(left) << " + " << str(right) << "\n";
         cpu->intRegister.write(this->destinationIndex, left + right);
     }
 }
@@ -89,7 +89,7 @@ void Sub::execute(Cpu *cpu)
 
         float right = cpu->fpRegister.read(this->rightIndex);
 
-        OUT << "F" + str(this->destinationIndex) << " <- " << str(left) << " - " << str(right) << "\n";
+        INFO << "F" + str(this->destinationIndex) << " <- " << str(left) << " - " << str(right) << "\n";
         cpu->fpRegister.write(this->destinationIndex, left - right);
     }
     else
@@ -98,7 +98,7 @@ void Sub::execute(Cpu *cpu)
 
         int right = this->immediate ? this->rightIndex : cpu->intRegister.read(this->rightIndex);
 
-        OUT << "x" + str(this->destinationIndex) << " <- " << str(left) << " - " << str(right) << "\n";
+        INFO << "x" + str(this->destinationIndex) << " <- " << str(left) << " - " << str(right) << "\n";
         cpu->intRegister.write(this->destinationIndex, left - right);
     }
 }
@@ -135,7 +135,7 @@ Lui::Lui(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 
 void Lui::execute(Cpu *cpu)
 {
-    OUT << "x" + str(this->destinationIndex) << " <- " << str(this->leftIndex) << "\n";
+    INFO << "x" + str(this->destinationIndex) << " <- " << str(this->leftIndex) << "\n";
     cpu->intRegister.write(this->destinationIndex, this->leftIndex);
 }
 
@@ -151,7 +151,7 @@ Shift::Shift(RawInstruction *instruction) : ArithmeticInstruction(instruction)
 void Shift::execute(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
-    OUT << "x" + str(this->destinationIndex) << " <- " << str(left) << " << " << str(this->rightIndex) << "\n";
+    INFO << "x" + str(this->destinationIndex) << " <- " << str(left) << " << " << str(this->rightIndex) << "\n";
 
     int result;
     if (this->rightShift)
@@ -181,7 +181,7 @@ void Multiply::execute(Cpu *cpu)
 
     int result = left * right;
 
-    OUT << "x" + str(this->destinationIndex) << " <- " << str(left) << " * " << str(right) << "\n";
+    INFO << "x" + str(this->destinationIndex) << " <- " << str(left) << " * " << str(right) << "\n";
 
     cpu->intRegister.write(this->destinationIndex, result);
 }

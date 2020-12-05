@@ -21,23 +21,23 @@ void Execute::tick()
 
     if (this->free())
     {
-        OUT << "No instruction to execute\n";
+        INFO << "No instruction to execute\n";
         return;
     }
     if (this->next->busy())
     {
-        OUT << "Execute waiting because next stage is busy\n";
+        INFO << "Execute waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        OUT << "Execute continuing to work on its task\n";
+        INFO << "Execute continuing to work on its task\n";
         return;
     }
     this->_busy = true;
 
     DecodedInstruction *instruction = (DecodedInstruction *)this->staged();
-    OUT << "Execute processing instruction: " << instruction << "\n";
+    INFO << "Execute processing instruction: " << instruction << "\n";
     Load *load = dynamic_cast<Load *>(instruction);
     if (load != NULL)
     {
@@ -60,12 +60,12 @@ void Execute::process(Event *event)
         Store *store = dynamic_cast<Store *>(instruction);
         if (store != NULL)
         {
-            OUT << "Execute passing along instruction: " << instruction << "\n";
+            INFO << "Execute passing along instruction: " << instruction << "\n";
             this->next->stage(instruction);
         }
         else
         {
-            OUT << "Execute executing instruction: " << instruction << "\n";
+            INFO << "Execute executing instruction: " << instruction << "\n";
             instruction->execute(this->cpu);
 
             // Decoded instruction use complete. No further reference to it will be created

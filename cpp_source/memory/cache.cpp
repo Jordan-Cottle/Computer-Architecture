@@ -135,7 +135,7 @@ void Cache::updateLruState(uint32_t address)
     uint32_t index = this->index(address);
     uint32_t blockIndex = this->findBlock(address);
 
-    OUT << "Address " << address << " at cache block " << blockIndex << " in set " << index << " has been used\n";
+    DEBUG << "Address " << address << " at cache block " << blockIndex << " in set " << index << " has been used\n";
 
     // Set bit if not set
     if (!this->lruBits[blockIndex])
@@ -171,7 +171,8 @@ uint32_t Cache::blockToEvict(uint32_t address)
         }
         else if (this->tags[blockIndex] == tag)
         {
-            OUT << "Cache reloading block " << blockIndex << "\n";
+            // This probably should never happen
+            WARNING << "Cache reloading block " << blockIndex << "\n";
             return blockIndex;
         }
     }
@@ -192,7 +193,7 @@ uint32_t Cache::blockToEvict(uint32_t address)
 void Cache::loadBlock(uint32_t address)
 {
     uint32_t blockIndex = this->blockToEvict(address);
-    OUT << "Set " << this->index(address) << " replacing block " << blockIndex % this->associativity << "\n";
+    DEBUG << "Set " << this->index(address) << " replacing block " << blockIndex % this->associativity << "\n";
 
     uint32_t memoryStart = address ^ this->offset(address);
     uint32_t start = blockIndex * this->blockSize;

@@ -35,6 +35,7 @@ std::string MemoryRequest::__str__()
 
 MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTime, 0), memory(memory)
 {
+    this->type = "Memory Bus";
     this->busyFor = std::vector<uint32_t>(memory->partitions.size());
     this->requests = MinHeap<MemoryRequest *>();
     this->caches = std::vector<Cache *>();
@@ -100,20 +101,20 @@ void MemoryBus::process(Event *event)
     {
         event->handled = true;
         MemoryRequest *request = this->requests.top();
-        OUT << "Processing " << str(request) << "\n";
+        INFO << this << " processing " << str(request) << "\n";
 
         bool accepted = this->memory->request(request->address, request->device, request->read);
 
         if (accepted)
         {
-            OUT << "Memory accepted " << request << "\n";
+            DEBUG << "Memory accepted " << request << "\n";
             this->busyFor[this->port(request->address)] -= this->accessTime;
             this->requests.pop();
             delete request;
         }
         else
         {
-            OUT << "Memory rejected " << request << "\n";
+            DEBUG << "Memory rejected " << request << "\n";
             // Update request expected to complete time
             this->requests.pop();
             request->completeAt += this->accessTime;

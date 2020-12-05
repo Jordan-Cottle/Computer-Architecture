@@ -23,21 +23,21 @@ void Fetch::tick()
 
     if (this->next->busy())
     {
-        OUT << "Fetch waiting because next stage is busy\n";
+        INFO << "Fetch waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        OUT << "Fetch continuing to work on its task\n";
+        INFO << "Fetch continuing to work on its task\n";
         return;
     }
     if (this->outstandingRequest)
     {
-        OUT << "Fetch unit not requesting because it already has an outstanding request\n";
+        INFO << "Fetch unit not requesting because it already has an outstanding request\n";
         return;
     }
 
-    OUT << "Requesting new instruction from memory\n";
+    INFO << "Requesting new instruction from memory\n";
     Event *event = new Event("MemoryRequest", simulationClock.cycle, this);
     masterEventQueue.push(event);
     this->outstandingRequest = true;
@@ -49,7 +49,7 @@ void Fetch::processInstruction()
 {
     RawInstruction *instruction = this->staged();
 
-    OUT << "Fetch processing instruction: " << instruction << "\n";
+    INFO << "Fetch processing instruction: " << instruction << "\n";
 
     uint32_t opcode = getOpcode(instruction->data);
     // TODO move branch predicting logic into a branch prediction unit
@@ -61,14 +61,14 @@ void Fetch::processInstruction()
         ControlInstruction branch = ControlInstruction(instruction);
         this->cpu->programCounter.jump(branch.offset(this->cpu));
 
-        OUT << "Branch by " << this->cpu->programCounter << " predicted\n";
+        DEBUG << "Branch by " << this->cpu->programCounter << " predicted\n";
     }
     else if (opcode == 0b1101111)
     {
         this->cpu->branchSpeculated = true;
 
         Jump jump = Jump(instruction);
-        OUT << "Jump by " << jump.offset(this->cpu) << " detected\n";
+        DEBUG << "Jump by " << jump.offset(this->cpu) << " detected\n";
 
         this->cpu->programCounter.jump(jump.offset(this->cpu));
     }
@@ -79,7 +79,7 @@ void Fetch::processInstruction()
         Jalr jalr = Jalr(instruction);
 
         this->cpu->programCounter.jump(jalr.offset(this->cpu));
-        OUT << "Jalr to " << this->cpu->programCounter << " detected\n";
+        DEBUG << "Jalr to " << this->cpu->programCounter << " detected\n";
     }
     else
     {
