@@ -15,6 +15,12 @@ AddressNotFound::AddressNotFound(uint32_t address) : std::runtime_error("Memory 
     this->address = address;
 }
 
+WriteBack::WriteBack(uint32_t address, Cache *cache) : std::runtime_error(str(cache) + " needs to write " + str(address) + " back to memory")
+{
+    this->address = address;
+    this->cache = cache;
+}
+
 Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source) : MemoryInterface(accessTime, size)
 {
     this->type = "Cache";
@@ -372,11 +378,11 @@ bool Cache::snoop(MesiEvent *mesiEvent)
         switch (state)
         {
         case MODIFIED:
-            // TODO write back to memory
+            this->mesiStates.at(blockIndex) = SHARED;
+            throw new WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:
             this->mesiStates.at(blockIndex) = SHARED;
-            // TODO send memory to requestor
         default:
             break;
         }
@@ -385,10 +391,11 @@ bool Cache::snoop(MesiEvent *mesiEvent)
         switch (state)
         {
         case MODIFIED:
-            // TODO write back to memory
+            this->mesiStates.at(blockIndex) = INVALID;
+            this->valid.at(blockIndex) = false;
+            throw new WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:
-            // TODO send memory to requestor
             this->mesiStates.at(blockIndex) = INVALID;
             this->valid.at(blockIndex) = false;
         default:

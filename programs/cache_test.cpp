@@ -286,8 +286,18 @@ void testMesiStateChange()
     mesiEvent->signal = MEM_READ;
     local->mesiStates[block] = MODIFIED;
     local->valid.at(block) = true;
-    found = local->snoop(mesiEvent);
+    bool writeBackTriggered = false;
+    try
+    {
+        local->snoop(mesiEvent);
+    }
+    catch (WriteBack *writeBack)
+    {
+        found = true;
+        writeBackTriggered = true;
+    }
     assert(found);
+    assert(writeBackTriggered);
     assert(local->mesiStates[block] == SHARED);
 
     local->mesiStates[block] = EXCLUSIVE;
@@ -312,8 +322,17 @@ void testMesiStateChange()
     mesiEvent->signal = RWITM;
     local->mesiStates[block] = MODIFIED;
     local->valid.at(block) = true;
-    found = local->snoop(mesiEvent);
+    try
+    {
+        local->snoop(mesiEvent);
+    }
+    catch (WriteBack *writeBack)
+    {
+        found = true;
+        writeBackTriggered = true;
+    }
     assert(found);
+    assert(writeBackTriggered);
     assert(local->mesiStates[block] == INVALID);
 
     local->mesiStates[block] = EXCLUSIVE;

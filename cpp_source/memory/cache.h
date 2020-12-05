@@ -17,6 +17,13 @@ struct AddressNotFound : std::runtime_error
     AddressNotFound(uint32_t address);
 };
 
+struct WriteBack : std::runtime_error
+{
+    uint32_t address;
+    Cache *cache;
+    WriteBack(uint32_t address, Cache *cache);
+};
+
 struct Cache : MemoryInterface
 {
     // Configurable attributes
