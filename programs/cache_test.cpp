@@ -295,6 +295,10 @@ void testMesiStateChange()
     {
         found = true;
         writeBackTriggered = true;
+        // Emulate memory bus handling
+        Event *writeBackEvent = new Event("WriteBack", simulationClock.cycle, local);
+        masterEventQueue.push(writeBackEvent);
+        masterEventQueue.tick(simulationClock.cycle);
     }
     assert(found);
     assert(writeBackTriggered);
@@ -330,6 +334,10 @@ void testMesiStateChange()
     {
         found = true;
         writeBackTriggered = true;
+        // Emulate memory bus handling
+        Event *writeBackEvent = new Event("WriteBack", simulationClock.cycle, local);
+        masterEventQueue.push(writeBackEvent);
+        masterEventQueue.tick(simulationClock.cycle);
     }
     assert(found);
     assert(writeBackTriggered);
