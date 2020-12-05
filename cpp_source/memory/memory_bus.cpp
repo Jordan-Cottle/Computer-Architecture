@@ -30,8 +30,7 @@ bool MemoryRequest::operator<(const MemoryRequest &other)
 
 std::string MemoryRequest::__str__()
 {
-    return "Memory request for address " + str(this->address) + " by " + this->device->type + " resolved at time " + str(this->completeAt);
-}
+    this->type = "MemoryBus";
 
 MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTime, 0), memory(memory)
 {
