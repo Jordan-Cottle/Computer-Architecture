@@ -12,6 +12,8 @@
 #include "execute.h"
 #include "store.h"
 
+#include "memory_router.h"
+
 constexpr float PI = 3.141592654f;
 constexpr float E = 2.718281828f;
 
@@ -87,5 +89,22 @@ void load_binary(std::string fileName, Memory *memory, uint32_t startAddress)
     while (dataFile.read((char *)&data, sizeof(data)))
     {
         memory->data[memAddress++] = data;
+    }
+}
+
+void flushCache(Cpu *cpu)
+{
+    auto memoryRouter = (MemoryRouter *)cpu->memory;
+    auto cache = (Cache *)memoryRouter->dataCache;
+    auto blocks = cache->mesiStates.size();
+    for (uint32_t i = 0; i < blocks; i++)
+    {
+        if (cache->mesiStates.at(i) != MODIFIED)
+        {
+            continue;
+        }
+
+        uint32_t address = cache->memoryAddresses.at(i);
+        cache->writeBackBlock(i, address);
     }
 }

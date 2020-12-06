@@ -7,9 +7,12 @@ using namespace Simulation;
 Cpu *constructCpu(MemoryBus *memBus)
 {
     Cache *instructionCache = new Cache(3, 256, 32, DIRECT_MAPPED, memBus);
+    instructionCache->type = "Instruction Cache";
     Cache *dataCache = new Cache(4, 512, 32, DIRECT_MAPPED, memBus);
+    dataCache->type = "Data Cache";
 
     MemoryRouter *router = new MemoryRouter(instructionCache, dataCache);
+    router->type = "Memory Router";
 
     Cpu *cpu = new Cpu(router);
 
@@ -89,6 +92,10 @@ int main()
         simulationClock.tick();
     }
     std::cout << "Program complete!\n";
+
+    // flush caches
+    flushCache(cpu0);
+    flushCache(cpu1);
 
     std::cout << "Analyzing memory state\n";
     for (int i = 0; i < ARRAY_SIZE; i++)

@@ -156,7 +156,7 @@ int main()
     Memory *memory = new Memory(100, 1024 * 8);
     for (uint32_t i = 0; i < memory->size; i += 4)
     {
-        memory->write(i, (void *)&i, sizeof(i));
+        memory->write(i, MFMT(i));
     }
 
     MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);

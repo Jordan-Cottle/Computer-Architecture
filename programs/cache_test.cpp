@@ -149,7 +149,7 @@ void testMemoryAccess()
     // Fill up cache
     for (uint32_t i = 0; i < cache->size; i += 4)
     {
-        processRequest(cache, i);
+        processRequest(cache, i, false);
         int data = -int(i);
         std::cout << "Setting " << str(data) << " into cache at " << str(i) << "\n";
         cache->write(i, MFMT(data));
@@ -160,6 +160,7 @@ void testMemoryAccess()
     {
         assert(cache->valid[i / cache->blockSize]);
         // Check right data was written
+        processRequest(cache, i, true);
         assert(cache->readInt(i) == -int(i));
     }
 
@@ -167,10 +168,11 @@ void testMemoryAccess()
     for (uint32_t i = 0; i < cache->size; i += 4)
     {
         uint32_t outOfCacheAddress = i + cache->size;
-        processRequest(cache, outOfCacheAddress);
-        cache->write(outOfCacheAddress, (void *)&outOfCacheAddress, sizeof(outOfCacheAddress));
+        processRequest(cache, outOfCacheAddress, false);
+        cache->write(outOfCacheAddress, MFMT(outOfCacheAddress));
 
         // Assert that value was updated even though cache was full
+        processRequest(cache, outOfCacheAddress, true);
         assert(cache->readUint(outOfCacheAddress) == outOfCacheAddress);
     }
 
@@ -238,7 +240,7 @@ void testReplacementPolicy()
     uint32_t evicted = cache->blockToEvict(cache->size * cache->associativity);
     assert(evicted == 1);
 
-    // Read index 1 value twice to make it the priority keep
+    // Read index 1 value twice to make it becomes the priority keep
     cache->readInt(cache->size);
     cache->readInt(cache->size);
 
@@ -439,7 +441,19 @@ void testMesiSignalGeneration()
     assert(local->mesiStates[index] == MODIFIED);
     assert(other->mesiStates[index] == INVALID);
     local->write(address, MFMT(val));
+    // Data cached, but not available in memory yet
+    assert(local->readInt(address) == val);
     assert(memory->readInt(address) != val);
+    errorHit = false;
+    try
+    {
+        other->readInt(address);
+    }
+    catch (AddressNotFound &error)
+    {
+        errorHit = true;
+    }
+    assert(errorHit);
 
     // Write miss, other cache in M
     processRequest(other, address, false);
@@ -448,19 +462,42 @@ void testMesiSignalGeneration()
     assert(memory->readInt(address) == val);
     val = 42;
     other->write(address, MFMT(val));
-    // assert(memory->readInt(address) != val);
+    assert(other->readInt(address) == val);
+    assert(memory->readInt(address) != val);
+    errorHit = false;
+    try
+    {
+        local->readInt(address);
+    }
+    catch (AddressNotFound &error)
+    {
+        errorHit = true;
+    }
+    assert(errorHit);
 
     // Other cache reads from its own modified state
     processRequest(other, address);
     assert(local->mesiStates[index] == INVALID);
     assert(other->mesiStates[index] == MODIFIED);
     assert(other->readInt(address) == val);
+    errorHit = false;
+    try
+    {
+        local->readInt(address);
+    }
+    catch (AddressNotFound &error)
+    {
+        errorHit = true;
+    }
+    assert(errorHit);
 
     // Read from local to trigger write back
     processRequest(local, address);
     assert(local->mesiStates[index] == SHARED);
     assert(other->mesiStates[index] == SHARED);
     assert(local->readInt(address) == val);
+    assert(other->readInt(address) == val);
+    assert(memory->readInt(address) == val);
 
     // Reset and read from local to set local to exclusive
     memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
@@ -475,6 +512,7 @@ void testMesiSignalGeneration()
     assert(local->mesiStates[index] == INVALID);
     assert(other->mesiStates[index] == MODIFIED);
     other->write(address, MFMT(val));
+    assert(other->readInt(address) == val);
     assert(memory->readInt(address) != val); // No write back yet
 }
 
@@ -486,7 +524,7 @@ void seedMemory()
         int datum = i;
         mockData[i] = datum;
         uint32_t memAddress = i * sizeof(int);
-        memory->write(memAddress, (void *)&datum, sizeof(datum));
+        memory->write(memAddress, MFMT(datum));
     }
     memBus = new MemoryBus(BUS_ARBITRATION_TIME, memory);
 }

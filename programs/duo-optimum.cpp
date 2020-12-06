@@ -224,6 +224,10 @@ SimulationResult runSimulation(CacheConfig iConfig, CacheConfig dConfig)
         simulationClock.tick();
     }
 
+    // flush caches
+    flushCache(cpu0);
+    flushCache(cpu1);
+
     for (int i = 0; i < ARRAY_SIZE; i++)
     {
         int memOffset = i * sizeof(float);

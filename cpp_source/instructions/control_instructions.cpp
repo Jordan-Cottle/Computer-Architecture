@@ -17,6 +17,7 @@ ControlInstruction::ControlInstruction(RawInstruction *instruction) : DecodedIns
 
 bool ControlInstruction::take(Cpu *cpu)
 {
+    INFO << "Jumping by " << str(this->offset(cpu)) << "\n";
     return true; // Default branch behavior is to always take
 }
 
@@ -30,12 +31,11 @@ void ControlInstruction::execute(Cpu *cpu)
     bool take = this->take(cpu);
     if (this->take(cpu) != cpu->branchSpeculated)
     {
-        OUT << "Incorrect branch prediction!\n";
+        DEBUG << "Incorrect branch prediction!\n";
         cpu->flush();
 
         if (take)
         {
-            OUT << "Jumping by " << str(this->offset(cpu)) << "\n";
             cpu->programCounter.jump(this->offset(cpu));
         }
         else
@@ -67,7 +67,7 @@ bool Bne::take(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
     int right = cpu->intRegister.read(this->rightIndex);
-    OUT << "Jumping by " << str(this->offset(cpu)) << " if " << str(left) << " != " << str(right) << "\n";
+    INFO << "Jumping by " << str(this->offset(cpu)) << " if " << str(left) << " != " << str(right) << "\n";
     return left != right;
 }
 
@@ -84,7 +84,7 @@ bool Blt::take(Cpu *cpu)
 {
     int left = cpu->intRegister.read(this->leftIndex);
     int right = cpu->intRegister.read(this->rightIndex);
-    OUT << "Jumping by " << str(this->offset(cpu)) << " if " << str(left) << " < " << str(right) << "\n";
+    INFO << "Jumping by " << str(this->offset(cpu)) << " if " << str(left) << " < " << str(right) << "\n";
     return left < right;
 }
 
@@ -125,7 +125,7 @@ void Jalr::execute(Cpu *cpu)
     if (this->offset(cpu) == 0)
     {
         // Is this how we're supposed to end the program??
-        OUT << "Return to PC 0 detected, program complete\n";
+        DEBUG << "Return to PC 0 detected, program complete\n";
         cpu->complete = true;
         return;
     }

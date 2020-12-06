@@ -18,7 +18,7 @@ MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, bool re
 
 std::string MemoryRequest::__str__()
 {
-    return "Memory request for address " + str(this->address) + " by " + this->device->type;
+    return "Memory request for address " + str(this->address) + " by " + str(this->device);
 }
 
 MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
@@ -166,17 +166,17 @@ void MemoryBus::process(Event *event)
                 continue; // Request already in progress
             }
 
-            OUT << "Processing " << str(request) << "\n";
+            DEBUG << "Processing " << str(request) << "\n";
 
             bool accepted = this->memory->request(request->address, request->device, request->read);
 
             if (accepted)
             {
-                OUT << request << " accepted\n";
+                DEBUG << request << " accepted\n";
                 request->requested = true;
             }
 
-            OUT << "Port " << str(port) << ": " << str(requestQueue->size()) << " event(s) left\n";
+            DEBUG << "Port " << str(port) << ": " << str(requestQueue->size()) << " event(s) left\n";
         }
 
         Event *nextProcess = new Event("ProcessRequests", simulationClock.cycle + this->accessTime, this);

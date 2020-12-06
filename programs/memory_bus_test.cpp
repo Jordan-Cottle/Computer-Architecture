@@ -54,7 +54,7 @@ int main()
     assert(testPipeline.lastEvent->type == "MemoryWriteReady");
 
     // Write a value to memory through the bus
-    bus.write(0, (void *)&PI, sizeof(PI));
+    bus.write(0, MFMT(PI));
     assert(testMemory->readFloat(0) == PI);
     assert(requestQueue->size() == 1);         // Memory request should be cleared
     assert(!requestQueue->front()->requested); // Next request should be ready, but not yet started.

@@ -10,9 +10,26 @@
 #include <string>
 #include <iostream>
 
-#define OUT    \
-    if (false) \
-    std::cout
+#define DEBUG          \
+    if (DEBUG_ENABLED) \
+    std::cout << "DEBUG -- "
+
+#define INFO          \
+    if (INFO_ENABLED) \
+    std::cout << "INFO -- "
+
+#define WARNING          \
+    if (WARNING_ENABLED) \
+    std::cout << "WARNING -- "
+
+#define ERROR          \
+    if (ERROR_ENABLED) \
+    std::cout << "ERROR -- "
+
+#define DEBUG_ENABLED false
+#define INFO_ENABLED false
+#define WARNING_ENABLED true
+#define ERROR_ENABLED true
 
 struct printable
 {
