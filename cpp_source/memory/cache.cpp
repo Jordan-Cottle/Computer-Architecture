@@ -37,6 +37,8 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     this->tags = std::vector<uint32_t>(blocks);
     this->lruBits = std::vector<bool>(blocks);
     this->mesiStates = std::vector<MesiState>(blocks);
+    this->previousMesiStates = std::vector<MesiState>(blocks);
+    this->memoryAddresses = std::vector<uint32_t>(blocks);
 
     for (uint32_t i = 0; i < blocks; i++)
     {
@@ -188,6 +190,14 @@ void Cache::loadBlock(uint32_t address)
     uint32_t blockIndex = this->blockToEvict(address);
     DEBUG << str(this) << " replacing block " << blockIndex << " in set " << this->index(address) << " to handle memory address " << str(address) << "\n";
 
+    if (this->valid.at(blockIndex) && this->previousMesiStates.at(blockIndex) == MODIFIED)
+    {
+
+        uint32_t previousAddress = this->memoryAddresses.at(blockIndex);
+        DEBUG << str(this) << " writing back block " << blockIndex << " in set " << this->index(address) << " to memory address " << str(previousAddress) << " to make room for " << str(address) << "\n";
+        this->writeBackBlock(blockIndex, previousAddress);
+    }
+
     uint32_t memoryStart = address ^ this->offset(address);
     uint32_t start = blockIndex * this->blockSize;
     for (uint32_t i = 0; i < this->blockSize; i += 4)
@@ -197,8 +207,23 @@ void Cache::loadBlock(uint32_t address)
         this->data->write(start + i, MFMT(data));
     }
 
-    this->valid[blockIndex] = true;
-    this->tags[blockIndex] = this->tag(address);
+    this->valid.at(blockIndex) = true;
+    this->tags.at(blockIndex) = this->tag(address);
+    this->memoryAddresses.at(blockIndex) = address;
+}
+
+void Cache::writeBackBlock(uint32_t blockIndex, uint32_t address)
+{
+    uint32_t cacheStart = blockIndex * this->blockSize;
+    DEBUG << "Writing back starting from cache address " << str(cacheStart) << "\n";
+
+    uint32_t memoryStart = address ^ this->offset(address);
+    for (uint32_t i = 0; i < this->blockSize; i += 4)
+    {
+        float data = this->data->readFloat(cacheStart + i);
+        DEBUG << "Writing back " << str(data) << " into memory at " << str(memoryStart + i) << "\n";
+        this->source->write(memoryStart + i, MFMT(data));
+    }
 }
 
 bool Cache::request(uint32_t address, SimulationDevice *device, bool read)
@@ -257,7 +282,6 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
             // read miss
             if (this->source->trackedBy(address, this) != NULL)
             {
-                // TODO: Get from that cache
                 this->setState(address, SHARED);
             }
             else
@@ -285,7 +309,6 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
                     this->setState(address, MODIFIED);
                     break;
                 case MODIFIED:
-                    // TODO handle handle delayed memory request sequence
                     this->source->broadcast(new MesiEvent(RWITM, address, this));
                     this->setState(address, MODIFIED);
                     break;
@@ -351,18 +374,10 @@ void Cache::process(Event *event)
     else if (event->type == "WriteBack")
     {
         event->handled = true;
-        uint32_t address = this->writeBackAddress;
-        uint32_t blockIndex = this->findBlock(address);
-        uint32_t cacheStart = blockIndex * this->blockSize;
+        uint32_t blockIndex = findBlock(this->writeBackAddress);
+        this->writeBackBlock(blockIndex, this->writeBackAddress);
 
-        uint32_t memoryStart = address ^ this->offset(address);
-        for (uint32_t i = 0; i < this->blockSize; i += 4)
-        {
-            uint32_t data = this->data->readUint(cacheStart + i);
-            this->source->write(memoryStart + i, MFMT(data));
-        }
-
-        this->setState(address, this->writeBackState);
+        this->setState(this->writeBackAddress, this->writeBackState);
     }
 
     MemoryInterface::process(event);
@@ -370,17 +385,17 @@ void Cache::process(Event *event)
 
 bool Cache::snoop(MesiEvent *mesiEvent)
 {
-    uint32_t blockIndex;
+    uint32_t address = mesiEvent->address;
+
+    MesiState state;
     try
     {
-        blockIndex = this->findBlock(mesiEvent->address);
+        state = this->state(address);
     }
     catch (AddressNotFound &error)
     {
         return false; // Cache is not tracking that address
     }
-
-    MesiState state = this->mesiStates.at(blockIndex);
 
     if (state == INVALID)
     {
@@ -390,19 +405,18 @@ bool Cache::snoop(MesiEvent *mesiEvent)
     switch (mesiEvent->signal)
     {
     case INVALIDATE:
-        this->mesiStates.at(blockIndex) = INVALID;
-        this->valid.at(blockIndex) = false;
+        this->setState(address, INVALID);
         break;
     case MEM_READ:
         switch (state)
         {
         case MODIFIED:
-            this->writeBackAddress = mesiEvent->address;
+            this->writeBackAddress = address;
             this->writeBackState = SHARED;
             throw new WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:
-            this->mesiStates.at(blockIndex) = SHARED;
+            this->setState(address, SHARED);
         default:
             break;
         }
@@ -416,8 +430,7 @@ bool Cache::snoop(MesiEvent *mesiEvent)
             throw new WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:
-            this->mesiStates.at(blockIndex) = INVALID;
-            this->valid.at(blockIndex) = false;
+            this->setState(address, INVALID);
         default:
             break;
         }
@@ -472,6 +485,10 @@ void Cache::setState(uint32_t address, MesiState state)
         // Find out what block will be evicted and set state preemptively
         index = this->blockToEvict(address);
     }
+
+    // Keep track of previously set state
+    MesiState lastState = this->mesiStates.at(index);
+    this->previousMesiStates.at(index) = lastState;
 
     DEBUG << str(this) << " setting state for address " << str(address) << " to " << stateName(state) << " from " << stateName(lastState) << "\n";
     this->mesiStates.at(index) = state;

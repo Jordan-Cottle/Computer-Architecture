@@ -26,8 +26,8 @@
     if (ERROR_ENABLED) \
     std::cout << "ERROR -- "
 
-#define DEBUG_ENABLED true
-#define INFO_ENABLED true
+#define DEBUG_ENABLED false
+#define INFO_ENABLED false
 #define WARNING_ENABLED true
 #define ERROR_ENABLED true
 

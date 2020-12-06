@@ -36,6 +36,8 @@ struct Cache : MemoryInterface
     std::vector<uint32_t> tags;
     std::vector<bool> lruBits;
     std::vector<MesiState> mesiStates;
+    std::vector<MesiState> previousMesiStates;
+    std::vector<uint32_t> memoryAddresses;
 
     uint32_t tagWidth;
     uint32_t tagMask;
@@ -73,6 +75,7 @@ struct Cache : MemoryInterface
     void updateLruState(uint32_t address);
     uint32_t blockToEvict(uint32_t index);
     void loadBlock(uint32_t address);
+    void writeBackBlock(uint32_t blockIndex, uint32_t address);
 
     bool request(uint32_t address, SimulationDevice *device, bool read = true);
     bool request(uint32_t address, SimulationDevice *device, bool read, bool reIssued);
