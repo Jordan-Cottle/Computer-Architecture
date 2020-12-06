@@ -57,11 +57,12 @@ struct Cache : MemoryInterface
 
     // Request tracking data
     bool outstandingMiss;
-    uint32_t addressRequested;
-    SimulationDevice *requestor;
+    MemoryRequest *activeRequest;
+    MemoryRequest *internalRequest;
+    MemoryRequest *blockLoadRequest;
 
     // Active write back request
-    uint32_t writeBackAddress;
+    MemoryRequest *writeBackRequest;
     MesiState writeBackState;
 
     Cache(uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source);
@@ -79,8 +80,8 @@ struct Cache : MemoryInterface
     void loadBlock(uint32_t address);
     void writeBackBlock(uint32_t blockIndex, uint32_t address);
 
-    bool request(uint32_t address, SimulationDevice *device, bool read = true);
-    bool request(uint32_t address, SimulationDevice *device, bool read, bool reIssued);
+    bool request(MemoryRequest *request);
+    bool request(MemoryRequest *request, bool reIssued);
     void process(Event *event);
 
     bool snoop(MesiEvent *mesiEvent);

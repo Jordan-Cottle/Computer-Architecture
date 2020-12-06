@@ -104,9 +104,13 @@ void Fetch::process(Event *event)
     if (event->type == "MemoryRequest")
     {
         event->handled = true;
-        bool accepted = this->cpu->memory->request(this->cpu->programCounter.value, this);
+        assert(this->activeRequest == NULL);
+        this->activeRequest = new MemoryRequest(this->cpu->programCounter.value, this);
+        bool accepted = this->cpu->memory->request(this->activeRequest);
         if (!accepted)
         {
+            delete this->activeRequest;
+            this->activeRequest = NULL;
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
             masterEventQueue.push(event);
         }
@@ -125,6 +129,8 @@ void Fetch::process(Event *event)
     {
         event->handled = true;
         this->processInstruction();
+        delete this->activeRequest;
+        this->activeRequest = NULL;
     }
 
     Pipeline::process(event);

@@ -13,6 +13,7 @@
 struct Execute : Pipeline
 {
 
+    MemoryRequest *activeRequest;
     Cpu *cpu;
     Execute(Cpu *cpu);
 

@@ -25,10 +25,11 @@ int main()
     partition = memory.partition(7);
     assert(partition == 1);
 
-    bool accepted = memory.request(0, &testPipeline);
+    MemoryRequest request = MemoryRequest(0, &testPipeline);
+    bool accepted = memory.request(&request);
     assert(accepted);
     assert(memory.busy[0] == true);
-    accepted = memory.request(0, &testPipeline);
+    accepted = memory.request(&request);
     assert(!accepted);
 
     assert(masterEventQueue.events.top()->type == "MemoryReadReady");

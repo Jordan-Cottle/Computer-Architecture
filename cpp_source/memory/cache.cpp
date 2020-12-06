@@ -38,6 +38,10 @@ void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, u
     this->type = "Cache";
     this->source = source;
     this->outstandingMiss = false;
+    this->activeRequest = NULL;
+    this->blockLoadRequest = NULL;
+    this->internalRequest = NULL;
+    this->writeBackRequest = NULL;
 
     if (size % blockSize != 0)
     {
@@ -45,6 +49,7 @@ void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, u
     }
 
     uint32_t blocks = size / blockSize;
+    // TODO this should really be a vector of CacheBlock objects
     this->valid = std::vector<bool>(blocks);
     this->tags = std::vector<uint32_t>(blocks);
     this->lruBits = std::vector<bool>(blocks);
@@ -238,19 +243,21 @@ void Cache::writeBackBlock(uint32_t blockIndex, uint32_t address)
     }
 }
 
-bool Cache::request(uint32_t address, SimulationDevice *device, bool read)
+bool Cache::request(MemoryRequest *request)
 {
     this->accesses += 1;
-    return this->request(address, device, read, false);
+    return this->request(request, false);
 }
 
-bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool reIssued)
+bool Cache::request(MemoryRequest *request, bool reIssued)
 {
+    assert(this->activeRequest == NULL || (reIssued && this->activeRequest == request));
+    this->activeRequest = request;
     uint32_t cacheAddress;
-    this->requestor = device;
+    uint32_t address = request->address;
     bool accepted;
 
-    DEBUG << str(this) << " received " << (read ? "read" : "write") << " request for address " << str(address) << "\n";
+    DEBUG << str(this) << " received " << str(request) << "\n";
     try
     {
         cacheAddress = this->cacheAddress(address);
@@ -281,15 +288,16 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         }
 
         // Request block from memory
-        accepted = this->source->request(address, this, read);
+        assert(this->blockLoadRequest == NULL);
+        this->blockLoadRequest = new MemoryRequest(address, this);
+        accepted = this->source->request(this->blockLoadRequest);
         this->outstandingMiss = true;
-        this->addressRequested = address;
         if (!accepted)
         {
             throw std::logic_error("Caches do not handle downstream rejecting it's memory request properly!");
         }
 
-        if (read)
+        if (request->read)
         {
             // read miss
             if (this->source->trackedBy(address, this) != NULL)
@@ -332,7 +340,11 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         return accepted;
     }
 
-    accepted = this->data->request(cacheAddress, this, read);
+    DEBUG << this << " sending internal request for address " << str(cacheAddress) << " to handle external request for " << str(address) << "\n";
+    assert(this->internalRequest == NULL);
+    // Translate request to target internal memory bank
+    this->internalRequest = new MemoryRequest(cacheAddress, this, request->read);
+    accepted = this->data->request(this->internalRequest);
 
     if (!accepted)
     {
@@ -343,7 +355,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
     {
         // HIT
         this->hits += 1;
-        if (!read)
+        if (!request->read)
         {
             // write hit
             switch (this->state(address))
@@ -373,23 +385,36 @@ void Cache::process(Event *event)
 
         if (this->outstandingMiss)
         {
-            this->loadBlock(this->addressRequested);
+            this->loadBlock(this->activeRequest->address);
             this->outstandingMiss = false;
-            this->request(this->addressRequested, this->requestor, event->type == "MemoryReadReady", true); // Re trigger request
+            this->request(this->activeRequest, true); // Re trigger request
+            delete this->blockLoadRequest;
+            this->blockLoadRequest = NULL;
         }
         else
         {
-            Event *memoryReady = new Event(event->type, event->time, this->requestor, HIGH);
+            DEBUG << this << " internal request for address " << str(this->internalRequest->address) << " completed, sending ready event to " << str(this->activeRequest->device) << "\n";
+            if (this->activeRequest == NULL)
+            {
+                ERROR << "Active request not set!!\n";
+            }
+            Event *memoryReady = new Event(event->type, event->time, this->activeRequest->device, HIGH);
             masterEventQueue.push(memoryReady);
+            delete this->internalRequest;
+            this->internalRequest = NULL;
+            this->activeRequest = NULL;
         }
     }
     else if (event->type == "WriteBack")
     {
         event->handled = true;
-        uint32_t blockIndex = findBlock(this->writeBackAddress);
-        this->writeBackBlock(blockIndex, this->writeBackAddress);
+        uint32_t address = this->writeBackRequest->address;
+        uint32_t blockIndex = findBlock(address);
+        this->writeBackBlock(blockIndex, address);
 
-        this->setState(this->writeBackAddress, this->writeBackState);
+        this->setState(address, this->writeBackState);
+        delete this->writeBackRequest;
+        this->writeBackRequest = NULL;
     }
 
     MemoryInterface::process(event);
@@ -423,9 +448,8 @@ bool Cache::snoop(MesiEvent *mesiEvent)
         switch (state)
         {
         case MODIFIED:
-            this->writeBackAddress = address;
             this->writeBackState = SHARED;
-            throw new WriteBack(mesiEvent->address, this);
+            throw WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:
             this->setState(address, SHARED);
@@ -437,9 +461,8 @@ bool Cache::snoop(MesiEvent *mesiEvent)
         switch (state)
         {
         case MODIFIED:
-            this->writeBackAddress = mesiEvent->address;
             this->writeBackState = INVALID;
-            throw new WriteBack(mesiEvent->address, this);
+            throw WriteBack(mesiEvent->address, this);
         case EXCLUSIVE:
         case SHARED:
             this->setState(address, INVALID);

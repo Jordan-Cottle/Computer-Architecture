@@ -16,12 +16,14 @@ std::vector<int> mockData = std::vector<int>(memory->size / 4);
 void testEventHandling()
 {
     Cache *cache = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
-    cache->request(0, &testPipeline);
+    MemoryRequest request = MemoryRequest(0, &testPipeline);
+    cache->request(&request);
 
     // Compulsory miss, cache reads from memory through memBus
     assert(masterEventQueue.size() == 1);
+    DEBUG << masterEventQueue << "\n";
     Event *nextEvent = masterEventQueue.pop();
-    std::cout << nextEvent << "\n";
+    INFO << nextEvent << " selected\n";
     assert(nextEvent->type == "ProcessRequests");
     assert(nextEvent->time == (ulong)memBus->accessTime); // Arbitration delay
     assert(nextEvent->device == memBus);
@@ -30,13 +32,16 @@ void testEventHandling()
     nextEvent->device->process(nextEvent);
 
     // Bus keeps doing it's thing,  don't process it's event since we don't need any more bus interactions
+    DEBUG << masterEventQueue << "\n";
     nextEvent = masterEventQueue.pop();
+    INFO << nextEvent << " selected\n";
     assert(nextEvent->type == "ProcessRequests");
     assert(nextEvent->time == simulationClock.cycle + memBus->accessTime);
 
     assert(masterEventQueue.size() == 1);
+    DEBUG << masterEventQueue << "\n";
     nextEvent = masterEventQueue.pop();
-    std::cout << nextEvent << "\n";
+    INFO << nextEvent << " selected\n";
     assert(nextEvent->type == "MemoryReadReady");
     assert(nextEvent->time == (ulong)memory->accessTime + memBus->accessTime); // Long delay for cache miss
     assert(nextEvent->device == cache);
@@ -46,7 +51,9 @@ void testEventHandling()
 
     // Internal cache reading from its own memory for a read hit
     assert(masterEventQueue.size() == 1);
+    DEBUG << masterEventQueue << "\n";
     nextEvent = masterEventQueue.pop();
+    INFO << nextEvent << " selected\n";
     assert(nextEvent->type == "MemoryReadReady");                                           // Same event type
     assert(nextEvent->time == memory->accessTime + cache->accessTime + memBus->accessTime); // Scheduled after cache access time
     assert(nextEvent->device == cache);                                                     // Passed back to cache (this is the actual cache read)
@@ -56,7 +63,9 @@ void testEventHandling()
 
     // Test pipeline now gets its message after memDelay + cacheDelay
     assert(masterEventQueue.size() == 1);
+    DEBUG << masterEventQueue << "\n";
     nextEvent = masterEventQueue.pop();
+    INFO << nextEvent << "\n";
     assert(nextEvent->type == "MemoryReadReady");     // Same event type
     assert(nextEvent->time == simulationClock.cycle); // Scheduled for same time as cache internal read
     assert(nextEvent->device == &testPipeline);       // Passed back to original requesting device
@@ -119,7 +128,8 @@ void testBlockLoad()
 
 void processRequest(Cache *cache, uint32_t address, bool read = true, SimulationDevice *requestor = &testPipeline)
 {
-    cache->request(address, requestor, read);
+    MemoryRequest request = MemoryRequest(address, requestor, read);
+    cache->request(&request);
 
     // Trigger membus process event request
     simulationClock.cycle = masterEventQueue.top()->time;
@@ -303,11 +313,13 @@ void testMesiStateChange()
     {
         local->snoop(mesiEvent);
     }
-    catch (WriteBack *writeBack)
+    catch (WriteBack &writeBack)
     {
         found = true;
         writeBackTriggered = true;
         // Emulate memory bus handling
+        Cache *cache = writeBack.cache;
+        cache->writeBackRequest = new MemoryRequest(writeBack.address, cache, false);
         Event *writeBackEvent = new Event("WriteBack", simulationClock.cycle, local);
         masterEventQueue.push(writeBackEvent);
         masterEventQueue.tick(simulationClock.cycle);
@@ -342,11 +354,13 @@ void testMesiStateChange()
     {
         local->snoop(mesiEvent);
     }
-    catch (WriteBack *writeBack)
+    catch (WriteBack &writeBack)
     {
         found = true;
         writeBackTriggered = true;
         // Emulate memory bus handling
+        Cache *cache = writeBack.cache;
+        cache->writeBackRequest = new MemoryRequest(writeBack.address, cache, false);
         Event *writeBackEvent = new Event("WriteBack", simulationClock.cycle, local);
         masterEventQueue.push(writeBackEvent);
         masterEventQueue.tick(simulationClock.cycle);
