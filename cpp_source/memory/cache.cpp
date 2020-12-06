@@ -3,6 +3,8 @@
     Created: 11/14/2020
 */
 
+#include <math.h>
+
 #include "cache.h"
 
 #include "binary.h"
@@ -21,7 +23,17 @@ WriteBack::WriteBack(uint32_t address, Cache *cache) : std::runtime_error(str(ca
     this->cache = cache;
 }
 
+Cache::Cache(uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source) : MemoryInterface(uint32_t(ceil(log2(size / float(blockSize)))) * associativity, size)
+{
+    initialize(this->accessTime, size, blockSize, associativity, source);
+}
+
 Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source) : MemoryInterface(accessTime, size)
+{
+    initialize(accessTime, size, blockSize, associativity, source);
+}
+
+void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source)
 {
     this->type = "Cache";
     this->source = source;
