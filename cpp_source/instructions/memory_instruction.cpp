@@ -40,7 +40,7 @@ void Store::execute(Cpu *cpu)
     {
         float data = cpu->fpRegister.read(this->targetRegisterIndex);
 
-        INFO << "Storing: " << data << " into memory address " << str(memAddress) << "\n";
+        INFO << "Storing float: " << data << " into memory address " << str(memAddress) << "\n";
         cpu->memory->write(memAddress, MFMT(data));
     }
     else
@@ -51,6 +51,7 @@ void Store::execute(Cpu *cpu)
         }
 
         uint32_t data = cpu->intRegister.read(this->targetRegisterIndex);
+        INFO << "Storing int: " << data << " into memory address " << str(memAddress) << "\n";
 
         cpu->memory->write(memAddress, (void *)&data, this->width);
     }
@@ -89,7 +90,7 @@ void Load::execute(Cpu *cpu)
     {
         float data = cpu->memory->readFloat(memAddress);
 
-        INFO << "Loading " << str(data) << " into float register " << str(this->targetRegisterIndex) << "\n";
+        INFO << "Loading float " << str(data) << " into float register " << str(this->targetRegisterIndex) << " from memory address " << str(memAddress) << "\n";
         cpu->fpRegister.write(this->targetRegisterIndex, data);
     }
     else
@@ -120,7 +121,7 @@ void Load::execute(Cpu *cpu)
             data = sign_extend(data, index);
         }
 
-        INFO << "Loading " << str(data) << " into integer register " << str(this->targetRegisterIndex) << "\n";
+        INFO << "Loading integer " << str(data) << " into integer register " << str(this->targetRegisterIndex) << " from memory address " << str(memAddress) << "\n";
         cpu->intRegister.write(this->targetRegisterIndex, data);
     }
 }

@@ -165,7 +165,7 @@ uint32_t Cache::blockToEvict(uint32_t address)
         else if (this->tags[blockIndex] == tag)
         {
             // This probably should never happen
-            WARNING << "Cache reloading block " << blockIndex << "\n";
+            WARNING << str(this) << " reloading block " << blockIndex << "\n";
             return blockIndex;
         }
     }
@@ -186,7 +186,7 @@ uint32_t Cache::blockToEvict(uint32_t address)
 void Cache::loadBlock(uint32_t address)
 {
     uint32_t blockIndex = this->blockToEvict(address);
-    DEBUG << "Set " << this->index(address) << " replacing block " << blockIndex % this->associativity << "\n";
+    DEBUG << str(this) << " replacing block " << blockIndex << " in set " << this->index(address) << " to handle memory address " << str(address) << "\n";
 
     uint32_t memoryStart = address ^ this->offset(address);
     uint32_t start = blockIndex * this->blockSize;
@@ -212,6 +212,8 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
     uint32_t cacheAddress;
     this->requestor = device;
     bool accepted;
+
+    DEBUG << str(this) << " received " << (read ? "read" : "write") << " request for address " << str(address) << "\n";
     try
     {
         cacheAddress = this->cacheAddress(address);
@@ -436,6 +438,28 @@ MesiState Cache::state(uint32_t address)
     }
 }
 
+std::string stateName(MesiState state)
+{
+    std::string stateName;
+    switch (state)
+    {
+    case MODIFIED:
+        stateName = "MODIFIED";
+        break;
+    case EXCLUSIVE:
+        stateName = "EXCLUSIVE";
+        break;
+    case SHARED:
+        stateName = "SHARED";
+        break;
+    case INVALID:
+        stateName = "INVALID";
+        break;
+    }
+
+    return stateName;
+}
+
 void Cache::setState(uint32_t address, MesiState state)
 {
     uint32_t index;
@@ -449,6 +473,7 @@ void Cache::setState(uint32_t address, MesiState state)
         index = this->blockToEvict(address);
     }
 
+    DEBUG << str(this) << " setting state for address " << str(address) << " to " << stateName(state) << " from " << stateName(lastState) << "\n";
     this->mesiStates.at(index) = state;
 
     if (this->mesiStates.at(index) == INVALID)

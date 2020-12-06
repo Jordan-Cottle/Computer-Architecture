@@ -18,7 +18,7 @@ MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, bool re
 
 std::string MemoryRequest::__str__()
 {
-    return "Memory request for address " + str(this->address) + " by " + this->device->type;
+    return "Memory request for address " + str(this->address) + " by " + str(this->device);
 }
 
 MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
