@@ -9,18 +9,6 @@
 #include "simulation.h"
 using namespace Simulation;
 
-MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, bool read) : device(device)
-{
-    this->address = address;
-    this->read = read;
-    this->requested = false;
-}
-
-std::string MemoryRequest::__str__()
-{
-    return "Memory request for address " + str(this->address) + " by " + str(this->device);
-}
-
 MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
 {
     this->signal = signal;
@@ -139,9 +127,9 @@ uint32_t MemoryBus::port(uint32_t address)
     return this->memory->partition(address);
 }
 
-bool MemoryBus::request(uint32_t address, SimulationDevice *device, bool read)
+bool MemoryBus::request(MemoryRequest *request)
 {
-    this->requests.at(this->port(address))->push_back(new MemoryRequest(address, device, read));
+    this->requests.at(this->port(request->address))->push_back(request);
 
     return true;
 }
@@ -161,19 +149,20 @@ void MemoryBus::process(Event *event)
             }
 
             MemoryRequest *request = requestQueue->front();
-            if (request->requested)
+            if (request->inProgress)
             {
+                DEBUG << "Memory bus waiting for " << request << " to complete\n";
                 continue; // Request already in progress
             }
 
             DEBUG << "Processing " << str(request) << "\n";
 
-            bool accepted = this->memory->request(request->address, request->device, request->read);
+            bool accepted = this->memory->request(request);
 
             if (accepted)
             {
                 DEBUG << request << " accepted\n";
-                request->requested = true;
+                assert(request->inProgress);
             }
 
             DEBUG << "Port " << str(port) << ": " << str(requestQueue->size()) << " event(s) left\n";
@@ -207,12 +196,10 @@ void MemoryBus::clearRequest(uint32_t address)
         }
     }
 
-    if (requestQueue->empty() || !request->requested)
+    if (!requestQueue->empty() && request->inProgress)
     {
-        return; // Multiple read/write calls from single request
+        requestQueue->pop_front();
     }
-    delete request;
-    requestQueue->pop_front();
 
     for (auto queue : this->requests)
     {

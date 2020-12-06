@@ -21,10 +21,10 @@ MemoryInterface *MemoryRouter::selectMemoryDevice(uint32_t address)
     return this->dataCache;
 }
 
-bool MemoryRouter::request(uint32_t address, SimulationDevice *device, bool read)
+bool MemoryRouter::request(MemoryRequest *request)
 {
-    MemoryInterface *memoryDevice = this->selectMemoryDevice(address);
-    return memoryDevice->request(address, device, read);
+    MemoryInterface *memoryDevice = this->selectMemoryDevice(request->address);
+    return memoryDevice->request(request);
 }
 
 uint32_t MemoryRouter::readUint(uint32_t address)

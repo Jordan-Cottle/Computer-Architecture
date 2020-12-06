@@ -7,6 +7,19 @@
 #include "simulation.h"
 using namespace Simulation;
 
+MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, bool read) : device(device)
+{
+    this->address = address;
+    this->read = read;
+    this->inProgress = false;
+    this->canceled = false;
+}
+
+std::string MemoryRequest::__str__()
+{
+    return std::string("Memory ") + (this->read ? "read" : "write") + " request for address " + str(this->address) + " by " + this->device->type;
+}
+
 std::string HEX_CHARS[16] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
 
 MemoryInterface::MemoryInterface(uint32_t accessTime, uint32_t size) : SimulationDevice("Memory")
@@ -65,8 +78,9 @@ uint32_t Memory::partition(uint32_t address)
     return i;
 }
 
-bool Memory::request(uint32_t address, SimulationDevice *device, bool read)
+bool Memory::request(MemoryRequest *request)
 {
+    uint32_t address = request->address;
     this->checkBounds(address);
     uint32_t partition = this->partition(address);
 
@@ -78,15 +92,16 @@ bool Memory::request(uint32_t address, SimulationDevice *device, bool read)
     this->busy[partition] = true;
 
     Event *event;
-    if (read)
+    if (request->read)
     {
-        event = new Event("MemoryReadReady", simulationClock.cycle + this->accessTime, device);
+        event = new Event("MemoryReadReady", simulationClock.cycle + this->accessTime, request->device);
     }
     else
     {
-        event = new Event("MemoryWriteReady", simulationClock.cycle + this->accessTime, device);
+        event = new Event("MemoryWriteReady", simulationClock.cycle + this->accessTime, request->device);
     }
 
+    request->inProgress = true;
     masterEventQueue.push(event);
 
     return true;

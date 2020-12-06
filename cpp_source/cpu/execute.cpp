@@ -67,6 +67,8 @@ void Execute::process(Event *event)
         {
             INFO << "Execute executing instruction: " << instruction << "\n";
             instruction->execute(this->cpu);
+            delete this->activeRequest;
+            this->activeRequest = NULL;
 
             // Decoded instruction use complete. No further reference to it will be created
             delete instruction;
@@ -78,9 +80,13 @@ void Execute::process(Event *event)
     {
         event->handled = true;
         Load *load = (Load *)this->staged();
-        bool accepted = this->cpu->memory->request(load->memoryAddress(this->cpu), this);
+        assert(this->activeRequest == NULL);
+        this->activeRequest = new MemoryRequest(load->memoryAddress(this->cpu), this);
+        bool accepted = this->cpu->memory->request(this->activeRequest);
         if (!accepted)
         {
+            delete this->activeRequest;
+            this->activeRequest = NULL;
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
             masterEventQueue.push(event);
         }

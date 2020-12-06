@@ -38,18 +38,6 @@ struct MesiEvent
     MesiEvent(MesiSignal signal, uint32_t address, Cache *originator);
 };
 
-struct MemoryRequest : printable
-{
-    uint32_t address;
-    SimulationDevice *device;
-    bool read;
-    bool requested;
-
-    MemoryRequest(uint32_t address, SimulationDevice *device, bool read);
-
-    std::string __str__();
-};
-
 struct Cache;
 
 // Use Memory Interface to keep it compatible with cpu0.s simulation
@@ -67,7 +55,7 @@ struct MemoryBus : MemoryInterface
     Cache *trackedBy(uint32_t address, Cache *local);
 
     uint32_t port(uint32_t address);
-    bool request(uint32_t address, SimulationDevice *device, bool read = true);
+    bool request(MemoryRequest *request);
     void process(Event *event);
     void clearRequest(uint32_t address);
 

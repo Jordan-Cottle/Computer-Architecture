@@ -7,10 +7,11 @@
 #define __STORE__
 
 #include "pipeline.h"
+#include "sim_memory.h"
 
 struct StorePipeline : Pipeline
 {
-
+    MemoryRequest *activeRequest;
     Cpu *cpu;
     StorePipeline(Cpu *cpu);
 

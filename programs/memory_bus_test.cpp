@@ -14,9 +14,12 @@ int main()
 
     // Bus should accept all memory requests
     uint32_t address = 0;
-    bool accepted = bus.request(address, &testPipeline, false);
+    MemoryRequest writeRequest = MemoryRequest(address, &testPipeline, false);
+    MemoryRequest readRequest = MemoryRequest(address, &fetchUnit);
+
+    bool accepted = bus.request(&writeRequest);
     assert(accepted);
-    accepted = bus.request(address, &fetchUnit);
+    accepted = bus.request(&readRequest);
     assert(accepted);
 
     // Port for this request should be same as partition in memory
@@ -37,7 +40,7 @@ int main()
         std::cout << masterEventQueue << "\n";
         masterEventQueue.tick(simulationClock.cycle);
         std::cout << "Requests left: " << requestQueue->size() << "\n";
-        assert(requestQueue->front()->requested); // Request should be in progress.
+        assert(requestQueue->front()->inProgress); // Request should be in progress.
         assert(testPipeline.lastEvent == NULL);
         simulationClock.tick();
     }
@@ -56,14 +59,14 @@ int main()
     // Write a value to memory through the bus
     bus.write(0, MFMT(PI));
     assert(testMemory->readFloat(0) == PI);
-    assert(requestQueue->size() == 1);         // Memory request should be cleared
-    assert(!requestQueue->front()->requested); // Next request should be ready, but not yet started.
+    assert(requestQueue->size() == 1);          // Memory request should be cleared
+    assert(!requestQueue->front()->inProgress); // Next request should be ready, but not yet started.
 
     // Finish processing events in this cycle
     assert(masterEventQueue.top()->type == "ProcessRequests");
     assert(masterEventQueue.top()->time == simulationClock.cycle);
     masterEventQueue.tick(simulationClock.cycle);
-    assert(requestQueue->front()->requested); // Next request should be started.
+    assert(requestQueue->front()->inProgress); // Next request should be started.
 
     // Remove process requests since test no longer needs it. This effectively kills the memory bus until it is started again
     assert(masterEventQueue.top()->type == "ProcessRequests"); // Bus should keep trying to process requests

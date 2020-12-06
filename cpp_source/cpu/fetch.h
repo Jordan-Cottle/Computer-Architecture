@@ -13,6 +13,7 @@ struct Fetch;
 
 struct Fetch : Pipeline
 {
+    MemoryRequest *activeRequest;
     Cpu *cpu;
     Fetch(Cpu *cpu);
 

@@ -45,6 +45,8 @@ void StorePipeline::process(Event *event)
         Store *instruction = (Store *)this->staged();
         INFO << "Store processing instruction: " << instruction << "\n";
         instruction->execute(this->cpu);
+        delete this->activeRequest;
+        this->activeRequest = NULL;
 
         // No further reference to instruction will be created
         delete instruction;
@@ -53,9 +55,12 @@ void StorePipeline::process(Event *event)
     {
         event->handled = true;
         Store *store = (Store *)this->staged();
-        bool accepted = this->cpu->memory->request(store->memoryAddress(this->cpu), this, false);
+        assert(this->activeRequest == NULL);
+        this->activeRequest = new MemoryRequest(store->memoryAddress(this->cpu), this, false);
+        bool accepted = this->cpu->memory->request(this->activeRequest);
         if (!accepted)
         {
+            delete this->activeRequest;
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
             masterEventQueue.push(event);
         }
