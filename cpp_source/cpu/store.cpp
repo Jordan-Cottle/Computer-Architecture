@@ -23,12 +23,12 @@ void StorePipeline::tick()
 
     if (this->free())
     {
-        INFO << "No instruction to store\n";
+        DEBUG << "No instruction to store\n";
         return;
     }
     if (this->busy())
     {
-        INFO << "Store continuing to work on its task\n";
+        DEBUG << "Store continuing to work on its task\n";
         return;
     }
     this->_busy = true;

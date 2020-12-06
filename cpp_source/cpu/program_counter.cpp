@@ -13,7 +13,7 @@ ProgramCounter::ProgramCounter()
     this->step = 1;
 }
 
-ProgramCounter::ProgramCounter(int memoryOffset)
+ProgramCounter::ProgramCounter(uint32_t memoryOffset)
 {
     this->value = 0;
     this->step = memoryOffset;
@@ -25,16 +25,16 @@ ProgramCounter ProgramCounter::operator++()
     return *this;
 }
 
-bool ProgramCounter::operator==(int value)
+bool ProgramCounter::operator==(uint32_t value)
 {
     return this->value == value;
 }
 
-void ProgramCounter::jump(int destination)
+void ProgramCounter::jump(uint32_t offset)
 {
-    assert(destination % this->step == 0);
-    DEBUG << "Jumping a distance of " << str(destination) << "\n";
-    this->value += destination;
+    assert(offset % this->step == 0);
+    DEBUG << "Jumping a distance of " << str(offset) << "\n";
+    this->value += offset;
 }
 
 std::string ProgramCounter::__str__()
