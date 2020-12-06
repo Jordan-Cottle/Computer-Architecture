@@ -24,7 +24,7 @@ SHELL = /usr/bin/python3
 .ONESHELL:
 .PHONY=build,clean,run,tests,cpu0,duo-core,assignment4,assignment5,best_cache
 
-assignment5: ${BINARIES} gauss-blur.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
+assignment5: ${BINARIES} gauss-blur.exe gauss-cached.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
 	import os
 	os.system("./gauss-blur.exe")
 
@@ -32,6 +32,12 @@ assignment5: ${BINARIES} gauss-blur.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py ${DATA_DIR}/MAT_A_DATA.txt original.png")
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py convolution.txt convolution.png")
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py output.txt output.png")
+
+	input("Cacheless blur simulation complete, press enter to continue")
+
+	os.system("./gauss-cached.exe")
+	os.system("${VPY} ${TOOLS_DIR}/make_image.py cached-convolution.txt cached-convolution.png")
+	os.system("${VPY} ${TOOLS_DIR}/make_image.py cached-output.txt cached-output.png")
 
 assignment4: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe duo-optimum.exe memory_trace.dat
 	import os
