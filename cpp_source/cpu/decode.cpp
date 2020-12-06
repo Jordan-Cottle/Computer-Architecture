@@ -127,17 +127,17 @@ void Decode::tick()
 
     if (this->free())
     {
-        INFO << "No instruction to decode\n";
+        DEBUG << "No instruction to decode\n";
         return;
     }
     if (this->next->busy())
     {
-        INFO << "Decode waiting because next stage is busy\n";
+        DEBUG << "Decode waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        INFO << "Decode continuing to work on its task\n";
+        DEBUG << "Decode continuing to work on its task\n";
         return;
     }
     this->_busy = true;

@@ -21,17 +21,17 @@ void Execute::tick()
 
     if (this->free())
     {
-        INFO << "No instruction to execute\n";
+        DEBUG << "No instruction to execute\n";
         return;
     }
     if (this->next->busy())
     {
-        INFO << "Execute waiting because next stage is busy\n";
+        DEBUG << "Execute waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        INFO << "Execute continuing to work on its task\n";
+        DEBUG << "Execute continuing to work on its task\n";
         return;
     }
     this->_busy = true;

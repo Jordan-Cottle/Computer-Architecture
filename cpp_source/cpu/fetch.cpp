@@ -23,17 +23,17 @@ void Fetch::tick()
 
     if (this->next->busy())
     {
-        INFO << "Fetch waiting because next stage is busy\n";
+        DEBUG << "Fetch waiting because next stage is busy\n";
         return;
     }
     if (this->busy())
     {
-        INFO << "Fetch continuing to work on its task\n";
+        DEBUG << "Fetch continuing to work on its task\n";
         return;
     }
     if (this->outstandingRequest)
     {
-        INFO << "Fetch unit not requesting because it already has an outstanding request\n";
+        DEBUG << "Fetch unit not requesting because it already has an outstanding request\n";
         return;
     }
 

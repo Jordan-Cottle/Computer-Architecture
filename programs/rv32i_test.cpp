@@ -4,12 +4,12 @@
 #include "control_instructions.h"
 #include "memory_instruction.h"
 
-constexpr int FOO = 0;
-constexpr int BAR = 40;
+constexpr uint32_t FOO = 0;
+constexpr uint32_t BAR = 40;
 
 int main()
 {
-    int pc = 0;
+    uint32_t pc = 0;
     Memory *testRam = new Memory(0, MEMORY_SIZE);
     Cpu *testCpu = new Cpu(testRam);
 
@@ -46,8 +46,9 @@ int main()
     Jump jal = Jump(&instruction);
     jal.execute(testCpu);
 
-    assert(jal.offset(testCpu) == FOO - pc);
-    assert(testCpu->intRegister.read(1) == pc + 4);
+    int expectedOffset = FOO - pc;
+    assert(jal.offset(testCpu) == expectedOffset);
+    assert(testCpu->intRegister.read(1) == (int)pc + 4);
     assert(testCpu->programCounter.value == FOO);
 
     // JALR  # 12
@@ -56,15 +57,18 @@ int main()
     testCpu->jumpedFrom = pc; // Mock Fetch unit behavior
     instruction = RawInstruction(testRam->readUint(pc));
     Jalr jalr = Jalr(&instruction);
-    int regOffset = 0;
+    uint32_t regOffset = 0;
     testCpu->intRegister.write(1, regOffset);
-    assert(jalr.offset(testCpu) == BAR - pc + regOffset);
+    expectedOffset = BAR - pc + regOffset;
+    assert(jalr.offset(testCpu) == expectedOffset);
     regOffset = 4;
     testCpu->intRegister.write(1, regOffset);
-    assert(jalr.offset(testCpu) == BAR - pc + regOffset);
+    expectedOffset = BAR - pc + regOffset;
+    assert(jalr.offset(testCpu) == expectedOffset);
     regOffset = -4;
     testCpu->intRegister.write(1, regOffset);
-    assert(jalr.offset(testCpu) == BAR - pc + regOffset);
+    expectedOffset = BAR - pc + regOffset;
+    assert(jalr.offset(testCpu) == expectedOffset);
     jalr.execute(testCpu);
 
     assert(testCpu->programCounter.value == BAR + regOffset);
@@ -81,7 +85,8 @@ int main()
     testCpu->jumpedFrom = pc; // Mock Fetch unit behavior
     instruction = RawInstruction(testRam->readUint(pc));
     Bne bne = Bne(&instruction);
-    assert(bne.offset(testCpu) == FOO - pc);
+    expectedOffset = FOO - pc;
+    assert(bne.offset(testCpu) == expectedOffset);
 
     testCpu->intRegister.write(1, 10);
     testCpu->intRegister.write(2, 11);
@@ -100,7 +105,8 @@ int main()
     testCpu->jumpedFrom = pc; // Mock Fetch unit behavior
     instruction = RawInstruction(testRam->readUint(pc));
     Blt blt = Blt(&instruction);
-    assert(blt.offset(testCpu) == BAR - pc);
+    expectedOffset = BAR - pc;
+    assert(blt.offset(testCpu) == expectedOffset);
 
     // reset predictor so branch triggers in execute
     testCpu->branchSpeculated = false;

@@ -49,5 +49,5 @@
 *.json
 *.png
 *.dat
-output.txt
-convolution.txt
+*output.txt
+*convolution.txt

@@ -12,15 +12,15 @@ struct ProgramCounter : printable
 {
 
     int step;
-    int value;
+    uint32_t value;
 
     ProgramCounter();
-    ProgramCounter(int memoryOffset);
+    ProgramCounter(uint32_t memoryOffset);
 
     ProgramCounter operator++();
-    bool operator==(int value);
+    bool operator==(uint32_t value);
 
-    void jump(int destination);
+    void jump(uint32_t offset);
 
     std::string __str__();
 };
