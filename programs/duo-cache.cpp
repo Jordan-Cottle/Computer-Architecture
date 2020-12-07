@@ -4,17 +4,18 @@ using namespace Simulation;
 #include "cache.h"
 #include "memory_router.h"
 
-Cpu *constructCpu(MemoryBus *memBus)
+Cpu *constructCpu(MemoryBus *memBus, int count)
 {
     Cache *instructionCache = new Cache(3, 256, 32, DIRECT_MAPPED, memBus);
-    instructionCache->type = "Instruction Cache";
+    instructionCache->type = "Instruction Cache #" + str(count);
     Cache *dataCache = new Cache(4, 512, 32, DIRECT_MAPPED, memBus);
-    dataCache->type = "Data Cache";
+    dataCache->type = "Data Cache #" + str(count);
 
     MemoryRouter *router = new MemoryRouter(instructionCache, dataCache);
-    router->type = "Memory Router";
+    router->type = "Memory Router #" + str(count);
 
     Cpu *cpu = new Cpu(router);
+    cpu->type = "Cpu #" + str(count);
 
     cpu->addPipeline(new Fetch(cpu))
         ->addPipeline(new Decode(cpu))
@@ -45,8 +46,8 @@ int main()
 
     MemoryController *ram = new MemoryController(100, MEMORY_SIZE, {0x100, 0x200, 0x1400});
     MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
-    Cpu *cpu0 = constructCpu(memBus);
-    Cpu *cpu1 = constructCpu(memBus);
+    Cpu *cpu0 = constructCpu(memBus, 0);
+    Cpu *cpu1 = constructCpu(memBus, 1);
 
     // Initialize arrays in fp memory
     for (int i = 0; i < ARRAY_SIZE; i++)

@@ -77,6 +77,7 @@ void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, u
     uint32_t sets = blocks / associativity;
 
     this->data = new MemoryBank(accessTime, size, 0);
+    this->data->type = "Cache Memory Bank";
 
     this->offsetWidth = bitLength(blockSize - 1);
     this->offsetMask = slice(FULL_MASK, offsetWidth - 1, 0);
@@ -211,7 +212,7 @@ void Cache::loadBlock(uint32_t address)
     {
 
         uint32_t previousAddress = this->memoryAddresses.at(blockIndex);
-        DEBUG << str(this) << " writing back block " << blockIndex << " in set " << this->index(address) << " to memory address " << str(previousAddress) << " to make room for " << str(address) << "\n";
+        DEBUG << this << " writing back block " << blockIndex << " in set " << this->index(address) << " to memory address " << str(previousAddress) << " to make room for " << str(address) << "\n";
         this->writeBackBlock(blockIndex, previousAddress);
     }
 
@@ -232,7 +233,7 @@ void Cache::loadBlock(uint32_t address)
 void Cache::writeBackBlock(uint32_t blockIndex, uint32_t address)
 {
     uint32_t cacheStart = blockIndex * this->blockSize;
-    DEBUG << "Writing back starting from cache address " << str(cacheStart) << "\n";
+    DEBUG << this << " writing back starting from cache address " << str(cacheStart) << "\n";
 
     uint32_t memoryStart = address ^ this->offset(address);
     for (uint32_t i = 0; i < this->blockSize; i += 4)
@@ -287,6 +288,7 @@ bool Cache::request(MemoryRequest *request, bool reIssued)
             this->seen.push_back(memBlock);
         }
 
+        DEBUG << this << " detected a miss for " << request << "\n";
         // Request block from memory
         assert(this->blockLoadRequest == NULL);
         this->blockLoadRequest = new MemoryRequest(address, this);
@@ -407,6 +409,7 @@ void Cache::process(Event *event)
     }
     else if (event->type == "WriteBack")
     {
+        DEBUG << this << " finishing write back " << this->writeBackRequest << "\n";
         event->handled = true;
         uint32_t address = this->writeBackRequest->address;
         uint32_t blockIndex = findBlock(address);
@@ -448,6 +451,7 @@ void Cache::cancelRequest(MemoryRequest *request)
 
 bool Cache::snoop(MesiEvent *mesiEvent)
 {
+    DEBUG << this << " received " << mesiEvent << "\n";
     uint32_t address = mesiEvent->address;
 
     MesiState state;
@@ -457,9 +461,11 @@ bool Cache::snoop(MesiEvent *mesiEvent)
     }
     catch (AddressNotFound &error)
     {
+        DEBUG << this << " not tracking address related with " << mesiEvent << "\n";
         return false; // Cache is not tracking that address
     }
 
+    DEBUG << this << " has " << stateName(state) << " state for address related with " << mesiEvent << "\n";
     if (state == INVALID)
     {
         return false;
@@ -512,28 +518,6 @@ MesiState Cache::state(uint32_t address)
     }
 }
 
-std::string stateName(MesiState state)
-{
-    std::string stateName;
-    switch (state)
-    {
-    case MODIFIED:
-        stateName = "MODIFIED";
-        break;
-    case EXCLUSIVE:
-        stateName = "EXCLUSIVE";
-        break;
-    case SHARED:
-        stateName = "SHARED";
-        break;
-    case INVALID:
-        stateName = "INVALID";
-        break;
-    }
-
-    return stateName;
-}
-
 void Cache::setState(uint32_t address, MesiState state)
 {
     uint32_t index;
@@ -580,6 +564,7 @@ float Cache::readFloat(uint32_t address)
 
 void Cache::write(uint32_t address, void *start, uint32_t bytes)
 {
+    DEBUG << this << " writing to " << address << "\n";
     this->updateLruState(address);
     this->data->write(this->cacheAddress(address), start, bytes);
 }

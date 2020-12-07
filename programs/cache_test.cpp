@@ -533,7 +533,8 @@ void testMesiSignalGeneration()
     assert(memory->readInt(address) == val);
 
     // Reset and read from local to set local to exclusive
-    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, local));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, other));
     processRequest(local, address);
     assert(local->mesiStates[index] == EXCLUSIVE);
     assert(other->mesiStates[index] == INVALID);

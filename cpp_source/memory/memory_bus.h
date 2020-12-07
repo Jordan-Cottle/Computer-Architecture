@@ -28,15 +28,18 @@ enum MesiSignal
 
 struct Cache;
 
-// Forgive me for how I am going to use this
-struct MesiEvent
+struct MesiEvent : printable
 {
     MesiSignal signal;
     uint32_t address;
     Cache *originator;
 
     MesiEvent(MesiSignal signal, uint32_t address, Cache *originator);
+
+    std::string __str__();
 };
+
+std::string stateName(MesiState state);
 
 struct Cache;
 

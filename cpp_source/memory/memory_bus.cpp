@@ -9,11 +9,57 @@
 #include "simulation.h"
 using namespace Simulation;
 
+std::string stateName(MesiState state)
+{
+    std::string stateName;
+    switch (state)
+    {
+    case MODIFIED:
+        stateName = "MODIFIED";
+        break;
+    case EXCLUSIVE:
+        stateName = "EXCLUSIVE";
+        break;
+    case SHARED:
+        stateName = "SHARED";
+        break;
+    case INVALID:
+        stateName = "INVALID";
+        break;
+    }
+
+    return stateName;
+}
+
+std::string signalName(MesiSignal signal)
+{
+    std::string signalName;
+    switch (signal)
+    {
+    case MEM_READ:
+        signalName = "MEM_READ";
+        break;
+    case RWITM:
+        signalName = "RWITM";
+        break;
+    case INVALIDATE:
+        signalName = "INVALIDATE";
+        break;
+    }
+
+    return signalName;
+}
+
 MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
 {
     this->signal = signal;
     this->address = address;
     this->originator = originator;
+}
+
+std::string MesiEvent::__str__()
+{
+    return str(this->originator) + " " + signalName(this->signal) + " at " + str(this->address);
 }
 
 MemoryBus::MemoryBus(int accessTime, MemoryController *memory) : MemoryInterface(accessTime, 0), memory(memory)
@@ -39,6 +85,7 @@ void MemoryBus::linkCache(Cache *cache)
 
 void MemoryBus::broadcast(MesiEvent *mesiEvent)
 {
+    INFO << this << " broadcasting " << mesiEvent << "\n";
     WriteBack *writeBack = NULL;
     for (auto cache : this->caches)
     {
@@ -128,7 +175,9 @@ uint32_t MemoryBus::port(uint32_t address)
 
 bool MemoryBus::request(MemoryRequest *request)
 {
+    DEBUG << this << " received " << request << "\n";
     this->requests.at(this->port(request->address))->push_back(request);
+    request->enqueued = true;
 
     return true;
 }

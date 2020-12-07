@@ -23,6 +23,7 @@ MemoryInterface *MemoryRouter::selectMemoryDevice(uint32_t address)
 
 bool MemoryRouter::request(MemoryRequest *request)
 {
+    DEBUG << this << " routing " << request << "\n";
     MemoryInterface *memoryDevice = this->selectMemoryDevice(request->address);
     return memoryDevice->request(request);
 }

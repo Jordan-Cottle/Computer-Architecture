@@ -229,6 +229,7 @@ MemoryBank *MemoryController::getBank(uint32_t address)
 
 bool MemoryController::request(MemoryRequest *request)
 {
+    DEBUG << this << " received " << request << "\n";
     uint32_t address = request->address;
     this->checkBounds(address);
     return this->getBank(address)->request(request);
