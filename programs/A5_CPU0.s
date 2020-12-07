@@ -12,7 +12,7 @@ main:                                   # 0x0 : 0
 	addi	a1, zero, 99
 	blt	a1, a0, .LBB0_16
 	j	.LBB0_2
-.LBB0_2:                                # 0x30 : 42
+.LBB0_2:                                # 0x30 : 48
 	mv	a0, zero
 	sh	a0, -16(s0)
 	j	.LBB0_3

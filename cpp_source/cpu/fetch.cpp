@@ -7,7 +7,7 @@
 
 #include "opcodes.h"
 #include "control_instructions.h"
-
+#include "cache.h"
 #include "simulation.h"
 using namespace Simulation;
 
@@ -104,7 +104,17 @@ void Fetch::process(Event *event)
     if (event->type == "MemoryRequest")
     {
         event->handled = true;
-        bool accepted = this->cpu->memory->request(this->cpu->programCounter.value, this);
+        bool accepted;
+        try
+        {
+            accepted = this->cpu->memory->request(this->cpu->programCounter.value, this);
+        }
+        catch (AddressNotFound &error)
+        {
+            std::cout << "ERROR: address was not found in the cache";
+            accepted = false;
+        }
+
         if (!accepted)
         {
             Event *event = new Event("MemoryRequest", simulationClock.cycle + 5, this);
@@ -115,7 +125,13 @@ void Fetch::process(Event *event)
     {
         event->handled = true;
 
-        this->stage(new RawInstruction(this->cpu->memory->readUint(this->cpu->programCounter.value)));
+        try
+        {
+            this->stage(new RawInstruction(this->cpu->memory->readUint(this->cpu->programCounter.value)));
+        }
+        catch (AddressNotFound &error)
+        {
+        }
 
         Event *event = new Event("WorkCompleted", simulationClock.cycle, this, HIGH);
         masterEventQueue.push(event);
@@ -124,7 +140,14 @@ void Fetch::process(Event *event)
     else if (event->type == "WorkCompleted")
     {
         event->handled = true;
-        this->processInstruction();
+        if (this->staged() != NULL)
+        {
+            this->processInstruction();
+        }
+        else
+        {
+            ++this->cpu->programCounter;
+        }
     }
 
     Pipeline::process(event);

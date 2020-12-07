@@ -3,6 +3,8 @@
     Created: 11/14/2020
 */
 
+#include <math.h>
+
 #include "cache.h"
 
 #include "binary.h"
@@ -15,8 +17,19 @@ AddressNotFound::AddressNotFound(uint32_t address) : std::runtime_error("Memory 
     this->address = address;
 }
 
+Cache::Cache(uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source) : MemoryInterface(uint32_t(ceil(log2(size / float(blockSize)))) * associativity, size)
+{
+    initialize(this->accessTime, size, blockSize, associativity, source);
+}
+
 Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source) : MemoryInterface(accessTime, size)
 {
+    initialize(accessTime, size, blockSize, associativity, source);
+}
+
+void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source)
+{
+    this->type = "Cache";
     this->source = source;
     this->outstandingMiss = false;
 
@@ -26,6 +39,7 @@ Cache::Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t as
     }
 
     uint32_t blocks = size / blockSize;
+    // TODO this should really be a vector of CacheBlock objects
     this->valid = std::vector<bool>(blocks);
     this->tags = std::vector<uint32_t>(blocks);
     this->lruBits = std::vector<bool>(blocks);

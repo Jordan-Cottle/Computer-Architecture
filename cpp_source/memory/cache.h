@@ -51,7 +51,9 @@ struct Cache : MemoryInterface
     uint32_t addressRequested;
     SimulationDevice *requestor;
 
+    Cache(uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source);
     Cache(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source);
+    void initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, uint32_t associativity, MemoryBus *source);
 
     uint32_t tag(uint32_t address);
     uint32_t index(uint32_t address);
