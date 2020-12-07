@@ -179,7 +179,14 @@ void MemoryBus::process(Event *event)
 void MemoryBus::cancelRequest(MemoryRequest *request)
 {
     DEBUG << "Memory bus is canceling " << request << "\n";
-    this->clearRequest(request->address);
+    if (!request->enqueued)
+    {
+        return; // We haven't seen this request yet
+    }
+
+    assert(request->inProgress);
+    this->clearRequest(request);
+    this->memory->cancelRequest(request);
 }
 
 void MemoryBus::clearRequest(uint32_t address)
@@ -203,23 +210,66 @@ void MemoryBus::clearRequest(uint32_t address)
         }
     }
 
-    if (!requestQueue->empty() && request->inProgress)
-    {
-        requestQueue->pop_front();
-    }
+void MemoryBus::clearRequest(MemoryRequest *request)
+{
+    uint32_t port = this->port(request->address);
+    auto requestQueue = this->requests.at(port);
 
-    for (auto queue : this->requests)
+    MemoryRequest *found = NULL;
+    std::deque<MemoryRequest *> lookedAt = std::deque<MemoryRequest *>();
+    for (uint32_t i = 0; i < requestQueue->size(); ++i)
     {
-        if (queue->empty())
+        auto enqueuedRequest = requestQueue->front();
+        requestQueue->pop_front();
+        if (request == enqueuedRequest)
         {
-            continue;
+            found = request;
+            break;
         }
 
-        auto r = queue->front();
+        // Hold onto this for later, it wasn't the right one
+        lookedAt.push_back(enqueuedRequest);
+    }
 
-        if (r == NULL)
+    // Did we get it?
+    assert(found != NULL);
+
+    // Put them back gently
+    while (!lookedAt.empty())
+    {
+        auto replace = lookedAt.back();
+        lookedAt.pop_back();
+        requestQueue->push_front(replace);
+    }
+
+    if (request->inProgress)
+    {
+        request->enqueued = false;
+        if (request->canceled)
         {
-            throw std::logic_error("Requests in queue should not be null after clearing!");
+            delete request; // This is the final reference to it
+        }
+    }
+}
+
+void MemoryBus::clearRequest(uint32_t address)
+{
+    uint32_t port = this->port(address);
+    auto requestQueue = this->requests.at(port);
+    if (requestQueue->empty())
+    {
+        return;
+    }
+
+    auto request = requestQueue->front();
+
+    if (request->inProgress)
+    {
+        requestQueue->pop_front();
+        request->enqueued = false;
+        if (request->canceled)
+        {
+            delete request; // This is the final reference to it
         }
     }
 }

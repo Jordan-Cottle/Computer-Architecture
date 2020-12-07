@@ -19,12 +19,12 @@ struct MemoryRequest : printable
     SimulationDevice *device;
     bool read;
     bool inProgress;
+    bool enqueued;
+    bool canceled;
 
     MemoryInterface *currentHandler;
 
     MemoryRequest(uint32_t address, SimulationDevice *device, bool read = true);
-
-    void cancel();
 
     std::string __str__();
 };

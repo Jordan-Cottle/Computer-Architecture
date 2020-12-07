@@ -13,17 +13,8 @@ MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, bool re
     this->read = read;
     this->inProgress = false;
     this->currentHandler = NULL;
-}
-
-void MemoryRequest::cancel()
-{
-    if (this->currentHandler == NULL)
-    {
-        WARNING << "Unhandled memory request canceled!!\n";
-        return;
-    }
-
-    this->currentHandler->cancelRequest(this);
+    this->enqueued = false;
+    this->canceled = false;
 }
 
 std::string MemoryRequest::__str__()
@@ -245,7 +236,7 @@ bool MemoryController::request(MemoryRequest *request)
 
 void MemoryController::cancelRequest(MemoryRequest *request)
 {
-    throw std::logic_error("The Memory controller does not own active requests\n");
+    this->getBank(request->address)->cancelRequest(request);
 }
 
 uint32_t MemoryController::readUint(uint32_t address)

@@ -149,7 +149,7 @@ void Fetch::flush()
     if (this->activeRequest != NULL)
     {
         WARNING << "Canceling fetch memory request\n";
-        this->activeRequest->cancel();
+        this->cpu->memory->cancelRequest(this->activeRequest);
         delete this->activeRequest;
         this->activeRequest = NULL;
         this->outstandingRequest = false;

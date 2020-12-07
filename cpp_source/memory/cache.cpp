@@ -422,9 +422,28 @@ void Cache::process(Event *event)
 
 void Cache::cancelRequest(MemoryRequest *request)
 {
-    WARNING << "Cache setting active request to null!\n";
-    assert(this->outstandingMiss); // Cache should only be owner of a request while handling a miss
+    WARNING << this << " canceling " << request << "!\n";
+    assert(request == this->activeRequest);
     this->activeRequest = NULL;
+    if (this->internalRequest != NULL)
+    {
+        DEBUG << this << " clearing internal " << this->internalRequest << "\n";
+        this->data->cancelRequest(request);
+        delete this->internalRequest;
+        this->internalRequest = NULL;
+    }
+
+    if (this->outstandingMiss)
+    {
+        this->source->cancelRequest(this->blockLoadRequest);
+        this->outstandingMiss = false;
+        delete this->blockLoadRequest;
+        this->blockLoadRequest = NULL;
+    }
+
+    assert(this->writeBackRequest == NULL);
+
+    this->source->cancelRequest(request);
 }
 
 bool Cache::snoop(MesiEvent *mesiEvent)
