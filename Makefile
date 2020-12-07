@@ -26,7 +26,7 @@ SHELL = /usr/bin/python3
 
 assignment5: ${BINARIES} gauss-blur.exe gauss-cached.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
 	import os
-	os.system("./gauss-blur.exe")
+	assert os.system("./gauss-blur.exe") == 0, "Gaussian blur simulation must complete successfully"
 
 	# Create the image files
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py ${DATA_DIR}/MAT_A_DATA.txt original.png")
@@ -35,7 +35,7 @@ assignment5: ${BINARIES} gauss-blur.exe gauss-cached.exe .venv MAT_A_DATA.dat MA
 
 	input("Cacheless blur simulation complete, press enter to continue")
 
-	os.system("./gauss-cached.exe")
+	assert os.system("./gauss-cached.exe") == 0, "Gaussian blur simulation with caches must complete successfully"
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py cached-convolution.txt cached-convolution.png")
 	os.system("${VPY} ${TOOLS_DIR}/make_image.py cached-output.txt cached-output.png")
 
@@ -43,22 +43,22 @@ assignment4: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe d
 	import os
 
 	# Start assignment4 part 1
-	os.system("./cache_performance_test.exe")
+	assert os.system("./cache_performance_test.exe") = 0, "Simulation must succees"
 
 	input("Part 1 complete, press enter to continue")
 
 	# Start assignment4 part 2
 
 	# No Cache
-	os.system("./duo-core.exe")
+	assert os.system("./duo-core.exe") = 0, "Simulation must succees"
 	input("No cache simulation complete, press enter to continue")
 
 	# Provided Cache
-	os.system("./duo-cache.exe")
+	assert os.system("./duo-cache.exe") = 0, "Simulation must succees"
 	input("Provided cache simulation complete, press enter to continue")
 
-	# Provided Cache
-	os.system("./duo-optimum.exe 256 512 128 1 4 best_results.json")
+	# Best cache
+	assert os.system("./duo-optimum.exe 256 512 128 1 4 best_results.json") = 0, "Simulation must succees"
 	input("Optimum cache simulation complete, press enter to continue")
 
 .venv: # Set up the ${VPY} virtual environtment
