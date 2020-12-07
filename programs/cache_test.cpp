@@ -463,7 +463,8 @@ void testMesiSignalGeneration()
     assert(other->readInt(address) == val);
 
     // Invalidate both caches
-    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, local));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, other));
     assert(local->mesiStates[index] == INVALID);
     assert(other->mesiStates[index] == INVALID);
 
