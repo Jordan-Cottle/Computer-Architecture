@@ -50,16 +50,39 @@ struct MemoryInterface : SimulationDevice
     virtual void write(uint32_t address, void *start, uint32_t bytes) = 0;
 };
 
-struct Memory : MemoryInterface
+struct MemoryBank : MemoryInterface
 {
     std::vector<uint8_t> data;
-    std::vector<uint32_t> partitions;
-    std::vector<bool> busy;
+    MemoryRequest *activeRequest;
+    uint32_t logicalOffset;
 
-    Memory(uint32_t accessTime, uint32_t size);
-    Memory(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partitions);
+    MemoryBank(uint32_t accessTime, uint32_t size, uint32_t logicalOffset);
+
+    bool request(MemoryRequest *request);
+    void cancelRequest(MemoryRequest *request);
+
+    void process(Event *event);
+
+    uint32_t readUint(uint32_t address);
+    int readInt(uint32_t address);
+    float readFloat(uint32_t address);
+    void write(uint32_t address, void *start, uint32_t bytes);
+
+    bool busy();
+    uint32_t localAddress(uint32_t physicalAddress);
+
+    std::string __str__();
+};
+
+struct MemoryController : MemoryInterface
+{
+    std::vector<MemoryBank *> memoryBanks;
+
+    MemoryController(uint32_t accessTime, uint32_t size);
+    MemoryController(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partitions);
 
     uint32_t partition(uint32_t address);
+    MemoryBank *getBank(uint32_t address);
     bool request(MemoryRequest *request);
     void cancelRequest(MemoryRequest *request);
 
@@ -67,8 +90,6 @@ struct Memory : MemoryInterface
     int readInt(uint32_t address);
     float readFloat(uint32_t address);
     void write(uint32_t address, void *start, uint32_t bytes);
-
-    std::string __str__();
 };
 
 #endif

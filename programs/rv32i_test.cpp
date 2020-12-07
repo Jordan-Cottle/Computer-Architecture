@@ -10,7 +10,7 @@ constexpr uint32_t BAR = 40;
 int main()
 {
     uint32_t pc = 0;
-    Memory *testRam = new Memory(0, MEMORY_SIZE);
+    MemoryController *testRam = new MemoryController(0, MEMORY_SIZE);
     Cpu *testCpu = new Cpu(testRam);
 
     Fetch *testFetch = new Fetch(testCpu);
@@ -270,9 +270,10 @@ int main()
     data = 0x87654321;
     testRam->write(memoryLocation, MFMT(data));
 
+    MemoryBank *memoryBank = testRam->getBank(memoryLocation);
     store.execute(testCpu);
-    assert(testRam->readUint(memoryLocation) == 0x87654378); // Only first two hex digits written
-    assert(testRam->data[memoryLocation] == 0x78);           // Only first two hex digits written
+    assert(testRam->readUint(memoryLocation) == 0x87654378);                      // Only first two hex digits written
+    assert(memoryBank->data[memoryLocation - memoryBank->logicalOffset] == 0x78); // Only first two hex digits written
 
     // SH
     pc = 64;
@@ -289,9 +290,10 @@ int main()
     testRam->write(memoryLocation, MFMT(data));
 
     store.execute(testCpu);
-    assert(testRam->readUint(memoryLocation) == 0x87655678); // Only first 4 hex digits written
-    assert(testRam->data[memoryLocation] == 0x78);           // Only first 4 hex digits written
-    assert(testRam->data[memoryLocation + 1] == 0x56);       // Only first 4 hex digits written
+    memoryBank = testRam->getBank(memoryLocation);
+    assert(testRam->readUint(memoryLocation) == 0x87655678);                            // Only first 4 hex digits written
+    assert(memoryBank->data[memoryLocation - memoryBank->logicalOffset] == 0x78);       // Only first 4 hex digits written
+    assert(memoryBank->data[(memoryLocation - memoryBank->logicalOffset) + 1] == 0x56); // Only first 4 hex digits written
 
     // SW
     pc = 68;

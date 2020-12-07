@@ -31,7 +31,7 @@ struct Cache : MemoryInterface
     uint32_t associativity;
 
     // Attributes
-    Memory *data;
+    MemoryBank *data;
     std::vector<bool> valid;
     std::vector<uint32_t> tags;
     std::vector<bool> lruBits;

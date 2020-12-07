@@ -16,7 +16,7 @@ Cpu::Cpu() : SimulationDevice("Cpu"),
              intRegister(Register<int>(REGISTER_COUNT, "Integer")),
              fpRegister(Register<float>(REGISTER_COUNT, "Float")),
              // Default settings for cpu0.s
-             memory(new Memory(MEMORY_DELAY, MEMORY_SIZE, {0x200, 0x1400}))
+             memory(new MemoryController(MEMORY_DELAY, MEMORY_SIZE, {0x200, 0x1400}))
 {
     this->programCounter = ProgramCounter(MEMORY_ADDRESSES_PER_INSTRUCTION);
     this->branchSpeculated = false;

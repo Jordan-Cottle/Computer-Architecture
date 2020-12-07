@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <string>
 #include <iostream>
+#include <memory.h>
 
 #define DEBUG          \
     if (DEBUG_ENABLED) \
@@ -27,8 +28,8 @@
     if (ERROR_ENABLED) \
     std::cout << "ERROR -- "
 
-#define DEBUG_ENABLED false
-#define INFO_ENABLED false
+#define DEBUG_ENABLED true
+#define INFO_ENABLED true
 #define WARNING_ENABLED true
 #define ERROR_ENABLED true
 

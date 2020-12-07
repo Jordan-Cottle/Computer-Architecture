@@ -5,7 +5,7 @@ using namespace Simulation;
 
 int main()
 {
-    Memory *testMemory = new Memory(10, 32, {8, 16, 32});
+    MemoryController *testMemory = new MemoryController(11, 32, {8, 16, 32});
     testMemory->write(0, MFMT(PI));
     MemoryBus bus = MemoryBus(BUS_ARBITRATION_TIME, testMemory);
 
@@ -49,9 +49,17 @@ int main()
 
     // Memory should be ready now
     simulationClock.cycle = BUS_ARBITRATION_TIME + testMemory->accessTime;
-    assert(masterEventQueue.top()->type == "MemoryWriteReady");
-    assert(masterEventQueue.top()->time == simulationClock.cycle);
-    testPipeline.process(masterEventQueue.pop());
+    std::cout << masterEventQueue << "\n";
+    Event *nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "MemoryReady");
+    assert(nextEvent->time == simulationClock.cycle);
+    nextEvent->device->process(nextEvent);
+
+    nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "MemoryWriteReady");
+    assert(nextEvent->time == simulationClock.cycle);
+    assert(nextEvent->device == &testPipeline);
+    nextEvent->device->process(nextEvent);
 
     // Pipeline received the memory read
     assert(testPipeline.lastEvent->type == "MemoryWriteReady");
@@ -63,29 +71,37 @@ int main()
     assert(!requestQueue->front()->inProgress); // Next request should be ready, but not yet started.
 
     // Finish processing events in this cycle
-    assert(masterEventQueue.top()->type == "ProcessRequests");
-    assert(masterEventQueue.top()->time == simulationClock.cycle);
-    masterEventQueue.tick(simulationClock.cycle);
+    nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "ProcessRequests");
+    assert(nextEvent->device == &bus);
+    simulationClock.cycle = nextEvent->time;
+
+    nextEvent->device->process(nextEvent);
     assert(requestQueue->front()->inProgress); // Next request should be started.
 
-    // Remove process requests since test no longer needs it. This effectively kills the memory bus until it is started again
-    assert(masterEventQueue.top()->type == "ProcessRequests"); // Bus should keep trying to process requests
-    assert(masterEventQueue.top()->time == simulationClock.cycle + bus.accessTime);
-    masterEventQueue.pop();
+    // Remove next bus event, it is no longer needed
+    nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "ProcessRequests");
+    assert(nextEvent->time == simulationClock.cycle + bus.accessTime);
+    assert(nextEvent->device == &bus);
 
     // Second memory access scheduled
-    assert(masterEventQueue.top()->type == "MemoryReadReady");
-    assert(masterEventQueue.top()->time == simulationClock.cycle + testMemory->accessTime);
-
+    nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "MemoryReady");
+    assert(nextEvent->time == simulationClock.cycle + testMemory->accessTime);
     simulationClock.cycle += testMemory->accessTime;
-    assert(masterEventQueue.top()->type == "MemoryReadReady");
-    assert(masterEventQueue.top()->time == simulationClock.cycle);
-    assert(masterEventQueue.top()->device == &fetchUnit); // Fetch unit originally made read request
-    testPipeline.process(masterEventQueue.pop());         // Send event to test pipeline instead
+    nextEvent->device->process(nextEvent);
+
+    nextEvent = masterEventQueue.pop();
+    assert(nextEvent->type == "MemoryReadReady");
+    assert(nextEvent->time == simulationClock.cycle);
+    assert(nextEvent->device == &fetchUnit); // Fetch unit originally made read request
+    testPipeline.process(nextEvent);         // Send event to test pipeline instead
     assert(testPipeline.lastEvent->type == "MemoryReadReady");
     assert(testPipeline.lastEvent->time == simulationClock.cycle);
 
-    assert(bus.memory->busy[bus.memory->partition(0)] == true);
+    uint32_t partition = bus.memory->partition(0);
+    assert(bus.memory->memoryBanks.at(partition)->busy());
     assert(bus.readFloat(0) == PI);
-    assert(bus.memory->busy[bus.memory->partition(0)] == false);
+    assert(!bus.memory->memoryBanks.at(partition)->busy());
 }

@@ -39,7 +39,7 @@ int main()
     // Set up initial cpu tick to kick things off
     masterEventQueue.push(new Event("Tick", 0, &cpu));
 
-    while (!cpu.complete)
+    while (!cpu.complete && cpu.clocksProcessed < 300)
     {
         masterEventQueue.tick(simulationClock.cycle);
 

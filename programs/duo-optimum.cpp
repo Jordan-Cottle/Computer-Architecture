@@ -187,7 +187,7 @@ SimulationResult runSimulation(CacheConfig iConfig, CacheConfig dConfig)
     float ARRAY_C[ARRAY_SIZE];
     float ARRAY_D[ARRAY_SIZE];
 
-    Memory *ram = new Memory(100, MEMORY_SIZE, {0x100, 0x200, 0x1400});
+    MemoryController *ram = new MemoryController(100, MEMORY_SIZE, {0x100, 0x200, 0x1400});
     MemoryBus *memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
 
     Cpu *cpu0 = constructCpu(memBus, iConfig, dConfig);

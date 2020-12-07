@@ -15,7 +15,7 @@ const int MAT_B_SIZE = (MAT_C_START - MAT_B_START);
 const int MAT_C_SIZE = (MAT_D_START - MAT_C_START) / 2;
 const int MAT_D_SIZE = (0xA1DD - MAT_D_START);
 
-Memory *ram;
+MemoryController *ram;
 MemoryBus *memBus;
 Cpu *cpu0;
 Cpu *cpu1;
@@ -23,7 +23,7 @@ Cpu *cpu1;
 int main()
 {
 
-    ram = new Memory(100, MEM_END, {0x200, 0x400, MEM_END});
+    ram = new MemoryController(100, MEM_END, {0x200, 0x400, MEM_END});
     memBus = new MemoryBus(BUS_ARBITRATION_TIME, ram);
     cpu0 = new Cpu(memBus);
     cpu1 = new Cpu(memBus);
@@ -61,10 +61,10 @@ int main()
 
     // Set up initial cpu tick to kick things off
     masterEventQueue.push(new Event("Tick", 0, cpu0));
-    masterEventQueue.push(new Event("Tick", 0, cpu1));
+    // masterEventQueue.push(new Event("Tick", 0, cpu1));
 
     std::cout << "Thinking... (This should take a minute or two)\n";
-    while (!cpu0->complete || !cpu1->complete)
+    while (!cpu0->complete && !cpu1->complete)
     {
         masterEventQueue.tick(simulationClock.cycle);
 

@@ -76,7 +76,7 @@ void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, u
     }
     uint32_t sets = blocks / associativity;
 
-    this->data = new Memory(accessTime, size);
+    this->data = new MemoryBank(accessTime, size, 0);
 
     this->offsetWidth = bitLength(blockSize - 1);
     this->offsetMask = slice(FULL_MASK, offsetWidth - 1, 0);

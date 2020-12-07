@@ -16,19 +16,19 @@ MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
     this->originator = originator;
 }
 
-MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTime, 0), memory(memory)
+MemoryBus::MemoryBus(int accessTime, MemoryController *memory) : MemoryInterface(accessTime, 0), memory(memory)
 {
     this->type = "MemoryBus";
     this->requests = std::vector<std::deque<MemoryRequest *> *>();
 
-    for (uint32_t i = 0; i < memory->partitions.size(); i++)
+    for (uint32_t i = 0; i < memory->memoryBanks.size(); i++)
     {
         this->requests.push_back(new std::deque<MemoryRequest *>());
     }
     this->caches = std::vector<Cache *>();
 
     // Set up first process trigger
-    Event *event = new Event("ProcessRequests", simulationClock.cycle + this->accessTime, this);
+    Event *event = new Event("ProcessRequests", simulationClock.cycle + this->accessTime, this, HIGH);
     masterEventQueue.push(event);
 }
 
@@ -148,9 +148,11 @@ void MemoryBus::process(Event *event)
             }
 
             MemoryRequest *request = requestQueue->front();
+            assert(request != NULL);
             if (request->inProgress)
             {
-                DEBUG << "Memory bus waiting for " << request << " to complete\n";
+                DEBUG << "Memory bus waiting for a request to complete\n";
+                DEBUG << "Request: " << str(request) << "\n";
                 continue; // Request already in progress
             }
 
@@ -160,14 +162,14 @@ void MemoryBus::process(Event *event)
 
             if (accepted)
             {
-                DEBUG << request << " accepted\n";
+                DEBUG << this << " redirected " << request << " accepted\n";
                 assert(request->inProgress);
             }
 
             DEBUG << "Port " << str(port) << ": " << str(requestQueue->size()) << " event(s) left\n";
         }
 
-        Event *nextProcess = new Event("ProcessRequests", simulationClock.cycle + this->accessTime, this);
+        Event *nextProcess = new Event("ProcessRequests", simulationClock.cycle + this->accessTime, this, HIGH);
         masterEventQueue.push(nextProcess);
     }
 

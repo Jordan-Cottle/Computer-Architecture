@@ -52,111 +52,120 @@ void MemoryInterface::checkBounds(uint32_t address)
     }
 }
 
-Memory::Memory(uint32_t accessTime, uint32_t size) : MemoryInterface(accessTime, size)
+MemoryBank::MemoryBank(uint32_t accessTime, uint32_t size, uint32_t logicalOffset) : MemoryInterface(accessTime, size)
 {
+    this->type = "Memory Bank";
     this->data = std::vector<uint8_t>(size);
-    this->accessTime = accessTime;
-
-    this->partitions = {size};
-    this->busy = {false};
+    this->activeRequest = NULL;
+    this->logicalOffset = logicalOffset;
 }
 
-Memory::Memory(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partitions) : MemoryInterface(accessTime, size)
+bool MemoryBank::request(MemoryRequest *request)
 {
-    this->data = std::vector<uint8_t>(size);
-    this->accessTime = accessTime;
-
-    this->partitions = partitions;
-
-    for (auto partition : partitions)
+    DEBUG << this->type << " received " << request << "\n";
+    assert(request->currentHandler != this);
+    if (this->busy())
     {
-        if (partition > size)
-        {
-            throw std::runtime_error("Partition " + str(partition) + " for memory cannot be bigger than its size " + str(size));
-        }
-        this->busy.push_back(false);
-    }
-}
-
-uint32_t Memory::partition(uint32_t address)
-{
-    this->checkBounds(address);
-    uint32_t i = 0;
-    while (address >= this->partitions[i])
-    {
-        i++;
-    }
-    return i;
-}
-
-bool Memory::request(MemoryRequest *request)
-{
-    uint32_t address = request->address;
-    this->checkBounds(address);
-    uint32_t partition = this->partition(address);
-
-    if (this->busy[partition])
-    {
+        DEBUG << this->type << " is busy handling " << this->activeRequest << " and cannot handle " << request << "\n";
         return false;
     }
 
-    this->busy[partition] = true;
+    assert(this->activeRequest == NULL);
 
-    Event *event;
-    if (request->read)
-    {
-        event = new Event("MemoryReadReady", simulationClock.cycle + this->accessTime, request->device);
-    }
-    else
-    {
-        event = new Event("MemoryWriteReady", simulationClock.cycle + this->accessTime, request->device);
-    }
+    DEBUG << this->type << " started processing " << request << "\n";
+    this->activeRequest = request;
+    this->activeRequest->currentHandler = this;
+    this->activeRequest->inProgress = true;
 
-    request->inProgress = true;
+    Event *event = new Event("MemoryReady", simulationClock.cycle + this->accessTime, this);
     masterEventQueue.push(event);
-
     return true;
 }
 
-uint32_t Memory::readUint(uint32_t address)
+void MemoryBank::cancelRequest(MemoryRequest *request)
 {
-    this->checkBounds(address);
-    this->busy[this->partition(address)] = false;
-    return *(uint32_t *)&this->data[address];
+    INFO << "Memory cell canceling " << request << "\n";
+    assert(this->activeRequest == request);
+    this->activeRequest = NULL;
 }
 
-int Memory::readInt(uint32_t address)
+void MemoryBank::process(Event *event)
 {
-    this->checkBounds(address);
-    this->busy[this->partition(address)] = false;
-    return *(int *)&this->data[address];
+    if (event->type == "MemoryReady")
+    {
+        event->handled = true;
+        if (this->activeRequest == NULL)
+        {
+            DEBUG << "Canceled request ready in memory bank\n";
+        }
+        else
+        {
+            Event *newEvent;
+            if (this->activeRequest->read)
+            {
+                newEvent = new Event("MemoryReadReady", event->time, this->activeRequest->device, HIGH);
+            }
+            else
+            {
+                newEvent = new Event("MemoryWriteReady", simulationClock.cycle, this->activeRequest->device, HIGH);
+            }
+
+            masterEventQueue.push(newEvent);
+        }
+    }
+
+    MemoryInterface::process(event);
 }
 
-float Memory::readFloat(uint32_t address)
+uint32_t MemoryBank::readUint(uint32_t physicalAddress)
 {
-    this->checkBounds(address);
-    this->busy[this->partition(address)] = false;
-    return *(float *)&this->data[address];
+    this->activeRequest = NULL;
+    uint32_t address = this->localAddress(physicalAddress);
+    return *(uint32_t *)&this->data.at(address);
 }
 
-void Memory::write(uint32_t address, void *start, uint32_t bytes)
+int MemoryBank::readInt(uint32_t physicalAddress)
 {
-    this->checkBounds(address);
-    this->checkBounds(address + bytes - 1);
-    this->busy[this->partition(address)] = false;
+    this->activeRequest = NULL;
+    uint32_t address = this->localAddress(physicalAddress);
+    return *(int *)&this->data.at(address);
+}
+
+float MemoryBank::readFloat(uint32_t physicalAddress)
+{
+    this->activeRequest = NULL;
+    uint32_t address = this->localAddress(physicalAddress);
+    return *(float *)&this->data.at(address);
+}
+
+void MemoryBank::write(uint32_t physicalAddress, void *start, uint32_t bytes)
+{
+    this->activeRequest = NULL;
+    uint32_t address = this->localAddress(physicalAddress);
 
     uint8_t *begin = (uint8_t *)start;
     for (uint32_t i = 0; i < bytes; i++)
     {
         uint8_t byte = *(begin + i);
         DEBUG << "Writing " << str(byte) << " into address " << str(address + i) << "\n";
-        this->data[address + i] = byte;
+        this->data.at(address + i) = byte;
     }
 }
 
-std::string Memory::__str__()
+bool MemoryBank::busy()
 {
-    std::string s = "Memory : {";
+    return this->activeRequest != NULL;
+}
+
+uint32_t MemoryBank::localAddress(uint32_t physicalAddress)
+{
+    assert(physicalAddress >= this->logicalOffset);
+    return physicalAddress - this->logicalOffset;
+}
+
+std::string MemoryBank::__str__()
+{
+    std::string s = "MemoryBank : {";
 
     std::string line = "";
     int mem_address = 0;
@@ -185,4 +194,76 @@ std::string Memory::__str__()
     s += "\n}";
 
     return s;
+}
+
+MemoryController::MemoryController(uint32_t accessTime, uint32_t size) : MemoryInterface(accessTime, size)
+{
+    this->type = "Memory Controller";
+    this->memoryBanks = {new MemoryBank(accessTime, size, 0)};
+}
+
+MemoryController::MemoryController(uint32_t accessTime, uint32_t size, std::vector<uint32_t> partitions) : MemoryInterface(accessTime, size)
+{
+    this->memoryBanks = std::vector<MemoryBank *>();
+
+    uint32_t offset = 0;
+    for (auto partition : partitions)
+    {
+        if (partition > size)
+        {
+            throw std::runtime_error("Partition " + str(partition) + " for memory cannot be bigger than its size " + str(size));
+        }
+
+        this->memoryBanks.push_back(new MemoryBank(accessTime, partition - offset, offset));
+        offset = partition;
+    }
+}
+
+uint32_t MemoryController::partition(uint32_t address)
+{
+    this->checkBounds(address);
+    uint32_t i = 0;
+    for (auto memoryBank : this->memoryBanks)
+        if (memoryBank->logicalOffset <= address)
+        {
+            i += 1;
+        }
+    return i - 1;
+}
+
+MemoryBank *MemoryController::getBank(uint32_t address)
+{
+    return this->memoryBanks.at(this->partition(address));
+}
+
+bool MemoryController::request(MemoryRequest *request)
+{
+    uint32_t address = request->address;
+    this->checkBounds(address);
+    return this->getBank(address)->request(request);
+}
+
+void MemoryController::cancelRequest(MemoryRequest *request)
+{
+    throw std::logic_error("The Memory controller does not own active requests\n");
+}
+
+uint32_t MemoryController::readUint(uint32_t address)
+{
+    return this->getBank(address)->readUint(address);
+}
+
+int MemoryController::readInt(uint32_t address)
+{
+    return this->getBank(address)->readInt(address);
+}
+
+float MemoryController::readFloat(uint32_t address)
+{
+    return this->getBank(address)->readFloat(address);
+}
+
+void MemoryController::write(uint32_t address, void *start, uint32_t bytes)
+{
+    this->getBank(address)->write(address, start, bytes);
 }

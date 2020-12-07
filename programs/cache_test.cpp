@@ -9,7 +9,7 @@ constexpr uint32_t CACHE_DELAY = 3;
 constexpr uint32_t BLOCK_SIZE = 16;
 constexpr uint32_t ASSOCIATIVITY = DIRECT_MAPPED;
 
-Memory *memory = new Memory(CACHE_DELAY * 10, CACHE_SIZE * 4);
+MemoryController *memory = new MemoryController(CACHE_DELAY * 10, CACHE_SIZE * 4);
 MemoryBus *memBus;
 std::vector<int> mockData = std::vector<int>(memory->size / 4);
 
@@ -42,11 +42,20 @@ void testEventHandling()
     DEBUG << masterEventQueue << "\n";
     nextEvent = masterEventQueue.pop();
     INFO << nextEvent << " selected\n";
-    assert(nextEvent->type == "MemoryReadReady");
+    assert(nextEvent->type == "MemoryReady");
     assert(nextEvent->time == (ulong)memory->accessTime + memBus->accessTime); // Long delay for cache miss
-    assert(nextEvent->device == cache);
 
     simulationClock.cycle = nextEvent->time;
+    nextEvent->device->process(nextEvent);
+
+    assert(masterEventQueue.size() == 1);
+    DEBUG << masterEventQueue << "\n";
+    nextEvent = masterEventQueue.pop();
+    INFO << nextEvent << " selected\n";
+    assert(nextEvent->type == "MemoryReadReady");
+    assert(nextEvent->time == simulationClock.cycle); // Long delay for cache miss
+    assert(nextEvent->device == cache);
+
     nextEvent->device->process(nextEvent);
 
     // Internal cache reading from its own memory for a read hit
@@ -54,9 +63,19 @@ void testEventHandling()
     DEBUG << masterEventQueue << "\n";
     nextEvent = masterEventQueue.pop();
     INFO << nextEvent << " selected\n";
-    assert(nextEvent->type == "MemoryReadReady");                                           // Same event type
-    assert(nextEvent->time == memory->accessTime + cache->accessTime + memBus->accessTime); // Scheduled after cache access time
-    assert(nextEvent->device == cache);                                                     // Passed back to cache (this is the actual cache read)
+    assert(nextEvent->type == "MemoryReady");
+    assert(nextEvent->time == simulationClock.cycle + cache->accessTime); // Scheduled after cache access time
+
+    simulationClock.cycle = nextEvent->time; // Update sim time to event time
+    nextEvent->device->process(nextEvent);
+
+    assert(masterEventQueue.size() == 1);
+    DEBUG << masterEventQueue << "\n";
+    nextEvent = masterEventQueue.pop();
+    INFO << nextEvent << " selected\n";
+    assert(nextEvent->type == "MemoryReadReady");
+    assert(nextEvent->time == simulationClock.cycle); // Scheduled after cache access time
+    assert(nextEvent->device == cache);               // Passed back to cache (this is the actual cache read)
 
     simulationClock.cycle = nextEvent->time; // Update sim time to event time
     nextEvent->device->process(nextEvent);

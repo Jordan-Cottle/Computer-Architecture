@@ -4,7 +4,7 @@
 
 int main()
 {
-    Memory *testRam = new Memory(0, MEMORY_SIZE);
+    MemoryController *testRam = new MemoryController(0, MEMORY_SIZE);
     Cpu *testCpu = new Cpu(testRam);
 
     Fetch *testFetch = new Fetch(testCpu);
@@ -45,7 +45,9 @@ int main()
 
     assert(testCpu->intRegister.read(1) == (int)memoryAddress);
     assert(testCpu->intRegister.read(2) == value);
-    assert(testRam->data[memoryAddress] == value);
+
+    MemoryBank *bank = testRam->getBank(memoryAddress);
+    assert(bank->data[memoryAddress - bank->logicalOffset] == value);
 
     pc = 12;
     instruction = RawInstruction(testRam->readUint(pc));
@@ -56,5 +58,6 @@ int main()
     assert(testCpu->intRegister.read(1) == (int)memoryAddress);
     assert(testCpu->intRegister.read(2) == value);
     assert(testCpu->intRegister.read(3) == value);
-    assert(testRam->data[memoryAddress] == value);
+    bank = testRam->getBank(memoryAddress);
+    assert(bank->data[memoryAddress - bank->logicalOffset] == value);
 }

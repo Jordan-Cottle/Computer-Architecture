@@ -3,7 +3,7 @@ using namespace Simulation;
 
 int main()
 {
-    Memory memory = Memory(20, 8, {0x4, 0x8});
+    MemoryController memory = MemoryController(20, 8, {0x4, 0x8});
 
     for (int i = 0; i < 32; i++)
     {
@@ -28,13 +28,44 @@ int main()
     MemoryRequest request = MemoryRequest(0, &testPipeline);
     bool accepted = memory.request(&request);
     assert(accepted);
-    assert(memory.busy[0] == true);
-    accepted = memory.request(&request);
+    assert(memory.memoryBanks.at(0)->busy());
+    MemoryRequest otherRequest = MemoryRequest(0, &testPipeline);
+    accepted = memory.request(&otherRequest);
     assert(!accepted);
 
-    assert(masterEventQueue.events.top()->type == "MemoryReadReady");
-    assert(masterEventQueue.events.top()->time == (ulong)memory.accessTime);
-    assert(masterEventQueue.events.top()->device == &testPipeline);
+    Event *nextEvent = masterEventQueue.top();
+    simulationClock.cycle = nextEvent->time;
+    assert(nextEvent->type == "MemoryReady");
+    assert(nextEvent->time == (ulong)memory.accessTime);
+    assert(nextEvent->device == memory.memoryBanks.at(0));
+    nextEvent->device->process(masterEventQueue.pop());
+    nextEvent = masterEventQueue.top();
+    assert(nextEvent->type == "MemoryReadReady");
+    assert(nextEvent->time == (ulong)memory.accessTime);
+    assert(nextEvent->device == &testPipeline);
+    nextEvent->device->process(masterEventQueue.pop());
+    nextEvent = masterEventQueue.top();
+    memory.readUint(0);
+    assert(!memory.memoryBanks.at(0)->busy());
 
+    // Requests to separate banks get handled in parallel
+    request = MemoryRequest(0, &testPipeline);
+    accepted = memory.request(&request);
+    assert(accepted);
+    assert(memory.memoryBanks.at(0)->busy());
+    otherRequest = MemoryRequest(4, &testPipeline);
+    accepted = memory.request(&otherRequest);
+    assert(accepted);
+    assert(memory.memoryBanks.at(1)->busy());
+
+    assert(masterEventQueue.size() == 2);
+    uint32_t i = 0;
+    while (!masterEventQueue.empty())
+    {
+        nextEvent = masterEventQueue.pop();
+        assert(nextEvent->type == "MemoryReady");
+        assert(nextEvent->time == simulationClock.cycle + memory.accessTime);
+        assert(nextEvent->device == memory.memoryBanks.at(i++));
+    }
     return 0;
 }

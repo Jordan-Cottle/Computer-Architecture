@@ -153,7 +153,7 @@ int main()
     std::vector<CacheResult *> results = std::vector<CacheResult *>();
 
     // Create and write fake data to memory
-    Memory *memory = new Memory(100, 1024 * 8);
+    MemoryController *memory = new MemoryController(100, 1024 * 8);
     for (uint32_t i = 0; i < memory->size; i += 4)
     {
         memory->write(i, MFMT(i));

@@ -43,12 +43,12 @@ struct Cache;
 // Use Memory Interface to keep it compatible with cpu0.s simulation
 struct MemoryBus : MemoryInterface
 {
-    Memory *memory;
+    MemoryController *memory;
 
     std::vector<std::deque<MemoryRequest *> *> requests;
     std::vector<Cache *> caches;
 
-    MemoryBus(int accessTime, Memory *memory);
+    MemoryBus(int accessTime, MemoryController *memory);
 
     void linkCache(Cache *cache);
     void broadcast(MesiEvent *mesiEvent);

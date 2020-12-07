@@ -46,6 +46,7 @@ void EventQueue::tick(ulong time)
         Event *event = this->pop();
         SimulationDevice *device = event->device;
 
+        DEBUG << "Processing " << event << "\n";
         device->process(event);
     }
 }

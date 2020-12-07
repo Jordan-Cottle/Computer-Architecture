@@ -21,22 +21,31 @@ int main()
     storeUnit.stage(storeInstruction);
     storeUnit.tick();
     std::cout << masterEventQueue << "\n";
-    assert(masterEventQueue.top()->type == "MemoryRequest");
+    Event *nextEvent = masterEventQueue.top();
+    assert(nextEvent->type == "MemoryRequest");
+    assert(nextEvent->time == simulationClock.cycle);
+    assert(nextEvent->device == &storeUnit);
+    nextEvent->device->process(masterEventQueue.pop());
 
-    masterEventQueue.tick(0);
+    nextEvent = masterEventQueue.top();
     std::cout << masterEventQueue << "\n";
-    assert(masterEventQueue.top()->type == "MemoryWriteReady");
-    assert(masterEventQueue.top()->time == (ulong)cpu.memory->accessTime);
-    assert(masterEventQueue.top()->device == &storeUnit);
-
+    assert(nextEvent->type == "MemoryReady");
+    assert(nextEvent->time == (ulong)cpu.memory->accessTime);
     simulationClock.cycle = cpu.memory->accessTime;
-    storeUnit.process(masterEventQueue.pop());
-    assert(masterEventQueue.top()->type == "WorkCompleted");
-    assert(masterEventQueue.top()->time == (ulong)cpu.memory->accessTime);
-    assert(masterEventQueue.top()->device == &storeUnit);
+    nextEvent->device->process(masterEventQueue.pop());
+    nextEvent = masterEventQueue.top();
+
+    assert(nextEvent->type == "MemoryWriteReady");
+    assert(nextEvent->time == (ulong)cpu.memory->accessTime);
+    nextEvent->device->process(masterEventQueue.pop());
+    nextEvent = masterEventQueue.top();
+
+    assert(nextEvent->type == "WorkCompleted");
+    assert(nextEvent->time == (ulong)cpu.memory->accessTime);
+    assert(nextEvent->device == &storeUnit);
 
     assert(cpu.memory->readFloat(RAM_LOCATION - 4) == 0);
-    storeUnit.process(masterEventQueue.pop());
+    nextEvent->device->process(masterEventQueue.pop());
     assert(cpu.memory->readFloat(RAM_LOCATION - 4) == PI);
 
     return 0;
