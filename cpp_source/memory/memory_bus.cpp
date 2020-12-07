@@ -114,31 +114,19 @@ void MemoryBus::broadcast(MesiEvent *mesiEvent)
     if (writeBack != NULL)
     {
         // Reschedule write back ahead of current memory request
-        if (mesiEvent->address != writeBack->address)
-        {
-            throw std::logic_error("The write back should be associated with the same address as the mesi event!");
-        }
+        assert(mesiEvent->address == writeBack->address);
 
         // Get first request in queue, it should be the one that triggered this mesi event
         uint32_t port = this->port(writeBack->address);
         auto requestQueue = this->requests.at(port);
-        auto request = requestQueue->front();
 
+        auto request = this->findRequest(writeBack->address);
+
+        DEBUG << writeBack->cache << " write back for address " << writeBack->address << " appears to be triggered by " << request << "\n";
         // Validate assumptions about the context here
-        if (request->inProgress)
-        {
-            throw std::logic_error("A write back should never be triggered for a request that is already progress!");
-        }
-
-        if (request->address != writeBack->address)
-        {
-            throw std::logic_error("The write back address should match request that is in progress!");
-        }
-
-        if (request->device == writeBack->cache)
-        {
-            throw std::logic_error("The cache making a write back should NOT be the cache making the original request!");
-        }
+        assert(!request->inProgress);
+        assert(request->address == writeBack->address);
+        assert(request->device != writeBack->cache);
 
         Cache *cache = writeBack->cache;
         cache->writeBackRequest = new MemoryRequest(writeBack->address, cache, false);
@@ -238,26 +226,40 @@ void MemoryBus::cancelRequest(MemoryRequest *request)
     this->memory->cancelRequest(request);
 }
 
-void MemoryBus::clearRequest(uint32_t address)
+MemoryRequest *MemoryBus::findRequest(uint32_t address)
 {
     uint32_t port = this->port(address);
     auto requestQueue = this->requests.at(port);
-    auto request = requestQueue->front();
 
-    for (auto queue : this->requests)
+    MemoryRequest *found = NULL;
+    std::deque<MemoryRequest *> lookedAt = std::deque<MemoryRequest *>();
+    for (uint32_t i = 0; i < requestQueue->size(); ++i)
     {
-        if (queue->empty())
+        auto enqueuedRequest = requestQueue->front();
+        requestQueue->pop_front();
+        if (address == enqueuedRequest->address)
         {
-            continue;
+            assert(found == NULL);
+            found = enqueuedRequest;
         }
 
-        auto r = queue->front();
-
-        if (r == NULL)
-        {
-            throw std::logic_error("Requests in queue should not be null before clearing!");
-        }
+        // Hold onto this for later, it wasn't the right one
+        lookedAt.push_back(enqueuedRequest);
     }
+
+    // Did we get it?
+    assert(found != NULL);
+
+    // Put them back gently
+    while (!lookedAt.empty())
+    {
+        auto replace = lookedAt.back();
+        lookedAt.pop_back();
+        requestQueue->push_front(replace);
+    }
+
+    return found;
+}
 
 void MemoryBus::clearRequest(MemoryRequest *request)
 {
