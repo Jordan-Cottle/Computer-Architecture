@@ -23,7 +23,7 @@ struct Pipeline : SimulationDevice
     bool free();
 
     void stage(RawInstruction *);
-    void flush();
+    virtual void flush();
     bool busy();
 
     RawInstruction *staged();

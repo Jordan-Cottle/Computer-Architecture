@@ -56,6 +56,8 @@ struct MemoryBus : MemoryInterface
 
     uint32_t port(uint32_t address);
     bool request(MemoryRequest *request);
+    void cancelRequest(MemoryRequest *request);
+
     void process(Event *event);
     void clearRequest(uint32_t address);
 

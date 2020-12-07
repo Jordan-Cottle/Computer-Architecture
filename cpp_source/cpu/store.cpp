@@ -15,6 +15,7 @@ using namespace Simulation;
 StorePipeline::StorePipeline(Cpu *cpu) : Pipeline("StorePipeline")
 {
     this->cpu = cpu;
+    this->activeRequest = NULL;
 }
 
 void StorePipeline::tick()

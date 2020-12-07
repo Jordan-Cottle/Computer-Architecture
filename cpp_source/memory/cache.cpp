@@ -420,6 +420,13 @@ void Cache::process(Event *event)
     MemoryInterface::process(event);
 }
 
+void Cache::cancelRequest(MemoryRequest *request)
+{
+    WARNING << "Cache setting active request to null!\n";
+    assert(this->outstandingMiss); // Cache should only be owner of a request while handling a miss
+    this->activeRequest = NULL;
+}
+
 bool Cache::snoop(MesiEvent *mesiEvent)
 {
     uint32_t address = mesiEvent->address;

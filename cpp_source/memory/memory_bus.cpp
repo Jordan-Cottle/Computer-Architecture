@@ -174,6 +174,12 @@ void MemoryBus::process(Event *event)
     SimulationDevice::process(event);
 }
 
+void MemoryBus::cancelRequest(MemoryRequest *request)
+{
+    DEBUG << "Memory bus is canceling " << request << "\n";
+    this->clearRequest(request->address);
+}
+
 void MemoryBus::clearRequest(uint32_t address)
 {
     uint32_t port = this->port(address);

@@ -12,15 +12,19 @@
 
 #define MFMT(val) (void *)&val, sizeof(val)
 
+struct MemoryInterface;
 struct MemoryRequest : printable
 {
     uint32_t address;
     SimulationDevice *device;
     bool read;
     bool inProgress;
-    bool canceled;
+
+    MemoryInterface *currentHandler;
 
     MemoryRequest(uint32_t address, SimulationDevice *device, bool read = true);
+
+    void cancel();
 
     std::string __str__();
 };
@@ -35,6 +39,7 @@ struct MemoryInterface : SimulationDevice
     void checkBounds(uint32_t address);
 
     virtual bool request(MemoryRequest *request) = 0;
+    virtual void cancelRequest(MemoryRequest *request) = 0;
 
     // I was using templates for this
     // But supporting using RAM directly and a Memory bus on the same cpu interface was impossible
@@ -56,6 +61,7 @@ struct Memory : MemoryInterface
 
     uint32_t partition(uint32_t address);
     bool request(MemoryRequest *request);
+    void cancelRequest(MemoryRequest *request);
 
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);

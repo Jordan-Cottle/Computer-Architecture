@@ -18,6 +18,7 @@ struct MemoryRouter : MemoryInterface
     MemoryInterface *selectMemoryDevice(uint32_t address);
 
     bool request(MemoryRequest *request);
+    void cancelRequest(MemoryRequest *request);
 
     uint32_t readUint(uint32_t address);
     int readInt(uint32_t address);

@@ -13,6 +13,7 @@ using namespace Simulation;
 Execute::Execute(Cpu *cpu) : Pipeline("Execute")
 {
     this->cpu = cpu;
+    this->activeRequest = NULL;
 }
 
 void Execute::tick()

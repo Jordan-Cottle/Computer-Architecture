@@ -27,6 +27,11 @@ bool MemoryRouter::request(MemoryRequest *request)
     return memoryDevice->request(request);
 }
 
+void MemoryRouter::cancelRequest(MemoryRequest *request)
+{
+    throw std::logic_error("Memory router does not own or handle requests!\n");
+}
+
 uint32_t MemoryRouter::readUint(uint32_t address)
 {
     return this->selectMemoryDevice(address)->readUint(address);

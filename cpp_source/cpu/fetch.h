@@ -21,6 +21,7 @@ struct Fetch : Pipeline
 
     void tick();
     void process(Event *event);
+    void flush();
 
     void processInstruction();
 };

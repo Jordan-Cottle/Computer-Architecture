@@ -15,6 +15,7 @@ Fetch::Fetch(Cpu *cpu) : Pipeline("Fetch")
 {
     this->cpu = cpu;
     this->outstandingRequest = false;
+    this->activeRequest = NULL;
 }
 
 void Fetch::tick()
@@ -34,6 +35,11 @@ void Fetch::tick()
     if (this->outstandingRequest)
     {
         DEBUG << "Fetch unit not requesting because it already has an outstanding request\n";
+        return;
+    }
+    if (this->activeRequest != NULL)
+    {
+        WARNING << this << " not requesting a new instruction because it has an active request already\n";
         return;
     }
 
@@ -134,4 +140,18 @@ void Fetch::process(Event *event)
     }
 
     Pipeline::process(event);
+}
+
+void Fetch::flush()
+{
+    Pipeline::flush();
+
+    if (this->activeRequest != NULL)
+    {
+        WARNING << "Canceling fetch memory request\n";
+        this->activeRequest->cancel();
+        delete this->activeRequest;
+        this->activeRequest = NULL;
+        this->outstandingRequest = false;
+    }
 }

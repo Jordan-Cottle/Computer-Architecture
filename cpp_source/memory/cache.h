@@ -82,6 +82,7 @@ struct Cache : MemoryInterface
 
     bool request(MemoryRequest *request);
     bool request(MemoryRequest *request, bool reIssued);
+    void cancelRequest(MemoryRequest *request);
     void process(Event *event);
 
     bool snoop(MesiEvent *mesiEvent);

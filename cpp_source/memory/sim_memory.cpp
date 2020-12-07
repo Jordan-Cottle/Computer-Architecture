@@ -12,12 +12,23 @@ MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, bool re
     this->address = address;
     this->read = read;
     this->inProgress = false;
-    this->canceled = false;
+    this->currentHandler = NULL;
+}
+
+void MemoryRequest::cancel()
+{
+    if (this->currentHandler == NULL)
+    {
+        WARNING << "Unhandled memory request canceled!!\n";
+        return;
+    }
+
+    this->currentHandler->cancelRequest(this);
 }
 
 std::string MemoryRequest::__str__()
 {
-    return std::string("Memory ") + (this->read ? "read" : "write") + " request for address " + str(this->address) + " by " + this->device->type;
+    return std::string(this->read ? "read" : "write") + " request for address " + str(this->address) + " by " + this->device->type + " currently handled by " + (this->currentHandler == NULL ? "NULL" : this->currentHandler->type);
 }
 
 std::string HEX_CHARS[16] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
