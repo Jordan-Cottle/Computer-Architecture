@@ -99,13 +99,6 @@ void MemoryBus::broadcast(MesiEvent *mesiEvent)
 
         // Write back request should go first
         requestQueue->push_front(cache->writeBackRequest);
-        for (int i = 0; i < requestQueue->size(); i++)
-        {
-            auto request = requestQueue->front();
-            std::cout << "Request in membus queue: " << request << "\n";
-            requestQueue->push_back(request);
-            requestQueue->pop_front();
-        }
     }
     delete mesiEvent;
 }
