@@ -59,7 +59,8 @@ void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, u
 
     for (uint32_t i = 0; i < blocks; i++)
     {
-        mesiStates.at(i) = INVALID;
+        this->mesiStates.at(i) = INVALID;
+        this->previousMesiStates.at(i) = INVALID;
     }
 
     this->blockSize = blockSize;
@@ -254,6 +255,7 @@ bool Cache::request(MemoryRequest *request, bool reIssued)
 {
     assert(this->activeRequest == NULL || (reIssued && this->activeRequest == request));
     this->activeRequest = request;
+    request->currentHandler = this;
     uint32_t cacheAddress;
     uint32_t address = request->address;
     bool accepted;
