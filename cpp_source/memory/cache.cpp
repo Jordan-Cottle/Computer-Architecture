@@ -104,7 +104,7 @@ void Cache::initialize(uint32_t accessTime, uint32_t size, uint32_t blockSize, u
 
 uint32_t Cache::tag(uint32_t address)
 {
-    return (this->tagMask & address) >> (this->offsetWidth + this->indexWidth);
+    return (this->tagMask & address);
 }
 
 uint32_t Cache::index(uint32_t address)

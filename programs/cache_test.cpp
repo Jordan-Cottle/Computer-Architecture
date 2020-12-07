@@ -105,7 +105,8 @@ void testAdressing()
         for (uint32_t j = 0; j < memory->size / BLOCK_SIZE; j++)
         {
             uint32_t address = i + (CACHE_SIZE * j);
-            assert(cache->tag(address) == j);
+            DEBUG << "Tag for " << address << " is " << cache->tag(address) << "\n";
+            assert(cache->tag(address) == address - i);
         }
     }
 
