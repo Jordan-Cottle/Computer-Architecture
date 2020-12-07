@@ -113,7 +113,7 @@ void Cpu::loadProgram(std::string fileName, uint32_t offset, MemoryInterface *me
         memAddress += sizeof(instruction);
     }
 
-    INFO << "Program of size " << instruction - 4 << " loaded!\n";
+    INFO << "Program of size " << memAddress - 4 << " loaded!\n";
 
     this->programCounter.value = offset;
 }
