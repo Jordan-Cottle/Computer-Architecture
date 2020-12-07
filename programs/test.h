@@ -74,7 +74,7 @@ void processEvents()
     }
 }
 
-void load_binary(std::string fileName, Memory *memory, uint32_t startAddress)
+void load_binary(std::string fileName, MemoryInterface *memory, uint32_t startAddress)
 {
 
     std::ifstream dataFile(fileName, std::ios::binary);
@@ -88,7 +88,7 @@ void load_binary(std::string fileName, Memory *memory, uint32_t startAddress)
     uint32_t memAddress = startAddress;
     while (dataFile.read((char *)&data, sizeof(data)))
     {
-        memory->data[memAddress++] = data;
+        memory->write(memAddress++, MFMT(data));
     }
 }
 
