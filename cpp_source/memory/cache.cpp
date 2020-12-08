@@ -260,9 +260,9 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         if (read)
         {
             // read miss
+            DEBUG << this << " detected read miss for " << address << "\n";
             if (this->source->trackedBy(address, this) != NULL)
             {
-                // TODO: Get from that cache
                 this->setState(address, SHARED);
             }
             else
@@ -274,6 +274,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         else
         {
             // write miss
+            DEBUG << this << " detected write miss for " << address << "\n";
             Cache *tracking = this->source->trackedBy(address, this);
             if (tracking == NULL)
             {
@@ -316,6 +317,7 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
         if (!read)
         {
             // write hit
+            DEBUG << this << " detected write hit for " << address << "\n";
             switch (this->state(address))
             {
             case SHARED:
@@ -329,6 +331,10 @@ bool Cache::request(uint32_t address, SimulationDevice *device, bool read, bool 
             default:
                 break;
             }
+        }
+        else
+        {
+            DEBUG << this << " detected read hit for " << address << "\n";
         }
     }
 
@@ -359,6 +365,7 @@ void Cache::process(Event *event)
 
 bool Cache::snoop(MesiEvent *mesiEvent)
 {
+    DEBUG << this << " snooped " << mesiEvent << "\n";
     uint32_t blockIndex;
     try
     {
@@ -390,7 +397,6 @@ bool Cache::snoop(MesiEvent *mesiEvent)
         case EXCLUSIVE:
         case SHARED:
             this->mesiStates.at(blockIndex) = SHARED;
-            // TODO send memory to requestor
         default:
             break;
         }
@@ -402,7 +408,6 @@ bool Cache::snoop(MesiEvent *mesiEvent)
             // TODO write back to memory
         case EXCLUSIVE:
         case SHARED:
-            // TODO send memory to requestor
             this->mesiStates.at(blockIndex) = INVALID;
             this->valid.at(blockIndex) = false;
         default:
@@ -438,6 +443,7 @@ void Cache::setState(uint32_t address, MesiState state)
         index = this->blockToEvict(address);
     }
 
+    DEBUG << this << " setting state for block " << index << " to " << name(state) << "\n";
     this->mesiStates.at(index) = state;
 
     if (this->mesiStates.at(index) == INVALID)

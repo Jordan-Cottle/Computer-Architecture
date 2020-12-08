@@ -9,6 +9,11 @@
 
 #include <string>
 #include <iostream>
+#include <assert.h>
+
+#define EVENT          \
+    if (EVENT_ENABLED) \
+    std::cout << "EVENT -- "
 
 #define DEBUG          \
     if (DEBUG_ENABLED) \
@@ -26,6 +31,7 @@
     if (ERROR_ENABLED) \
     std::cout << "ERROR -- "
 
+#define EVENT_ENABLED true
 #define DEBUG_ENABLED true
 #define INFO_ENABLED true
 #define WARNING_ENABLED true

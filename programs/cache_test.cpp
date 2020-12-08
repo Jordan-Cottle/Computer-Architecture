@@ -239,7 +239,9 @@ void testReplacementPolicy()
 void testMesiStateChange()
 {
     Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    local->type = "Cache 0";
     Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    other->type = "Cache 1";
 
     uint32_t address = 0;
     local->loadBlock(address); // Make sure cache thinks the memory is valid
@@ -330,7 +332,9 @@ void testMesiSignalGeneration()
 {
     memBus->caches.clear();
     Cache *local = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    local->type = "Cache 0";
     Cache *other = new Cache(CACHE_DELAY, CACHE_SIZE, BLOCK_SIZE, DIRECT_MAPPED, memBus);
+    other->type = "Cache 1";
 
     // Assert caches are registered with membus
     assert(memBus->caches.size() == 2);
@@ -382,7 +386,8 @@ void testMesiSignalGeneration()
     assert(other->readInt(address) == val);
 
     // Invalidate both caches
-    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, local));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, other));
     assert(local->mesiStates[index] == INVALID);
     assert(other->mesiStates[index] == INVALID);
 
@@ -411,7 +416,8 @@ void testMesiSignalGeneration()
     assert(other->readInt(address) == val);
 
     // Reset and read from local to set local to exclusive
-    memBus->broadcast(new MesiEvent(INVALIDATE, address, NULL));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, local));
+    memBus->broadcast(new MesiEvent(INVALIDATE, address, other));
     processRequest(local, address);
     assert(local->mesiStates[index] == EXCLUSIVE);
     assert(other->mesiStates[index] == INVALID);
@@ -457,8 +463,10 @@ int main()
     std::cout << "\nTesting cache replacement policy\n";
     testReplacementPolicy();
 
-    std::cout << "\nTesting mesi protocol\n";
+    std::cout << "\nTesting mesi state changes\n";
     testMesiStateChange();
+
+    std::cout << "\nTesting mesi signal generation\n";
     testMesiSignalGeneration();
 
     return 0;

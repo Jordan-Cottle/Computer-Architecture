@@ -24,16 +24,21 @@ enum MesiSignal
     INVALIDATE
 };
 
+std::string name(MesiState state);
+std::string name(MesiSignal signal);
+
 struct Cache;
 
 // Forgive me for how I am going to use this
-struct MesiEvent
+struct MesiEvent : printable
 {
     MesiSignal signal;
     uint32_t address;
     Cache *originator;
 
     MesiEvent(MesiSignal signal, uint32_t address, Cache *originator);
+
+    std::string __str__();
 };
 
 struct MemoryRequest : printable

@@ -9,18 +9,43 @@
 #include "simulation.h"
 using namespace Simulation;
 
+std::string name(MesiState state)
+{
+    switch (state)
+    {
+    case MODIFIED:
+        return "MODIFIED";
+    case EXCLUSIVE:
+        return "EXCLUSIVE";
+    case SHARED:
+        return "SHARED";
+    case INVALID:
+        return "INVALID";
+    }
+
+    assert(false);
+}
+
+std::string name(MesiSignal signal)
+{
+    switch (signal)
+    {
+    case MEM_READ:
+        return "MEM_READ";
+    case RWITM:
+        return "RWITM";
+    case INVALIDATE:
+        return "INVALIDATE";
+    }
+
+    assert(false);
+}
+
 MemoryRequest::MemoryRequest(uint32_t address, SimulationDevice *device, uint32_t completeAt, bool read) : device(device)
 {
     this->address = address;
     this->completeAt = completeAt;
     this->read = read;
-}
-
-MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
-{
-    this->signal = signal;
-    this->address = address;
-    this->originator = originator;
 }
 
 bool MemoryRequest::operator<(const MemoryRequest &other)
@@ -31,6 +56,18 @@ bool MemoryRequest::operator<(const MemoryRequest &other)
 std::string MemoryRequest::__str__()
 {
     return "Memory request for address " + str(this->address) + " by " + this->device->type + " resolved at time " + str(this->completeAt);
+}
+
+MesiEvent::MesiEvent(MesiSignal signal, uint32_t address, Cache *originator)
+{
+    this->signal = signal;
+    this->address = address;
+    this->originator = originator;
+}
+
+std::string MesiEvent::__str__()
+{
+    return name(this->signal) + " sent by " + str(originator) + " for address " + str(address);
 }
 
 MemoryBus::MemoryBus(int accessTime, Memory *memory) : MemoryInterface(accessTime, 0), memory(memory)
@@ -151,5 +188,5 @@ void MemoryBus::write(uint32_t address, void *start, uint32_t bytes)
 
 std::string MemoryBus::__str__()
 {
-    return "Memory Bus for " + str(this->memory);
+    return "Memory Bus for " + this->memory->type;
 }
