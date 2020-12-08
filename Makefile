@@ -18,6 +18,12 @@ PROGRAM_DIR := programs
 DATA_DIR := data
 TOOLS_DIR := tools
 
+export EVENT_ENABLED=true
+export DEBUG_ENABLED=true
+export INFO_ENABLED=true
+export WARNING_ENABLED=true
+export ERROR_ENABLED=true
+
 VPY := ./.venv/bin/python
 
 SHELL = /usr/bin/python3

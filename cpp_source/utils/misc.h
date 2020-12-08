@@ -31,11 +31,11 @@
     if (ERROR_ENABLED) \
     std::cout << "ERROR -- "
 
-#define EVENT_ENABLED true
-#define DEBUG_ENABLED true
-#define INFO_ENABLED true
-#define WARNING_ENABLED true
-#define ERROR_ENABLED true
+extern const bool EVENT_ENABLED;
+extern const bool DEBUG_ENABLED;
+extern const bool INFO_ENABLED;
+extern const bool WARNING_ENABLED;
+extern const bool ERROR_ENABLED;
 
 struct printable
 {

@@ -1,4 +1,23 @@
+#include <stdlib.h>
+
 #include "misc.h"
+
+std::string envGet(const char *key, std::string defaultValue = "")
+{
+    char *val = getenv(key);
+    if (val == NULL)
+    {
+        return defaultValue;
+    }
+
+    return val;
+}
+
+const bool EVENT_ENABLED = envGet("EVENT_ENABLED") == "true";
+const bool DEBUG_ENABLED = envGet("DEBUG_ENABLED") == "true";
+const bool INFO_ENABLED = envGet("INFO_ENABLED") == "true";
+const bool WARNING_ENABLED = envGet("WARNING_ENABLED") == "true";
+const bool ERROR_ENABLED = envGet("ERROR_ENABLED") == "true";
 
 std::string str(printable *obj)
 {
