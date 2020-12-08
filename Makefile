@@ -75,7 +75,7 @@ assignment4: ${BINARIES} cache_performance_test.exe duo-core.exe duo-cache.exe d
 
 .venv: # Set up the ${VPY} virtual environtment
 	import os
-	os.system("python -m venv .venv")
+	os.system("python3 -m venv .venv")
 	os.system("${VPY} -m pip install -r requirements.txt")
 
 %.png: .venv  # Convert .txt data files into actual .png files
