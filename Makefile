@@ -37,6 +37,7 @@ assignment5: ${BINARIES} gauss-blur.exe gauss-cached.exe .venv MAT_A_DATA.dat MA
 	os.environ["EVENT_ENABLED"] = "false"
 	os.environ["DEBUG_ENABLED"] = "false"
 	os.environ["INFO_ENABLED"] = "false"
+	os.environ["WARNING_ENABLED"] = "false"
 
 	os.system("./gauss-blur.exe")
 
@@ -123,12 +124,11 @@ best_cache: duo-optimum.exe ${BINARIES} memory_trace.dat
 clean:
 	import os
 	os.system("rm -rf obj")
-	os.system("rm -rf .venv")
 	os.system("rm *.exe")
 	os.system("rm *.bin")
 	os.system("rm *.json")
 	os.system("rm *.png")
 	os.system("rm *.jpg")
 	os.system("rm *.dat")
-	os.system("rm output.txt")
-	os.system("rm convolution.txt")
+	os.system("rm *output.txt")
+	os.system("rm *convolution.txt")

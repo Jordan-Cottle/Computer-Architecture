@@ -146,7 +146,7 @@ void Fetch::process(Event *event)
         }
         else
         {
-            ERROR << "No instruction for fetch to process\n";
+            WARNING << "No instruction for fetch to process\n";
             ++this->cpu->programCounter;
         }
     }
