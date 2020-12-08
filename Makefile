@@ -32,6 +32,12 @@ SHELL = /usr/bin/python3
 
 assignment5: ${BINARIES} gauss-blur.exe gauss-cached.exe .venv MAT_A_DATA.dat MAT_B_DATA.dat
 	import os
+
+	# Simulation makes a LOT of noise, turn the logs off so it can run faster
+	os.environ["EVENT_ENABLED"] = "false"
+	os.environ["DEBUG_ENABLED"] = "false"
+	os.environ["INFO_ENABLED"] = "false"
+
 	os.system("./gauss-blur.exe")
 
 	# Create the image files

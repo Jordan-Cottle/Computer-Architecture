@@ -28,7 +28,6 @@ def main(data_source, output_path):
 
     maximum = max(data)
     while maximum > 0xFF:
-        print("Scaling back image data")
         data = [datum // 2 for datum in data]
         maximum = max(data)
 

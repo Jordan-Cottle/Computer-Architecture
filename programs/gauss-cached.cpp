@@ -100,10 +100,5 @@ int main()
     }
     outfile.close();
 
-    std::cout << "Cpu1 clock cycles: " << cpu0->clocksProcessed << "\n";
-    std::cout << "Cpu1 instructions processed: " << cpu0->instructionsProcessed << "\n";
-    std::cout << "Cpu1 cpi: " << cpu0->cpi() << "\n";
-    std::cout << "Cpu2 clock cycles: " << cpu1->clocksProcessed << "\n";
-    std::cout << "Cpu2 instructions processed: " << cpu1->instructionsProcessed << "\n";
-    std::cout << "Cpu2 cpi: " << cpu1->cpi() << "\n";
+    std::cout << new SimulationResult(cpu0, cpu1) << "\n";
 }
